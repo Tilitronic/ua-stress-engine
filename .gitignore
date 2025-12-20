@@ -1,8 +1,5 @@
-# Large data files - downloaded automatically
-src/nlp/stress/parser/ua_word_stress_dictionary.txt
-src/nlp/stress/parser/stress.trie
-src/nlp/stress/data/ua_word_stress.db
-src/nlp/stress/parser/.filtered_cache.pkl
+# Large data files - downloaded automatically to raw_data folder
+raw_data/
 
 # Python
 __pycache__/

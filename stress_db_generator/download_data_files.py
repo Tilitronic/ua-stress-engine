@@ -20,12 +20,12 @@ from typing import Optional
 # File configurations: (target_path, url, description)
 DATA_FILES = [
     (
-        "../raw_data/stress.trie",
+        "raw_data/stress.trie",
         "https://raw.githubusercontent.com/lang-uk/ukrainian-word-stress/master/ukrainian_word_stress/data/stress.trie",
         "Stress trie database",
     ),
     (
-        "../raw_data/ua_word_stress_dictionary.txt",
+        "raw_data/ua_word_stress_dictionary.txt",
         "https://raw.githubusercontent.com/lang-uk/ukrainian-word-stress-dictionary/master/stress.txt",
         "Ukrainian word stress dictionary",
     ),

@@ -11,6 +11,7 @@ python download_data_files.py
 ```
 
 This will automatically download:
+
 - `stress.trie` - Stress dictionary trie database
 - `ua_word_stress_dictionary.txt` - Ukrainian word stress dictionary
 
@@ -36,4 +37,4 @@ tests/               # Unit tests
 ```bash
 conda env create -f environment.yml
 conda activate versasense
-``` 
+```

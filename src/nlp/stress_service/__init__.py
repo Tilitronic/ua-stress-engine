@@ -17,8 +17,10 @@ Usage:
 """
 
 from .types import WordFormDict, WordLookupResult, format_stress_display, format_morphology_spacy
+from .stress_service import UkrainianStressService
 
 __all__ = [
+    "UkrainianStressService",
     "WordFormDict",
     "WordLookupResult",
     "format_stress_display",

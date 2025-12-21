@@ -25,7 +25,9 @@ import time
 import json
 import itertools
 import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import multiprocessing
+from multiprocessing import Manager
+from tqdm import tqdm
 
 # Add parent directories to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -36,6 +38,42 @@ from src.stress_db_generator.merger import DictionaryMerger
 from src.stress_db_generator.spacy_transformer import SpaCyTransformer
 from src.stress_db_generator.download_data_files import check_and_download_files
 from src.stress_db_generator.lmdb_exporter import LMDBExporter
+
+
+# ============================================================================
+# Multiprocessing Workers with Progress Reporting
+# ============================================================================
+
+def parse_trie_worker(trie_path: Path, queue: multiprocessing.Queue, result_queue: multiprocessing.Queue):
+    """Worker function for trie parsing with queue-based progress"""
+    def progress_callback(current, total):
+        # Report progress every 5000 items
+        if current % 5000 == 0 or current == total:
+            queue.put(('trie', current, total))
+    
+    try:
+        data = parse_trie_data(trie_path, progress_callback)
+        result_queue.put(('trie', data))
+        queue.put(('trie', None, None))  # Signal finished
+    except Exception as e:
+        result_queue.put(('trie_error', str(e)))
+        queue.put(('trie', None, None))
+
+
+def parse_txt_worker(txt_path: Path, queue: multiprocessing.Queue, result_queue: multiprocessing.Queue):
+    """Worker function for txt parsing with queue-based progress"""
+    def progress_callback(current, total):
+        # Report progress every 5000 items
+        if current % 5000 == 0 or current == total:
+            queue.put(('txt', current, total))
+    
+    try:
+        data = parse_txt_dictionary(txt_path, progress_callback)
+        result_queue.put(('txt', data))
+        queue.put(('txt', None, None))  # Signal finished
+    except Exception as e:
+        result_queue.put(('txt_error', str(e)))
+        queue.put(('txt', None, None))
 
 
 # ============================================================================
@@ -147,88 +185,100 @@ def main():
     if txt_path:
         print(f"📂 TXT:   {txt_path.name} ({txt_path.stat().st_size / (1024*1024):.2f} MB)")
     
+    print("\n🚀 Starting parallel parsing with multiprocessing (bypasses GIL)...\n")
     parallel_start = time.time()
     
-    # Shared counters for both parsers
-    trie_current = [0]
-    trie_total = [0]
-    txt_current = [0]
-    txt_total = [0]
+    # Create manager and queues for inter-process communication
+    manager = Manager()
+    progress_queue = manager.Queue()
+    result_queue = manager.Queue()
     
-    def trie_progress(current, total):
-        trie_current[0] = current
-        if trie_total[0] == 0:
-            trie_total[0] = total
+    # Start parsing processes
+    p_trie = multiprocessing.Process(target=parse_trie_worker, args=(trie_path, progress_queue, result_queue))
+    p_txt = multiprocessing.Process(target=parse_txt_worker, args=(txt_path, progress_queue, result_queue)) if txt_path else None
     
-    def txt_progress(current, total):
-        txt_current[0] = current
-        if txt_total[0] == 0:
-            txt_total[0] = total
+    p_trie.start()
+    if p_txt:
+        p_txt.start()
     
-    # Display thread to show both progress bars
-    display_running = True
+    # Create stacked progress bars
+    pbar_trie = tqdm(total=100, desc="Trie", position=0, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt}')
+    pbar_txt = tqdm(total=100, desc="TXT ", position=1, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt}') if txt_path else None
     
-    def display_progress():
-        """Background thread to display progress for both parsers"""
-        while display_running:
-            if txt_path:
-                # Calculate progress for both
-                trie_pct = int(100 * trie_current[0] / trie_total[0]) if trie_total[0] > 0 else 0
-                txt_pct = int(100 * txt_current[0] / txt_total[0]) if txt_total[0] > 0 else 0
-                
-                trie_filled = int(40 * trie_pct // 100)
-                txt_filled = int(40 * txt_pct // 100)
-                
-                trie_bar = '█' * trie_filled + '░' * (40 - trie_filled)
-                txt_bar = '█' * txt_filled + '░' * (40 - txt_filled)
-                
-                # Print both lines
-                sys.stdout.write(f'\r  Trie     [{trie_bar}] {trie_pct}% ({trie_current[0]:,}/{trie_total[0]:,})\n')
-                sys.stdout.write(f'  TXT      [{txt_bar}] {txt_pct}% ({txt_current[0]:,}/{txt_total[0]:,})')
-                sys.stdout.write('\033[F')  # Move cursor back up
-            else:
-                # Single parser
-                trie_pct = int(100 * trie_current[0] / trie_total[0]) if trie_total[0] > 0 else 0
-                trie_filled = int(40 * trie_pct // 100)
-                trie_bar = '█' * trie_filled + '░' * (40 - trie_filled)
-                sys.stdout.write(f'\r  Trie     [{trie_bar}] {trie_pct}% ({trie_current[0]:,}/{trie_total[0]:,})')
-            
-            sys.stdout.flush()
-            time.sleep(0.05)
+    # Track progress from both processes
+    finished_count = 0
+    expected_finishes = 2 if txt_path else 1
+    trie_total = 0
+    txt_total = 0
     
-    display_thread = threading.Thread(target=display_progress, daemon=True)
-    display_thread.start()
+    while finished_count < expected_finishes:
+        source, current, total = progress_queue.get()
+        
+        if current is None:  # Process finished
+            finished_count += 1
+            if source == 'trie':
+                pbar_trie.n = trie_total  # Set to actual total, not 100
+                pbar_trie.refresh()
+            elif source == 'txt' and pbar_txt:
+                pbar_txt.n = txt_total  # Set to actual total, not 100
+                pbar_txt.refresh()
+        else:
+            if source == 'trie':
+                if trie_total == 0:
+                    trie_total = total
+                    pbar_trie.total = total
+                    pbar_trie.reset(total=total)  # Reset with proper total
+                pbar_trie.n = current
+                pbar_trie.refresh()
+            elif source == 'txt' and pbar_txt:
+                if txt_total == 0:
+                    txt_total = total
+                    pbar_txt.total = total
+                    pbar_txt.reset(total=total)  # Reset with proper total
+                pbar_txt.n = current
+                pbar_txt.refresh()
     
-    # Parse in parallel using threads
+    # Wait for processes to complete
+    pbar_trie.write("⏳ Waiting for Trie parser process to finish...")
+    p_trie.join()
+    pbar_trie.write("✓ Trie parser process finished")
+    
+    if p_txt:
+        pbar_txt.write("⏳ Waiting for TXT parser process to finish...")
+        p_txt.join()
+        pbar_txt.write("✓ TXT parser process finished")
+    
+    # Close progress bars
+    pbar_trie.close()
+    if pbar_txt:
+        pbar_txt.close()
+    
+    print()  # Add newline after progress bars
+    print("📦 Collecting parsed data from worker processes...")
+    
+    # Collect results
     trie_data = {}
     txt_data = {}
     
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        # Submit both parsing tasks
-        future_trie = executor.submit(parse_trie_data, trie_path, trie_progress)
-        future_txt = executor.submit(parse_txt_dictionary, txt_path, txt_progress) if txt_path else None
-        
-        # Wait for both to complete
-        trie_data = future_trie.result()
-        if future_txt:
-            txt_data = future_txt.result()
+    while not result_queue.empty():
+        source, data = result_queue.get()
+        if source == 'trie':
+            trie_data = data
+            print(f"✓ Received Trie data: {len(trie_data):,} words")
+        elif source == 'txt':
+            txt_data = data
+            print(f"✓ Received TXT data: {len(txt_data):,} words")
+        elif source.endswith('_error'):
+            print(f"❌ Error in {source}: {data}")
+            sys.exit(1)
     
     parallel_elapsed = time.time() - parallel_start
-    
-    # Stop display thread
-    display_running = False
-    display_thread.join()
-    
-    # Clean up progress lines
-    sys.stdout.write('\r' + ' ' * 100 + '\r')
-    if txt_path:
-        sys.stdout.write('\n' + ' ' * 100 + '\r')
     
     print(f"✓ Parallel parsing completed in {parallel_elapsed:.2f}s")
     print(f"  📊 Trie: {len(trie_data):,} unique words")
     if txt_data:
         print(f"  📊 TXT:  {len(txt_data):,} unique words")
-        print(f"  ⚡ Time saved: ~{(26.88 + 30.42 - parallel_elapsed):.1f}s (vs sequential)")
+    print(f"⏱️  Step completed in {parallel_elapsed:.2f}s")
     
     # ========================================================================
     # STEP 3: Merge Dictionaries
@@ -292,8 +342,42 @@ def main():
     for key, forms in spacy_dict.items():
         export_dict[key] = [form.to_dict() for form in forms]
     
-    elapsed = time.time() - step_start
     spinner.stop()
+    
+    # Purge empty entries (no stress, no POS, no features)
+    print(f"\n  🧹 Purging empty entries...")
+    original_count = len(export_dict)
+    
+    empty_words = []
+    for word, forms in list(export_dict.items()):
+        # Check if all forms are completely empty
+        all_empty = True
+        for form in forms:
+            stress = form.get('stress_variants', [])
+            pos = form.get('pos', [])
+            feats = form.get('feats', {})
+            
+            # If any form has stress, POS, or features, keep the word
+            if stress or pos or feats:
+                all_empty = False
+                break
+        
+        if all_empty:
+            empty_words.append(word)
+            del export_dict[word]
+    
+    purged_count = len(empty_words)
+    if purged_count > 0:
+        print(f"     Purged empty words:     {purged_count:>10,} ({purged_count/original_count*100:.2f}%)")
+        # Show a few examples
+        if purged_count <= 10:
+            print(f"     Examples: {', '.join(empty_words)}")
+        else:
+            print(f"     Examples: {', '.join(empty_words[:10])} ...")
+    else:
+        print(f"     No empty words found ✓")
+    
+    elapsed = time.time() - step_start
     print(f"  ✓ Export data ready: {len(export_dict):,} entries")
     print(f"⏱️  Step completed in {elapsed:.2f}s")
     

@@ -15,6 +15,40 @@ from src.nlp.utils.normalize_apostrophe import normalize_apostrophe
 
 logger = getLogger(__name__)
 
+# Ukrainian vowels
+UKRAINIAN_VOWELS = set('аеєиіїоуюя')
+
+
+def get_vowel_positions(word: str) -> List[int]:
+    """Get positions of all vowels in a word."""
+    return [i for i, char in enumerate(word.lower()) if char in UKRAINIAN_VOWELS]
+
+
+def auto_stress_single_vowel(word: str, stress_positions: List[int]) -> List[int]:
+    """
+    Automatically add stress for single-vowel words if no stress is specified.
+    
+    Args:
+        word: The word to check
+        stress_positions: Current stress positions (may be empty)
+    
+    Returns:
+        Stress positions (original or auto-detected for single vowel)
+    """
+    # If stress is already specified, return as-is
+    if stress_positions:
+        return stress_positions
+    
+    # Find vowel positions
+    vowel_positions = get_vowel_positions(word)
+    
+    # If exactly one vowel and no stress specified, stress it
+    if len(vowel_positions) == 1:
+        return [vowel_positions[0]]
+    
+    # Otherwise return empty (no stress data)
+    return stress_positions
+
 
 class TrieDataAdapter:
     """
@@ -91,7 +125,9 @@ class TrieDataAdapter:
             
             for form in forms:
                 # Convert TrieEntry to (stress_indices, morphology) tuple
-                result[key].append((form.stress_positions, form.morphology))
+                # Auto-stress single-vowel words if no stress specified
+                stress_positions = auto_stress_single_vowel(key, form.stress_positions)
+                result[key].append((stress_positions, form.morphology))
                 total_forms += 1
             
             total_words += 1

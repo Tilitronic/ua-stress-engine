@@ -76,10 +76,10 @@ class LMDBExporter:
         # Add overhead for LMDB internal structures
         # LMDB uses B+ trees: pages, branches, leaves
         # MsgPack is more predictable than JSON, so less margin needed
-        overhead_factor = 1.30  # Reduced from 1.50 due to MsgPack efficiency
+        overhead_factor = 1.15  # Reduced from 1.30 due to MsgPack efficiency
         
         # Add safety margin for growth
-        safety_margin = 1.20  # Reduced from 1.40 due to better size prediction
+        safety_margin = 1.10  # Reduced from 1.20 due to better size prediction
         
         final_size = int(estimated_data * overhead_factor * safety_margin)
         

@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 """
 Download large data files from remote repositories.
-This script manages the ua_word_stress_dictionary.txt and stress.trie files
-which are too large to store in Git.
+
+This script manages Ukrainian word stress data files from lang-uk organization:
+1. stress.trie - Trie database (MIT License, Copyright (c) 2022 lang-uk)
+2. ua_word_stress_dictionary.txt - Text dictionary (Словники України)
+
+Data Attribution:
+- Trie: https://github.com/lang-uk/ukrainian-word-stress (MIT License)
+- Dictionary: https://github.com/lang-uk/ukrainian-word-stress-dictionary
+  Based on "Словники України" from Ukrainian Linguistic Information Fund
+
+See raw_data/DATA_ATTRIBUTION.md for full licensing information.
 
 Run this before using the stress parsing module:
     python download_data_files.py
@@ -101,6 +110,21 @@ def check_and_download_files() -> bool:
             print(f"  Size: {file_size / (1024*1024):.2f} MB")
             if file_hash:
                 print(f"  Hash: {file_hash[:16]}...")
+            
+            # Check if remote file is different (optional, requires HEAD request)
+            try:
+                import urllib.request
+                req = urllib.request.Request(url, method='HEAD')
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    remote_size = response.headers.get('Content-Length')
+                    if remote_size and int(remote_size) == file_size:
+                        print(f"  ✓ Using latest version from source")
+                    else:
+                        print(f"  ⚠ Remote file size differs - consider re-downloading")
+            except:
+                # If HEAD request fails, just note local file is being used
+                print(f"  ℹ Using local file (remote check skipped)")
+                
         else:
             print(f"\n⚠ {description} not found")
             print(f"  Downloading to: {target_path}")

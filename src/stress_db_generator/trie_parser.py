@@ -7,7 +7,13 @@ Parses marisa_trie format stress.trie file and extracts:
 - Morphological features (Case, Number, Gender, etc.)
 - POS tags (NOUN, VERB, ADJ, etc.)
 
+Data Source:
+    Repository: https://github.com/lang-uk/ukrainian-word-stress
+    License: MIT License, Copyright (c) 2022 lang-uk
+    Format: marisa_trie.BytesTrie (see raw_data/DICTIONARY_FORMAT.md)
+
 Based on ukrainian-word-stress library format.
+See raw_data/DATA_ATTRIBUTION.md for complete licensing information.
 """
 
 from dataclasses import dataclass

@@ -100,6 +100,12 @@ class TokenData(BaseModel):
         examples=[2, 0, 5]  # Index points to another token in the sentence
     )
     
+    head_lemma: str = Field(
+        default="",
+        description="Lemma of the syntactic head token (for dependency-based disambiguation)",
+        examples=["читати", "стояти", "великий"]  # Helps identify semantic context
+    )
+    
     # === MORPHOLOGICAL FEATURES ===
     # Grammatical properties from Universal Dependencies
     

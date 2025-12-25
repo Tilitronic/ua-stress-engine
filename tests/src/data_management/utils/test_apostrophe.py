@@ -14,7 +14,7 @@ src_path = Path(__file__).parent.parent / "src"
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-from nlp.utils.apostrophe import (
+from src.utils.normalize_apostrophe import (
     normalize_apostrophe,
     normalize_word,
     normalize_text,

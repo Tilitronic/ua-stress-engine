@@ -11,7 +11,7 @@ from typing import Dict, List, Tuple
 from logging import getLogger
 
 from src.stress_db_generator.trie_parser import TrieParser
-from src.nlp.utils.normalize_apostrophe import normalize_apostrophe
+from src.utils.normalize_apostrophe import normalize_apostrophe
 
 logger = getLogger(__name__)
 

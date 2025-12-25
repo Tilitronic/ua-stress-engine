@@ -9,11 +9,13 @@ Automated tools to manage Git LFS storage and keep within GitHub's 1GB free tier
 Monitors current LFS storage usage and warns when approaching limits.
 
 **Usage:**
+
 ```bash
 python scripts/lfs_storage_monitor.py
 ```
 
 **Output:**
+
 ```
 📊 Git LFS Storage Check:
    Used: 391.0 MB / 1024 MB (38.2%)
@@ -21,6 +23,7 @@ python scripts/lfs_storage_monitor.py
 ```
 
 **Alerts:**
+
 - ✅ < 75%: Healthy
 - ⚡ 75-90%: Warning
 - ⚠️ 90-100%: Urgent - cleanup needed
@@ -31,6 +34,7 @@ python scripts/lfs_storage_monitor.py
 Analyzes LFS files and shows which old versions can be removed.
 
 **Usage:**
+
 ```bash
 # Dry run - see what would be removed (safe)
 python scripts/lfs_cleanup.py --dry-run
@@ -43,6 +47,7 @@ python scripts/lfs_cleanup.py --dry-run --keep-versions 1
 ```
 
 **Example Output:**
+
 ```
 📁 Found 2 unique LFS file(s):
 
@@ -65,11 +70,13 @@ python scripts/lfs_cleanup.py --dry-run --keep-versions 1
 **Default:** Keep 3 most recent versions of each LFS file
 
 **Why 3 versions?**
+
 - Current version (HEAD)
 - Previous version (rollback capability)
 - One more for safety (in case of issues)
 
 **When to cleanup:**
+
 - Storage > 75%: Consider reducing to 2 versions
 - Storage > 90%: Reduce to 1-2 versions
 - Storage > 100%: Immediate cleanup required
@@ -79,6 +86,7 @@ python scripts/lfs_cleanup.py --dry-run --keep-versions 1
 ### Option 1: Pre-Push Hook (Recommended)
 
 Add to `.git/hooks/pre-push`:
+
 ```bash
 #!/bin/sh
 python scripts/lfs_storage_monitor.py || exit 1
@@ -89,6 +97,7 @@ This checks storage before every push and warns if approaching limits.
 ### Option 2: GitHub Actions
 
 Create `.github/workflows/lfs-monitor.yml`:
+
 ```yaml
 name: LFS Storage Monitor
 on: [push]
@@ -105,9 +114,11 @@ jobs:
 ## Current Status
 
 **LFS Files Tracked:**
+
 - `*.mdb` (LMDB database files)
 
 **Current Usage:**
+
 - 391 MB / 1024 MB (38.2%)
 - 2 data.mdb versions (175 MB + 216 MB)
 - 4 lock.mdb versions (~32 KB total)
@@ -119,11 +130,13 @@ jobs:
 If automated scripts aren't sufficient, manually remove old versions:
 
 ### 1. Identify commits with old versions
+
 ```bash
 git log --all -- src/nlp/stress_service/stress.lmdb/data.mdb
 ```
 
 ### 2. Rewrite history (DANGEROUS)
+
 ```bash
 # Use git-filter-repo (recommended)
 pip install git-filter-repo
@@ -134,11 +147,13 @@ java -jar bfg.jar --delete-files '*.mdb'
 ```
 
 ### 3. Force push
+
 ```bash
 git push origin main --force-with-lease
 ```
 
 ### 4. Cleanup local LFS cache
+
 ```bash
 git lfs prune --verify-remote
 ```
@@ -148,17 +163,20 @@ git lfs prune --verify-remote
 ## Troubleshooting
 
 ### "Push rejected - file too large"
+
 1. Run: `python scripts/lfs_cleanup.py --dry-run`
 2. Identify large files
 3. Ensure `.gitattributes` tracks `*.mdb`
 4. Run: `git lfs migrate import --include="*.mdb" --everything`
 
 ### "Out of LFS storage"
+
 1. Check usage: `python scripts/lfs_storage_monitor.py`
 2. Analyze versions: `python scripts/lfs_cleanup.py --dry-run`
 3. Keep fewer versions or upgrade GitHub plan
 
 ### "LFS files not downloading"
+
 ```bash
 # Download all LFS files
 git lfs pull
@@ -170,10 +188,12 @@ git lfs ls-files
 ## GitHub LFS Pricing
 
 **Free Tier:**
+
 - 1 GB storage
 - 1 GB/month bandwidth
 
 **Paid ($5/month per pack):**
+
 - +50 GB storage
 - +50 GB/month bandwidth
 

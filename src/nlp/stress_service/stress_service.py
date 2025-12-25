@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.stress_db_generator.lmdb_exporter import LMDBQuery
 from src.nlp.stress_service.types import WordLookupResult, WordFormDict, format_stress_display
-from src.nlp.utils.normalize_apostrophe import normalize_apostrophe
+from utils.normalize_apostrophe import normalize_apostrophe
 
 logger = getLogger(__name__)
 

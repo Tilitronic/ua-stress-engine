@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import Optional
 from logging import getLogger
 
-from src.nlp.utils.normalize_apostrophe import normalize_apostrophe
+from utils.normalize_apostrophe import normalize_apostrophe
 from .types import TokenData, SentenceData, DocumentData
 
 logger = getLogger(__name__)
@@ -178,6 +178,7 @@ class UkrainianTokenizationService:
             tag=token.tag_,
             dep=token.dep_,
             head_idx=token.head.i,
+            head_lemma=token.head.lemma_,
             
             # Morphological features
             morph=morph_dict,

@@ -222,6 +222,10 @@ class WordForm(BaseModel):
 class LinguisticEntry(BaseModel):
     word: str = Field(..., description="Normalized word key", examples=["мати"])
     forms: List[WordForm] = Field(..., description="All forms/variants for this word")
+    possible_stress_indices: List[List[int]] = Field(
+        default_factory=list,
+        description="All unique stress index arrays for this word across all forms (e.g., [[0], [1], [0, 1]]). Each entry is a unique, sorted list of stressed vowel indices for a form.",
+    )
     meta: Dict[str, Any] = Field(default_factory=dict, description="Extra metadata for the word")
     model_config = ConfigDict(extra="forbid", validate_assignment=True)
 

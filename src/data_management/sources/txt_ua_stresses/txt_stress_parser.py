@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 from src.data_management.transform.data_unifier import LinguisticEntry, WordForm, UPOS
 
 from src.utils.normalize_apostrophe import normalize_apostrophe
-from lemmatizer.lemmatizer import UkrLinguisticsService
+from lemmatizer.lemmatizer import Lemmatizer
 from src.data_management.sources.txt_ua_stresses.stress_db_file_manager import ensure_latest_db_file
 
 import logging
@@ -32,7 +32,8 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("TXT_Stress_Parser")
+
 TEST_MODE = True
 
 DB_PATH = "src/data_management/sources/txt_ua_stresses/ua_word_stress_dictionary.txt"
@@ -54,7 +55,7 @@ def get_db_path() -> Path:
 
 PATH = get_db_path()
 
-lemmatizer = UkrLinguisticsService(use_gpu=False)
+lemmatizer = Lemmatizer(use_gpu=False)
 
 def get_lemma(word: str) -> str:
     return lemmatizer.get_lemma(word)
@@ -203,13 +204,10 @@ def clean_up_word(word: str) -> str:
     return cleaned_word
 
 
-from collections import defaultdict
-
-
 def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: bool = False) -> Dict[str, LinguisticEntry]:
     if input_path is None:
         input_path = str(get_db_path())
-    lemma_to_forms = defaultdict(list)
+    unified_data = {}
     total_tokens = 0
     skipped_multisyllable = 0
     word_forms_count = 0
@@ -223,6 +221,7 @@ def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: b
     filtered_lines = [l for l in all_lines if l.strip() and not l.strip().startswith('#')]
     total_lines = len(filtered_lines)
     lines_iter = tqdm(filtered_lines, desc='[Parsing]', unit='line') if show_progress else filtered_lines
+    unified_data = {}
     for line in lines_iter:
         try:
             line = line.strip()
@@ -255,8 +254,7 @@ def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: b
                         skipped_multisyllable += 1
                         continue
                 pos = UPOS.X  # Unknown, since not provided
-                # Validate feats keys as UDFeatKey enums (future-proof, here empty)
-                feats = {}  # If you add features, ensure keys are UDFeatKey: feats = {UDFeatKey.Gender: 'Fem'}
+                feats = {}
                 try:
                     word_form = WordForm(
                         stress_indices=stress_indices,
@@ -264,29 +262,31 @@ def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: b
                         feats=feats,
                         lemma=lemma,
                         examples=[],
-                        form=clean_word_form,  # Save the actual normalized form
+                        form=clean_word_form,
                     )
                 except Exception as e:
                     logger.warning(f"Failed to create WordForm for '{token}': {e}")
                     continue
                 # Merge by lemma and stress_indices only
-                merged = False
-                for wf in lemma_to_forms[lemma]:
-                    if wf.stress_indices == word_form.stress_indices:
-                        merged = True
-                        break
-                if not merged:
-                    lemma_to_forms[lemma].append(word_form)
+                if lemma not in unified_data:
+                    unified_data[lemma] = LinguisticEntry(word=lemma, forms=[], possible_stress_indices=[])
+                # Only add unique WordForms by stress_indices
+                if not any(wf.stress_indices == word_form.stress_indices for wf in unified_data[lemma].forms):
+                    unified_data[lemma].forms.append(word_form)
                     word_forms_count += 1
         except Exception as e:
             logger.error(f"Error processing line: {line}\n{e}")
             continue
-    unified_data = {}
-    for lemma, forms in lemma_to_forms.items():
-        try:
-            unified_data[lemma] = LinguisticEntry(word=lemma, forms=forms)
-        except Exception as e:
-            logger.warning(f"Failed to create LinguisticEntry for lemma '{lemma}': {e}")
+
+    # After all forms are collected, set possible_stress_indices as unique stress arrays for each lemma
+    for lemma, entry in unified_data.items():
+        unique_stress_arrays = []
+        for wf in entry.forms:
+            sorted_indices = tuple(sorted(wf.stress_indices))
+            if sorted_indices not in [tuple(sorted(arr)) for arr in unique_stress_arrays]:
+                unique_stress_arrays.append(list(sorted_indices))
+        entry.possible_stress_indices = unique_stress_arrays
+
     elapsed = time.time() - start_time
     logger.info("=== Parsing Complete ===")
     logger.info(f"Total lines processed:   {total_lines}")
@@ -311,7 +311,7 @@ def main():
     # Query and print raw structure for 'замок' and 'блоха'
     import pprint
     pp = pprint.PrettyPrinter(indent=2, width=120, compact=False)
-    for key in ["замок", "блоха", "клаксон", "помилка"]:
+    for key in ["замок", "блоха", "клаксон", "помилка", "обід"]:
         logger.info(f"Entry for lemma: '{key}'")
         entry = unified_data.get(key)
         if not entry:

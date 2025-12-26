@@ -38,7 +38,7 @@ UKRAINIAN_VOWELS = "уеіїаояиюєУЕІАОЯИЮЄЇ"
 POS_SEPARATOR = b'\xFE'  # Separates stress from morphology
 RECORD_SEPARATOR = b'\xFF'  # Separates multiple records
 
-# Tag decompression mapping (from Concurrent library)
+# Tag decompression mapping 
 TAG_BY_BYTE = {
     b'\x11': "Number=Sing",
     b'\x12': "Number=Plur",

@@ -9,7 +9,7 @@ class TokenLemma(BaseModel):
     pos: str = Field(..., description="Universal POS tag (UPOS)", examples=["NOUN", "VERB"])
     model_config = ConfigDict(extra="forbid", validate_assignment=True)
 
-class UkrLinguisticsService:
+class Lemmatizer:
     """
     Comprehensive lemmatization service for Ukrainian.
     Combines dictionary-based (VESUM/pymorphy3) and neural (Stanza) methods.
@@ -22,7 +22,7 @@ class UkrLinguisticsService:
         # 2. Initialize Stanza for contextual analysis
         self.nlp = stanza.Pipeline(
             lang='uk', 
-            processors='tokenize,pos,lemma', 
+            processors='tokenize,mwt,pos,lemma', 
             use_gpu=use_gpu,
             logging_level='WARN'
         )

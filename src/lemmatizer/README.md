@@ -24,9 +24,9 @@ This module provides robust, production-grade lemmatization for Ukrainian, combi
 ## Usage
 
 ```python
-from lemmatizer.lemmatizer import UkrLinguisticsService, TokenLemma
+from lemmatizer.lemmatizer import Lemmatizer, TokenLemma
 
-lemmatizer = UkrLinguisticsService()
+lemmatizer = Lemmatizer()
 
 # Lemmatize a single word (dictionary-based)
 lemma = lemmatizer.get_lemma('словами')
@@ -40,7 +40,7 @@ for token in results:
 
 ## API
 
-### `UkrLinguisticsService`
+### `Lemmatizer`
 
 - `get_lemma(word: str) -> str`  
   Returns the dictionary lemma for a word.

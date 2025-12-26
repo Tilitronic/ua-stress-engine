@@ -1,7 +1,7 @@
 import pytest
-from lemmatizer.lemmatizer import UkrLinguisticsService, TokenLemma
+from lemmatizer.lemmatizer import Lemmatizer, TokenLemma
 
-service = UkrLinguisticsService(use_gpu=False)
+service = Lemmatizer(use_gpu=False)
 
 @pytest.mark.parametrize("word,expected", [
     ("блохи", "блоха"),

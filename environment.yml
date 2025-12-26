@@ -1,0 +1,8 @@
+name: verseSense-py312
+channels:
+	- defaults
+	- conda-forge
+dependencies:
+	- python=3.12
+	- setuptools<81  # pymorphy3 uses deprecated pkg_resources, remove this pin when pymorphy3 is updated
+	# Add other dependencies below

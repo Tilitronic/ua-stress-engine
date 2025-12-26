@@ -100,13 +100,19 @@ class CaseVal(str, Enum):
 
 class WordForm(BaseModel):
     """
-    Represents a unique word form as defined by surface form, stress pattern(s), POS, features, and all available metadata.
+    Represents a unique word form as defined by its normalized word form (no stress marks, normalized apostrophe), stress pattern(s), POS, features, and all available metadata.
+    - The 'form' field stores the normalized, correctly spelled word form (e.g., 'блохи', 'мати', "п'ятниця").
     - This model does NOT attempt to merge by meaning/sense unless the source provides explicit sense IDs or markers.
     - If stress changes meaning, it results in a separate WordForm entity.
     - If stress does not change meaning (as indicated by the source), all valid stress positions are grouped in one WordForm.
     - All metadata (definitions, translations, etymology, etc.) is attached as provided by the source, per form.
     - This approach is robust for polysemy, homographs, and ambiguous cases where sense disambiguation is not possible.
     """
+    form: str = Field(
+        ...,
+        description="Normalized, correctly spelled word form (no stress marks, normalized apostrophe)",
+        examples=["блохи", "мати", "п'ятниця"]
+    )
     stress_indices: List[int] = Field(
         ...,
         description=(

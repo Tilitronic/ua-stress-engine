@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import warnings
+warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API*", category=UserWarning)
 import time
 from tqdm import tqdm
 from pathlib import Path
@@ -28,13 +30,12 @@ Input Format:
 """
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-)
+
+# NOTE: Do not configure logging handlers or levels here.
+# Logging is managed by the main process for concurrency compatibility and clean progress bar output.
 logger = logging.getLogger("TXT_Stress_Parser")
 
-TEST_MODE = True
+TEST_MODE = False
 
 DB_PATH = "src/data_management/sources/txt_ua_stresses/ua_word_stress_dictionary.txt"
 TEST_DB_PATH = "src/data_management/sources/txt_ua_stresses/sample_stress_dict.txt"
@@ -204,7 +205,7 @@ def clean_up_word(word: str) -> str:
     return cleaned_word
 
 
-def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: bool = False) -> Dict[str, LinguisticEntry]:
+def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: bool = False, progress_callback=None) -> Dict[str, LinguisticEntry]:
     if input_path is None:
         input_path = str(get_db_path())
     unified_data = {}
@@ -222,7 +223,7 @@ def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: b
     total_lines = len(filtered_lines)
     lines_iter = tqdm(filtered_lines, desc='[Parsing]', unit='line') if show_progress else filtered_lines
     unified_data = {}
-    for line in lines_iter:
+    for idx, line in enumerate(lines_iter):
         try:
             line = line.strip()
             if not line or line.startswith('#'):
@@ -277,6 +278,9 @@ def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: b
         except Exception as e:
             logger.error(f"Error processing line: {line}\n{e}")
             continue
+        # Progress callback every 100 lines
+        if progress_callback and (idx % 100 == 0 or idx == total_lines - 1):
+            progress_callback(idx + 1, total_lines)
 
     # After all forms are collected, set possible_stress_indices as unique stress arrays for each lemma
     for lemma, entry in unified_data.items():
@@ -288,14 +292,15 @@ def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: b
         entry.possible_stress_indices = unique_stress_arrays
 
     elapsed = time.time() - start_time
-    logger.info("=== Parsing Complete ===")
-    logger.info(f"Total lines processed:   {total_lines}")
-    logger.info(f"Total tokens:           {total_tokens}")
-    logger.info(f"Unique lemmas:          {len(unified_data)}")
-    logger.info(f"Word forms created:     {word_forms_count}")
-    logger.info(f"Skipped multi-syllable words with no stress: {skipped_multisyllable}")
-    logger.info(f"Elapsed time:           {elapsed:.2f} seconds\n")
-    return unified_data
+    stats = {
+        "total_lines": total_lines,
+        "total_tokens": total_tokens,
+        "unique_lemmas": len(unified_data),
+        "word_forms_created": word_forms_count,
+        "skipped_multisyllable": skipped_multisyllable,
+        "elapsed": elapsed,
+    }
+    return unified_data, stats
 
 # Example usage:
 def main():
@@ -303,7 +308,7 @@ def main():
     if not TEST_MODE:
         ensure_latest_db_file(str(get_db_path()))
     try:
-        unified_data = parse_txt_to_unified_dict(str(PATH), show_progress=True)
+        unified_data, stats = parse_txt_to_unified_dict(str(PATH), show_progress=True)
     except Exception as e:
         logger.error(f"Critical error during parsing: {e}")
         return

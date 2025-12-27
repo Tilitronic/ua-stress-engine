@@ -2,6 +2,8 @@
 
 
 #!/usr/bin/env python3
+import warnings
+warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API*", category=UserWarning)
 
 import time
 from tqdm import tqdm

@@ -9,6 +9,7 @@ from tqdm import tqdm
 import multiprocessing
 tqdm.set_lock(multiprocessing.RLock())
 import pprint
+from src.data_management.transform.cache_utils import cache_path_for_key, save_to_cache_streaming, load_from_cache_streaming, to_serializable
 
 # Top-level parser functions for multiprocessing (must be importable/picklable)
 
@@ -47,16 +48,16 @@ SOURCES_CONFIGS: Dict[str, ParserConfig] = {
 
 
 def run_txt_parser(progress_callback: Optional[Callable[[int, int], None]] = None, config: Optional[ParserConfig] = None) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-    from src.data_management.transform.cache_utils import compute_parser_hash, load_from_cache, save_to_cache
+    from src.data_management.transform.cache_utils import compute_parser_hash, load_from_cache_streaming, to_serializable, save_to_cache_streaming
     if config is None:
         config = SOURCES_CONFIGS["TXT"]
     cache_key = compute_parser_hash(config["parser_path"], config["db_path"])
-    cached = load_from_cache(cache_key)
+    # Check for streaming cache
+    cached = load_from_cache_streaming(cache_key, prefix="TXT")
     if cached:
-        print(f"[CACHE] Using cached result for TXT")
+        print(f"[CACHE] Using streaming cache for TXT")
         return cached, {"cache_used": True, "unique_lemmas": len(cached)}
     print(f"[DEBUG] [PID {os.getpid()}] run_txt_parser called")
-    from src.data_management.transform.cache_utils import to_serializable, save_to_cache_streaming
     result = parse_txt_to_unified_dict(show_progress=True, progress_callback=progress_callback)
     print(f"[DEBUG] [PID {os.getpid()}] run_txt_parser finished")
     save_to_cache_streaming(to_serializable(result[0]), cache_key, prefix="TXT")
@@ -64,16 +65,15 @@ def run_txt_parser(progress_callback: Optional[Callable[[int, int], None]] = Non
 
 
 def run_trie_parser(progress_callback: Optional[Callable[[int, int], None]] = None, config: Optional[ParserConfig] = None) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-    from src.data_management.transform.cache_utils import compute_parser_hash, load_from_cache, save_to_cache
+    from src.data_management.transform.cache_utils import compute_parser_hash, load_from_cache_streaming, to_serializable, save_to_cache_streaming
     if config is None:
         config = SOURCES_CONFIGS["TRIE"]
     cache_key = compute_parser_hash(config["parser_path"], config["db_path"])
-    cached = load_from_cache(cache_key)
+    cached = load_from_cache_streaming(cache_key, prefix="TRIE")
     if cached:
-        print(f"[CACHE] Using cached result for TRIE")
+        print(f"[CACHE] Using streaming cache for TRIE")
         return cached, {"cache_used": True, "unique_lemmas": len(cached)}
     print(f"[DEBUG] [PID {os.getpid()}] run_trie_parser called")
-    from src.data_management.transform.cache_utils import to_serializable, save_to_cache_streaming
     result = parse_trie_to_unified_dict(show_progress=True, progress_callback=progress_callback)
     print(f"[DEBUG] [PID {os.getpid()}] run_trie_parser finished")
     save_to_cache_streaming(to_serializable(result[0]), cache_key, prefix="TRIE")
@@ -81,17 +81,16 @@ def run_trie_parser(progress_callback: Optional[Callable[[int, int], None]] = No
 
 
 def run_kaikki_parser(progress_callback: Optional[Callable[[int, int], None]] = None, config: Optional[ParserConfig] = None) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-    from src.data_management.transform.cache_utils import compute_parser_hash, load_from_cache, save_to_cache
+    from src.data_management.transform.cache_utils import compute_parser_hash, load_from_cache_streaming, to_serializable, save_to_cache_streaming
     if config is None:
         config = SOURCES_CONFIGS["KAIKKI"]
     cache_key = compute_parser_hash(config["parser_path"], config["db_path"])
-    cached = load_from_cache(cache_key)
+    cached = load_from_cache_streaming(cache_key, prefix="KAIKKI")
     if cached:
-        print(f"[CACHE] Using cached result for KAIKKI")
+        print(f"[CACHE] Using streaming cache for KAIKKI")
         return cached, {"cache_used": True, "unique_lemmas": len(cached)}
     print(f"[DEBUG] [PID {os.getpid()}] run_kaikki_parser called")
     input_path = config["db_path"]
-    from src.data_management.transform.cache_utils import to_serializable, save_to_cache_streaming
     result = parse_kaikki_to_unified_dict(input_path, show_progress=True, progress_callback=progress_callback)
     print(f"[DEBUG] [PID {os.getpid()}] run_kaikki_parser finished")
     save_to_cache_streaming(to_serializable(result[0]), cache_key, prefix="KAIKKI")
@@ -161,6 +160,17 @@ def run_parsers_concurrently_mp(
     - If you still encounter MemoryError, consider chunking results, using disk-backed queues, or further reducing concurrency.
     - Always monitor memory usage (see memory debug logs in parser_worker).
     """
+    # If only one parser, run it directly (no multiprocessing)
+    if len(parser_funcs) == 1:
+        func = parser_funcs[0]
+        name = names[0]
+        print(f"[DEBUG] Running single parser '{name}' directly (no multiprocessing)...")
+        data, stats = func()
+        results = [data]
+        stats_list = [(name, stats)]
+        return results, stats_list
+
+    # Otherwise, use multiprocessing as before
     manager = Manager()
     progress_queue = manager.Queue()
     result_queue = manager.Queue()
@@ -258,19 +268,39 @@ def merge_linguistic_dicts(dicts: List[Dict[str, Any]]) -> Dict[str, Any]:
     total_lemmas = sum(len(d) for d in dicts)
     logger = logging.getLogger("merging")
     logger.info(f"Starting merging of {len(dicts)} dictionaries, total lemmas: {total_lemmas}")
+
+    def covers(form_a, form_b):
+        # Returns True if form_a covers form_b (all fields in b are in a and equal)
+        a = form_a.model_dump()
+        b = form_b.model_dump()
+        return all(k in a and a[k] == v for k, v in b.items())
+
     with tqdm(total=total_lemmas, desc="Merging", leave=True, ncols=80) as pbar:
         for d in dicts:
             for lemma, entry in d.items():
-                # Use Pydantic type adapter for validation
                 entry_obj = TypeAdapter(LinguisticEntry).validate_python(entry) if isinstance(entry, dict) else entry
                 if lemma not in merged:
                     merged[lemma] = entry_obj.model_copy(deep=True)
                 else:
-                    # Merge forms (deduplicate by all fields)
+                    # --- Enhanced WordForm merge logic ---
                     existing_forms = merged[lemma].forms
+                    new_forms = []
                     for wf in entry_obj.forms:
-                        if not any(wf.model_dump() == ef.model_dump() for ef in existing_forms):
+                        add = True
+                        to_replace = None
+                        for i, ef in enumerate(existing_forms):
+                            if covers(wf, ef):
+                                to_replace = i
+                                add = True
+                                break
+                            elif covers(ef, wf):
+                                add = False
+                                break
+                        if to_replace is not None:
+                            existing_forms[to_replace] = wf
+                        elif add:
                             existing_forms.append(wf)
+                    # --- End WordForm merge logic ---
                     # Merge possible_stress_indices (unique arrays)
                     psi = merged[lemma].possible_stress_indices
                     for arr in entry_obj.possible_stress_indices:
@@ -285,8 +315,20 @@ def merge_linguistic_dicts(dicts: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 # Example main function for running txt and trie parsers and merging results
-def main():
 
+def compute_merged_cache_key(cache_paths):
+    import hashlib
+    h = hashlib.sha256()
+    for path in cache_paths:
+        with open(path, 'rb') as f:
+            while True:
+                chunk = f.read(8192)
+                if not chunk:
+                    break
+                h.update(chunk)
+    return h.hexdigest()
+
+def main():
     from tqdm import tqdm as _tqdm
     # Ensure stanza models are downloaded before multiprocessing
     try:
@@ -295,10 +337,17 @@ def main():
     except Exception as e:
         _tqdm.write(f"[WARN] Could not download stanza model: {e}")
     _tqdm.write("\n=== Parsing and Merging Stress Dictionaries ===\n")
-    # Run all parsers concurrently using multiprocessing with progress bars
+    # Dynamically select enabled sources and their parser functions
+    parser_func_map = {
+        "TXT": run_txt_parser,
+        "TRIE": run_trie_parser,
+        "KAIKKI": run_kaikki_parser,
+    }
+    enabled_names = list(SOURCES_CONFIGS.keys())
+    enabled_funcs = [parser_func_map[name] for name in enabled_names]
     results, stats_list = run_parsers_concurrently_mp(
-        [run_txt_parser, run_trie_parser, run_kaikki_parser],
-        ["TXT", "TRIE", "KAIKKI"]
+        enabled_funcs,
+        enabled_names
     )
     # Setup logging for merging
     logging.basicConfig(
@@ -315,17 +364,74 @@ def main():
     total_elapsed = time.time() - start_time
     _tqdm.write(f"Total concurrent parsing time: {total_elapsed:.2f} seconds")
 
-    # Merging step with visible progress/logs
-    _tqdm.write("\n=== Merging Dictionaries ===")
-    logger = logging.getLogger("merging")
-    logger.info("Starting merging step...")
-    merged = merge_linguistic_dicts(results)
-    logger.info(f"Merging complete. Unique lemmas: {len(merged)}")
-    _tqdm.write(f"Merged unique lemmas: {len(merged)}")
+    # --- Merged cache logic ---
+    cache_keys = [compute_parser_hash(SOURCES_CONFIGS[name]["parser_path"], SOURCES_CONFIGS[name]["db_path"]) for name in enabled_names]
+    cache_paths = [cache_path_for_key(key, prefix=name) for key, name in zip(cache_keys, enabled_names)]
+    merged_cache_key = compute_merged_cache_key(cache_paths)
+    merged_cache_path = cache_path_for_key(merged_cache_key, prefix="MERGED")
+
+    # --- Remove old merged LMDB cache folders if hashes do not match ---
+    import glob
+    import shutil
+    cache_dir = os.path.dirname(merged_cache_path)
+    merged_lmdb_pattern = os.path.join(cache_dir, "MERGED_*_lmdb")
+    for lmdb_folder in glob.glob(merged_lmdb_pattern):
+        if merged_cache_key not in lmdb_folder:
+            try:
+                shutil.rmtree(lmdb_folder)
+                _tqdm.write(f"[CLEANUP] Deleted old merged LMDB cache: {lmdb_folder}")
+            except Exception as e:
+                _tqdm.write(f"[CLEANUP] Failed to delete {lmdb_folder}: {e}")
+
+    if os.path.exists(merged_cache_path) and os.path.getsize(merged_cache_path) > 0:
+        _tqdm.write(f"[CACHE] Using merged cache at {merged_cache_path}")
+        merged = load_from_cache_streaming(merged_cache_key, prefix="MERGED")
+    else:
+        _tqdm.write("\n=== Merging Dictionaries ===")
+        logger = logging.getLogger("merging")
+        logger.info("Starting merging step...")
+        merged = merge_linguistic_dicts(results)
+        logger.info(f"Merging complete. Unique lemmas: {len(merged)}")
+        _tqdm.write(f"Merged unique lemmas: {len(merged)}")
+
+        # --- LMDB Export Step ---
+        _tqdm.write("[LMDB] Starting LMDB export...")
+        logger.info("[LMDB] Starting LMDB export...")
+        try:
+            from src.data_management.transform.merger import LMDBExporter
+            lmdb_dir = merged_cache_path + "_lmdb"
+            from src.data_management.transform.merger import LMDBExportConfig
+            from pathlib import Path
+            config = LMDBExportConfig(db_path=Path(lmdb_dir), overwrite=True)
+            exporter = LMDBExporter(config)
+            logger.info(f"[LMDB] Streaming export to {lmdb_dir} ...")
+            _tqdm.write(f"[LMDB] Streaming export to {lmdb_dir} ...")
+            from src.data_management.transform.cache_utils import to_serializable
+            # Use an iterator to avoid holding all data in memory
+            def merged_iter():
+                for k, v in merged.items():
+                    yield k, to_serializable(v)
+            exporter.export_streaming(merged_iter(), total=len(merged))
+            logger.info(f"[LMDB] Export complete. Verifying...")
+            _tqdm.write(f"[LMDB] Export complete. Verifying...")
+            if not os.path.exists(lmdb_dir) or not os.listdir(lmdb_dir):
+                logger.error(f"[LMDB] ERROR: LMDB directory {lmdb_dir} not created or empty!")
+                _tqdm.write(f"[LMDB] ERROR: LMDB directory {lmdb_dir} not created or empty!")
+                raise RuntimeError(f"[LMDB] Export failed: {lmdb_dir} not created or empty!")
+            logger.info(f"[LMDB] LMDB directory {lmdb_dir} created successfully.")
+            _tqdm.write(f"[LMDB] LMDB directory {lmdb_dir} created successfully.")
+        except Exception as e:
+            logger.error(f"[LMDB] Exception during LMDB export: {e}")
+            _tqdm.write(f"[LMDB] Exception during LMDB export: {e}")
+            raise
 
     # Pretty print a few sample entries
     pp = pprint.PrettyPrinter(indent=2, width=120, compact=False)
-    for key in ["замок", "блоха", "помилка"]:
+    for key in [
+                "замок",
+                # "блоха", 
+                # "помилка"
+                ]:
         _tqdm.write(f"Merged entry for lemma: '{key}'")
         entry = merged.get(key)
         if not entry:

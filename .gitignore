@@ -55,3 +55,4 @@ src/scrappers/
 sandbox/
 src/stress_db_generator
 ignore/
+src/data_management/transform/cache

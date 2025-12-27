@@ -222,6 +222,10 @@ class WordForm(BaseModel):
 class LinguisticEntry(BaseModel):
     word: str = Field(..., description="Normalized word key", examples=["мати"])
     forms: List[WordForm] = Field(..., description="All forms/variants for this word")
+    possible_stress_indices: Optional[List[List[int]]] = Field(
+        default=None,
+        description="List of possible stress index patterns for this lemma, e.g. [[0,1]]"
+    )
     possible_stress_indices: List[List[int]] = Field(
         default_factory=list,
         description="All unique stress index arrays for this word across all forms (e.g., [[0], [1], [0, 1]]). Each entry is a unique, sorted list of stressed vowel indices for a form.",
@@ -231,112 +235,112 @@ class LinguisticEntry(BaseModel):
 
 # --- Unifier Class ---
 
-class LinguisticDataUnifier:
-    """
-    Transforms parsed source data into the unified linguistic format.
-    - Accepts data from any parser (trie, txt, Kaikki, etc.)
-    - Outputs a dict: word -> LinguisticEntry, where each form is atomic (single stress, single POS, single feature set)
-    - Allows duplicates for same stress with different POS/features
-    """
-    def transform(self, parsed_data: Dict[str, List[Dict[str, Any]]], source: str) -> Dict[str, LinguisticEntry]:
-        """
-        For each word, produce a list of atomic forms. If multiple forms have identical lemma, POS, and features
-        (and other properties except stress), merge their stress_indices into a single entry. This is crucial for
-        words like 'помилка', where multiple stresses are possible but do not change meaning or features.
-        """
-        from collections import defaultdict
-        from itertools import product
+# class LinguisticDataUnifier:
+#     """
+#     Transforms parsed source data into the unified linguistic format.
+#     - Accepts data from any parser (trie, txt, Kaikki, etc.)
+#     - Outputs a dict: word -> LinguisticEntry, where each form is atomic (single stress, single POS, single feature set)
+#     - Allows duplicates for same stress with different POS/features
+#     """
+#     def transform(self, parsed_data: Dict[str, List[Dict[str, Any]]], source: str) -> Dict[str, LinguisticEntry]:
+#         """
+#         For each word, produce a list of atomic forms. If multiple forms have identical lemma, POS, and features
+#         (and other properties except stress), merge their stress_indices into a single entry. This is crucial for
+#         words like 'помилка', where multiple stresses are possible but do not change meaning or features.
+#         """
+#         from collections import defaultdict
+#         from itertools import product
 
-        result: Dict[str, LinguisticEntry] = {}
-        for word, forms in parsed_data.items():
-            # Temporary dict to merge forms by (lemma, pos, feats, definition, examples, source, meta)
-            merge_map: Dict[Any, Any] = {}
-            for form in forms:
-                # --- Explode legacy/ambiguous input to atomic forms ---
-                stress_variants = form.get('stress_indices', [])
-                if not isinstance(stress_variants, list):
-                    stress_variants = [stress_variants]
-                if len(stress_variants) == 0:
-                    stress_variants = [[]]
-                elif not isinstance(stress_variants[0], list):
-                    # Single variant, wrap in list
-                    stress_variants = [stress_variants]
+#         result: Dict[str, LinguisticEntry] = {}
+#         for word, forms in parsed_data.items():
+#             # Temporary dict to merge forms by (lemma, pos, feats, definition, examples, source, meta)
+#             merge_map: Dict[Any, Any] = {}
+#             for form in forms:
+#                 # --- Explode legacy/ambiguous input to atomic forms ---
+#                 stress_variants = form.get('stress_indices', [])
+#                 if not isinstance(stress_variants, list):
+#                     stress_variants = [stress_variants]
+#                 if len(stress_variants) == 0:
+#                     stress_variants = [[]]
+#                 elif not isinstance(stress_variants[0], list):
+#                     # Single variant, wrap in list
+#                     stress_variants = [stress_variants]
 
-                pos_list = form.get('pos', [])
-                if isinstance(pos_list, str):
-                    pos_list = [pos_list]
-                elif not pos_list:
-                    pos_list = [None]
+#                 pos_list = form.get('pos', [])
+#                 if isinstance(pos_list, str):
+#                     pos_list = [pos_list]
+#                 elif not pos_list:
+#                     pos_list = [None]
 
-                feats_dict = form.get('feats', {})
-                # If values are lists, explode; else treat as atomic
-                if feats_dict and any(isinstance(v, list) for v in feats_dict.values()):
-                    keys = list(feats_dict.keys())
-                    value_lists = [v if isinstance(v, list) else [v] for v in feats_dict.values()]
-                    feats_variants = [dict(zip(keys, prod)) for prod in product(*value_lists)]
-                else:
-                    feats_variants = [feats_dict or {}]
+#                 feats_dict = form.get('feats', {})
+#                 # If values are lists, explode; else treat as atomic
+#                 if feats_dict and any(isinstance(v, list) for v in feats_dict.values()):
+#                     keys = list(feats_dict.keys())
+#                     value_lists = [v if isinstance(v, list) else [v] for v in feats_dict.values()]
+#                     feats_variants = [dict(zip(keys, prod)) for prod in product(*value_lists)]
+#                 else:
+#                     feats_variants = [feats_dict or {}]
 
-                # --- Explode all combinations to atomic forms ---
-                for stress in stress_variants:
-                    for pos in pos_list:
-                        if pos is None:
-                            continue
-                        for feats in feats_variants:
-                            # --- Merge key: all properties except stress_indices ---
-                            merge_key = (
-                                pos,
-                                tuple(sorted(feats.items())),
-                                form.get('lemma'),
-                                form.get('main_definition'),
-                                tuple(form.get('examples', [])),
-                                source,
-                                frozenset(form.get('meta', {}).items())
-                            )
-                            if merge_key not in merge_map:
-                                merge_map[merge_key] = {
-                                    'stress_indices': set(),
-                                    'pos': pos,
-                                    'feats': feats,
-                                    'lemma': form.get('lemma'),
-                                    'main_definition': form.get('main_definition'),
-                                    'alt_definitions': form.get('alt_definitions'),
-                                    'translations': form.get('translations'),
-                                    'etymology_templates': form.get('etymology_templates'),
-                                    'etymology_number': form.get('etymology_number'),
-                                    'tags': form.get('tags'),
-                                    'roman': form.get('roman'),
-                                    'ipa': form.get('ipa'),
-                                    'etymology': form.get('etymology'),
-                                    'inflection_templates': form.get('inflection_templates'),
-                                    'categories': form.get('categories'),
-                                    'sense_id': form.get('sense_id'),
-                                    'examples': form.get('examples', []),
-                                    'source': source,
-                                    'meta': form.get('meta', {})
-                                }
-                            # Add all stress indices for this atomic form
-                            # (for words like 'помилка', this will collect [0, 1] in one entry)
-                            merge_map[merge_key]['stress_indices'].update(stress)
+#                 # --- Explode all combinations to atomic forms ---
+#                 for stress in stress_variants:
+#                     for pos in pos_list:
+#                         if pos is None:
+#                             continue
+#                         for feats in feats_variants:
+#                             # --- Merge key: all properties except stress_indices ---
+#                             merge_key = (
+#                                 pos,
+#                                 tuple(sorted(feats.items())),
+#                                 form.get('lemma'),
+#                                 form.get('main_definition'),
+#                                 tuple(form.get('examples', [])),
+#                                 source,
+#                                 frozenset(form.get('meta', {}).items())
+#                             )
+#                             if merge_key not in merge_map:
+#                                 merge_map[merge_key] = {
+#                                     'stress_indices': set(),
+#                                     'pos': pos,
+#                                     'feats': feats,
+#                                     'lemma': form.get('lemma'),
+#                                     'main_definition': form.get('main_definition'),
+#                                     'alt_definitions': form.get('alt_definitions'),
+#                                     'translations': form.get('translations'),
+#                                     'etymology_templates': form.get('etymology_templates'),
+#                                     'etymology_number': form.get('etymology_number'),
+#                                     'tags': form.get('tags'),
+#                                     'roman': form.get('roman'),
+#                                     'ipa': form.get('ipa'),
+#                                     'etymology': form.get('etymology'),
+#                                     'inflection_templates': form.get('inflection_templates'),
+#                                     'categories': form.get('categories'),
+#                                     'sense_id': form.get('sense_id'),
+#                                     'examples': form.get('examples', []),
+#                                     'source': source,
+#                                     'meta': form.get('meta', {})
+#                                 }
+#                             # Add all stress indices for this atomic form
+#                             # (for words like 'помилка', this will collect [0, 1] in one entry)
+#                             merge_map[merge_key]['stress_indices'].update(stress)
 
-            # --- Build final atomic forms, merging stresses where appropriate ---
-            entry_forms: List[WordForm] = []
-            for merged in merge_map.values():
-                wordform_kwargs = dict(
-                    stress_indices=sorted(merged['stress_indices']),
-                    pos=merged['pos'],
-                    feats=merged['feats'],
-                    lemma=merged.get('lemma'),
-                    examples=merged.get('examples', []),
-                )
-                for field in [
-                    'main_definition', 'alt_definitions', 'translations', 'etymology_templates', 'etymology_number',
-                    'tags', 'roman', 'ipa', 'etymology', 'inflection_templates', 'categories', 'sense_id']:
-                    if field in merged:
-                        wordform_kwargs[field] = merged[field]
-                entry_forms.append(WordForm(**wordform_kwargs))
-            result[word] = LinguisticEntry(word=word, forms=entry_forms)
-        return result
+#             # --- Build final atomic forms, merging stresses where appropriate ---
+#             entry_forms: List[WordForm] = []
+#             for merged in merge_map.values():
+#                 wordform_kwargs = dict(
+#                     stress_indices=sorted(merged['stress_indices']),
+#                     pos=merged['pos'],
+#                     feats=merged['feats'],
+#                     lemma=merged.get('lemma'),
+#                     examples=merged.get('examples', []),
+#                 )
+#                 for field in [
+#                     'main_definition', 'alt_definitions', 'translations', 'etymology_templates', 'etymology_number',
+#                     'tags', 'roman', 'ipa', 'etymology', 'inflection_templates', 'categories', 'sense_id']:
+#                     if field in merged:
+#                         wordform_kwargs[field] = merged[field]
+#                 entry_forms.append(WordForm(**wordform_kwargs))
+#             result[word] = LinguisticEntry(word=word, forms=entry_forms)
+#         return result
 
 # --- Example Usage ---
 # from data_management.transform.data_unifier import LinguisticDataUnifier

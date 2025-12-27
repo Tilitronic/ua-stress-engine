@@ -1,3 +1,5 @@
+# --- Export configuration ---
+from enum import Enum
 import logging
 import os
 import multiprocessing
@@ -22,22 +24,61 @@ from src.data_management.transform.cache_utils import compute_parser_hash, cache
 
 
 
+# --- Pipeline/Export/Query Configs ---
+class ExportFormat(str, Enum):
+    SQL = 'sql'
+    LMDB = 'lmdb'
+
+
+class ExportConfig:
+    def __init__(self, format: ExportFormat = ExportFormat.SQL, query_words: Optional[List[str]] = None, sources_configs: Optional[Dict[str, 'ParserConfig']] = None):
+        self.format = format
+        self.query_words = query_words or []
+        # Default sources_configs if not provided
+        self.sources_configs: Dict[str, ParserConfig] = sources_configs or {
+            "TXT": {
+                "parser_func": "run_txt_parser",
+                "parser_path": "src/data_management/sources/txt_ua_stresses/txt_stress_parser.py",
+                "db_path": "src/data_management/sources/txt_ua_stresses/ua_word_stress_dictionary.txt",
+            },
+            "TRIE": {
+                "parser_func": "run_trie_parser",
+                "parser_path": "src/data_management/sources/trie_ua_stresses/trie_stress_parser.py",
+                "db_path": "src/data_management/sources/trie_ua_stresses/stress.trie",
+            },
+            "KAIKKI": {
+                "parser_func": "run_kaikki_parser",
+                "parser_path": "src/data_management/sources/kaikki/kaikki_parser.py",
+                "db_path": "src/data_management/sources/kaikki/kaikki.org-dictionary-Ukrainian.jsonl",
+            },
+        }
+
+# --- Export and Query Config ---
+export_config = ExportConfig(
+    format=ExportFormat.SQL,  # Change to ExportFormat.LMDB for LMDB
+    query_words=["замок"]    # Add more words to query as needed, or leave empty for no test queries
+    # sources_configs is defaulted inside ExportConfig
+)
 class ParserConfig(TypedDict):
     parser_func: str
     parser_path: str
     db_path: str
+# --- Export and Query Config ---
+    format=ExportFormat.SQL,  # Change to ExportFormat.LMDB for LMDB
+    query_words=["замок"]    # Add more words to query as needed, or leave empty for no test queries
+    # sources_configs is defaulted inside ExportConfig
 
 SOURCES_CONFIGS: Dict[str, ParserConfig] = {
-    "TXT": {
-        "parser_func": "run_txt_parser",
-        "parser_path": "src/data_management/sources/txt_ua_stresses/txt_stress_parser.py",
-        "db_path": "src/data_management/sources/txt_ua_stresses/ua_word_stress_dictionary.txt",
-    },
-    "TRIE": {
-        "parser_func": "run_trie_parser",
-        "parser_path": "src/data_management/sources/trie_ua_stresses/trie_stress_parser.py",
-        "db_path": "src/data_management/sources/trie_ua_stresses/stress.trie",
-    },
+    # "TXT": {
+    #     "parser_func": "run_txt_parser",
+    #     "parser_path": "src/data_management/sources/txt_ua_stresses/txt_stress_parser.py",
+    #     "db_path": "src/data_management/sources/txt_ua_stresses/ua_word_stress_dictionary.txt",
+    # },
+    # "TRIE": {
+    #     "parser_func": "run_trie_parser",
+    #     "parser_path": "src/data_management/sources/trie_ua_stresses/trie_stress_parser.py",
+    #     "db_path": "src/data_management/sources/trie_ua_stresses/stress.trie",
+    # },
     "KAIKKI": {
         "parser_func": "run_kaikki_parser",
         "parser_path": "src/data_management/sources/kaikki/kaikki_parser.py",
@@ -50,7 +91,7 @@ SOURCES_CONFIGS: Dict[str, ParserConfig] = {
 def run_txt_parser(progress_callback: Optional[Callable[[int, int], None]] = None, config: Optional[ParserConfig] = None) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     from src.data_management.transform.cache_utils import compute_parser_hash, load_from_cache_streaming, to_serializable, save_to_cache_streaming
     if config is None:
-        config = SOURCES_CONFIGS["TXT"]
+        config = export_config.sources_configs["TXT"]
     cache_key = compute_parser_hash(config["parser_path"], config["db_path"])
     # Check for streaming cache
     cached = load_from_cache_streaming(cache_key, prefix="TXT")
@@ -67,7 +108,7 @@ def run_txt_parser(progress_callback: Optional[Callable[[int, int], None]] = Non
 def run_trie_parser(progress_callback: Optional[Callable[[int, int], None]] = None, config: Optional[ParserConfig] = None) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     from src.data_management.transform.cache_utils import compute_parser_hash, load_from_cache_streaming, to_serializable, save_to_cache_streaming
     if config is None:
-        config = SOURCES_CONFIGS["TRIE"]
+        config = export_config.sources_configs["TRIE"]
     cache_key = compute_parser_hash(config["parser_path"], config["db_path"])
     cached = load_from_cache_streaming(cache_key, prefix="TRIE")
     if cached:
@@ -83,7 +124,7 @@ def run_trie_parser(progress_callback: Optional[Callable[[int, int], None]] = No
 def run_kaikki_parser(progress_callback: Optional[Callable[[int, int], None]] = None, config: Optional[ParserConfig] = None) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     from src.data_management.transform.cache_utils import compute_parser_hash, load_from_cache_streaming, to_serializable, save_to_cache_streaming
     if config is None:
-        config = SOURCES_CONFIGS["KAIKKI"]
+        config = export_config.sources_configs["KAIKKI"]
     cache_key = compute_parser_hash(config["parser_path"], config["db_path"])
     cached = load_from_cache_streaming(cache_key, prefix="KAIKKI")
     if cached:
@@ -343,7 +384,7 @@ def main():
         "TRIE": run_trie_parser,
         "KAIKKI": run_kaikki_parser,
     }
-    enabled_names = list(SOURCES_CONFIGS.keys())
+    enabled_names = list(export_config.sources_configs.keys())
     enabled_funcs = [parser_func_map[name] for name in enabled_names]
     results, stats_list = run_parsers_concurrently_mp(
         enabled_funcs,
@@ -364,17 +405,18 @@ def main():
     total_elapsed = time.time() - start_time
     _tqdm.write(f"Total concurrent parsing time: {total_elapsed:.2f} seconds")
 
+
     # --- Merged cache logic ---
-    cache_keys = [compute_parser_hash(SOURCES_CONFIGS[name]["parser_path"], SOURCES_CONFIGS[name]["db_path"]) for name in enabled_names]
+    cache_keys = [compute_parser_hash(export_config.sources_configs[name]["parser_path"], export_config.sources_configs[name]["db_path"]) for name in enabled_names]
     cache_paths = [cache_path_for_key(key, prefix=name) for key, name in zip(cache_keys, enabled_names)]
     merged_cache_key = compute_merged_cache_key(cache_paths)
     merged_cache_path = cache_path_for_key(merged_cache_key, prefix="MERGED")
-
-    # --- Remove old merged LMDB cache folders if hashes do not match ---
     import glob
     import shutil
     cache_dir = os.path.dirname(merged_cache_path)
     merged_lmdb_pattern = os.path.join(cache_dir, "MERGED_*_lmdb")
+    merged_sqlite_pattern = os.path.join(cache_dir, "MERGED_*.sqlite3")
+    # Remove old merged cache folders/files if hashes do not match
     for lmdb_folder in glob.glob(merged_lmdb_pattern):
         if merged_cache_key not in lmdb_folder:
             try:
@@ -382,7 +424,15 @@ def main():
                 _tqdm.write(f"[CLEANUP] Deleted old merged LMDB cache: {lmdb_folder}")
             except Exception as e:
                 _tqdm.write(f"[CLEANUP] Failed to delete {lmdb_folder}: {e}")
+    for sqlite_file in glob.glob(merged_sqlite_pattern):
+        if merged_cache_key not in sqlite_file:
+            try:
+                os.remove(sqlite_file)
+                _tqdm.write(f"[CLEANUP] Deleted old merged SQLite DB: {sqlite_file}")
+            except Exception as e:
+                _tqdm.write(f"[CLEANUP] Failed to delete {sqlite_file}: {e}")
 
+    merged = None
     if os.path.exists(merged_cache_path) and os.path.getsize(merged_cache_path) > 0:
         _tqdm.write(f"[CACHE] Using merged cache at {merged_cache_path}")
         merged = load_from_cache_streaming(merged_cache_key, prefix="MERGED")
@@ -394,51 +444,102 @@ def main():
         logger.info(f"Merging complete. Unique lemmas: {len(merged)}")
         _tqdm.write(f"Merged unique lemmas: {len(merged)}")
 
-        # --- LMDB Export Step ---
-        _tqdm.write("[LMDB] Starting LMDB export...")
-        logger.info("[LMDB] Starting LMDB export...")
-        try:
-            from src.data_management.transform.merger import LMDBExporter
-            lmdb_dir = merged_cache_path + "_lmdb"
-            from src.data_management.transform.merger import LMDBExportConfig
-            from pathlib import Path
-            config = LMDBExportConfig(db_path=Path(lmdb_dir), overwrite=True)
-            exporter = LMDBExporter(config)
-            logger.info(f"[LMDB] Streaming export to {lmdb_dir} ...")
-            _tqdm.write(f"[LMDB] Streaming export to {lmdb_dir} ...")
-            from src.data_management.transform.cache_utils import to_serializable
-            # Use an iterator to avoid holding all data in memory
-            def merged_iter():
-                for k, v in merged.items():
-                    yield k, to_serializable(v)
-            exporter.export_streaming(merged_iter(), total=len(merged))
-            logger.info(f"[LMDB] Export complete. Verifying...")
-            _tqdm.write(f"[LMDB] Export complete. Verifying...")
-            if not os.path.exists(lmdb_dir) or not os.listdir(lmdb_dir):
-                logger.error(f"[LMDB] ERROR: LMDB directory {lmdb_dir} not created or empty!")
-                _tqdm.write(f"[LMDB] ERROR: LMDB directory {lmdb_dir} not created or empty!")
-                raise RuntimeError(f"[LMDB] Export failed: {lmdb_dir} not created or empty!")
-            logger.info(f"[LMDB] LMDB directory {lmdb_dir} created successfully.")
-            _tqdm.write(f"[LMDB] LMDB directory {lmdb_dir} created successfully.")
-        except Exception as e:
-            logger.error(f"[LMDB] Exception during LMDB export: {e}")
-            _tqdm.write(f"[LMDB] Exception during LMDB export: {e}")
-            raise
+        # --- Export Step ---
+        if export_config.format == ExportFormat.LMDB:
+            _tqdm.write("[LMDB] Starting LMDB export...")
+            logger.info("[LMDB] Starting LMDB export...")
+            try:
+                from src.data_management.transform.merger import LMDBExporter, LMDBExportConfig
+                from pathlib import Path
+                lmdb_dir = merged_cache_path + "_lmdb"
+                config = LMDBExportConfig(db_path=Path(lmdb_dir), overwrite=True)
+                exporter = LMDBExporter(config)
+                logger.info(f"[LMDB] Streaming export to {lmdb_dir} ...")
+                _tqdm.write(f"[LMDB] Streaming export to {lmdb_dir} ...")
+                from src.data_management.transform.cache_utils import to_serializable
+                def merged_iter():
+                    for k, v in merged.items():
+                        yield k, to_serializable(v)
+                exporter.export_streaming(merged_iter(), total=len(merged))
+                logger.info(f"[LMDB] Export complete. Verifying...")
+                _tqdm.write(f"[LMDB] Export complete. Verifying...")
+                if not os.path.exists(lmdb_dir) or not os.listdir(lmdb_dir):
+                    logger.error(f"[LMDB] ERROR: LMDB directory {lmdb_dir} not created or empty!")
+                    _tqdm.write(f"[LMDB] ERROR: LMDB directory {lmdb_dir} not created or empty!")
+                    raise RuntimeError(f"[LMDB] Export failed: {lmdb_dir} not created or empty!")
+                logger.info(f"[LMDB] LMDB directory {lmdb_dir} created successfully.")
+                _tqdm.write(f"[LMDB] LMDB directory {lmdb_dir} created successfully.")
+            except Exception as e:
+                logger.error(f"[LMDB] Exception during LMDB export: {e}")
+                _tqdm.write(f"[LMDB] Exception during LMDB export: {e}")
+                raise
+        else:
+            _tqdm.write("[SQLITE] Starting SQLite export...")
+            logger.info("[SQLITE] Starting SQLite export...")
+            try:
+                from src.data_management.transform.merger import merge_caches_and_save
+                # merge_caches_and_save returns (merged, db_path)
+                _, sql_db_path = merge_caches_and_save(enabled_names, merged_prefix="MERGED")
+                logger.info(f"[SQLITE] SQLite export complete: {sql_db_path}")
+                _tqdm.write(f"[SQLITE] SQLite export complete: {sql_db_path}")
+            except Exception as e:
+                logger.error(f"[SQLITE] Exception during SQLite export: {e}")
+                _tqdm.write(f"[SQLITE] Exception during SQLite export: {e}")
+                raise
 
-    # Pretty print a few sample entries
-    pp = pprint.PrettyPrinter(indent=2, width=120, compact=False)
-    for key in [
-                "замок",
-                # "блоха", 
-                # "помилка"
-                ]:
-        _tqdm.write(f"Merged entry for lemma: '{key}'")
-        entry = merged.get(key)
-        if not entry:
-            _tqdm.write("  Not found in merged dictionary.")
-            continue
-        _tqdm.write(f"\033[1;36m{key}\033[0m:")
-        _tqdm.write(f"\033[0;37m{pp.pformat(entry.model_dump())}\033[0m")
+    # --- Query exported data from LMDB or SQLite ---
+    if export_config.query_words:
+        _tqdm.write("\n=== Querying Exported Data ===")
+        if export_config.format == ExportFormat.LMDB:
+            _tqdm.write("[QUERY] LMDB export: querying keys...")
+            from src.data_management.transform.merger import LMDBExporter, LMDBExportConfig
+            from pathlib import Path
+            lmdb_dir = merged_cache_path + "_lmdb"
+            config = LMDBExportConfig(db_path=Path(lmdb_dir), overwrite=False)
+            import lmdb
+            import msgpack
+            env = lmdb.open(str(config.db_path), readonly=True, lock=False)
+            with env.begin() as txn:
+                for word in export_config.query_words:
+                    val = txn.get(word.encode("utf-8"))
+                    if val:
+                        obj = msgpack.unpackb(val, raw=False)
+                        _tqdm.write(f"[LMDB] {word}: {pprint.pformat(obj, width=120)}")
+                    else:
+                        _tqdm.write(f"[LMDB] {word}: NOT FOUND")
+            env.close()
+        else:
+            _tqdm.write("[QUERY] SQLite export: querying by lemma or form...")
+            import sqlite3
+            sql_db_path = None
+            # Find the merged sqlite path (should match export)
+            cache_dir = os.path.dirname(merged_cache_path)
+            for fname in os.listdir(cache_dir):
+                if fname.endswith(".sqlite3") and merged_cache_key in fname:
+                    sql_db_path = os.path.join(cache_dir, fname)
+                    break
+            if not sql_db_path or not os.path.exists(sql_db_path):
+                _tqdm.write(f"[SQLITE] DB not found at {sql_db_path}")
+            else:
+                conn = sqlite3.connect(sql_db_path)
+                cur = conn.cursor()
+                # Debug: print row count and a sample
+                cur.execute("SELECT COUNT(*) FROM word_form")
+                count = cur.fetchone()[0]
+                _tqdm.write(f"[SQLITE] word_form row count: {count}")
+                cur.execute("SELECT * FROM word_form LIMIT 5")
+                sample = cur.fetchall()
+                _tqdm.write(f"[SQLITE] word_form sample rows: {sample}")
+                for word in export_config.query_words:
+                    # Query by lemma or form
+                    cur.execute("SELECT * FROM word_form WHERE lemma=? OR form=?", (word, word))
+                    rows = cur.fetchall()
+                    if rows:
+                        _tqdm.write(f"[SQLITE] {word}: {rows}")
+                    else:
+                        _tqdm.write(f"[SQLITE] {word}: NOT FOUND")
+                cur.close()
+                conn.close()
 
 if __name__ == "__main__":
     main()

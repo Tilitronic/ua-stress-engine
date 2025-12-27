@@ -9,12 +9,21 @@ CREATE TABLE word_form (
     form TEXT NOT NULL,
     lemma TEXT,
     pos TEXT NOT NULL,
-    main_definition TEXT,
+    main_definition_id INTEGER REFERENCES definition(id),
     roman TEXT,
     ipa TEXT,
-    etymology TEXT,
+    etymology_id INTEGER REFERENCES etymology_text(id),
     etymology_number INTEGER,
     sense_id TEXT
+);
+-- Deduplicated definition and etymology tables
+CREATE TABLE IF NOT EXISTS definition (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    text TEXT UNIQUE NOT NULL
+);
+CREATE TABLE IF NOT EXISTS etymology_text (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    text TEXT UNIQUE NOT NULL
 );
 CREATE INDEX idx_word_form_form ON word_form(form);
 CREATE INDEX idx_word_form_lemma ON word_form(lemma);

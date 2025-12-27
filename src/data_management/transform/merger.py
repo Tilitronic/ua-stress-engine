@@ -6,6 +6,266 @@ from typing import Dict, Any, Optional, List
 import logging
 import shutil, tempfile
 
+import sqlite3
+import json
+
+# --- SQL Exporter Config and Exporter ---
+class SQLExportConfig:
+    def __init__(self, db_path, overwrite: bool = False):
+        self.db_path = Path(db_path)
+        self.overwrite = overwrite
+
+class SQLExporter:
+    # Use field names from data_unifier and schema
+    from src.data_management.transform.data_unifier import UPOS, UDFeatKey, WordForm, LinguisticEntry
+
+    from enum import Enum
+    class WordFormField(str, Enum):
+        FORM = 'form'
+        LEMMA = 'lemma'
+        POS = 'pos'
+        MAIN_DEFINITION = 'main_definition'
+        ROMAN = 'roman'
+        IPA = 'ipa'
+        ETYMOLOGY = 'etymology'
+        ETYMOLOGY_NUMBER = 'etymology_number'
+        SENSE_ID = 'sense_id'
+
+    WORD_FORM_FIELDS = [
+        WordFormField.FORM.value,
+        WordFormField.LEMMA.value,
+        WordFormField.POS.value,
+        WordFormField.MAIN_DEFINITION.value,
+        WordFormField.ROMAN.value,
+        WordFormField.IPA.value,
+        WordFormField.ETYMOLOGY.value,
+        WordFormField.ETYMOLOGY_NUMBER.value,
+        WordFormField.SENSE_ID.value
+    ]
+    # For normalized tables
+    NESTED_TABLES = [
+        'feature', 'translation', 'etymology_template', 'inflection_template', 'category', 'tag', 'example', 'possible_stress_index', 'meta'
+    ]
+
+    def __init__(self, config: SQLExportConfig, logger=None):
+        self.config = config
+        self.logger = logger or logging.getLogger("SQLExporter")
+
+    def create_schema(self, conn):
+        # Read schema from file and add dedup tables for main_definition and etymology
+        schema_path = Path(__file__).parent / 'linguistic_data_schema.sql'
+        with open(schema_path, encoding='utf-8') as f:
+            schema_sql = f.read()
+        # Add dedup tables if not present
+        schema_sql += '''
+        CREATE TABLE IF NOT EXISTS definition (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT UNIQUE NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS etymology_text (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT UNIQUE NOT NULL
+        );
+        '''
+        conn.executescript(schema_sql)
+
+    def export_streaming(self, data_iter, total=None, batch_size=1000):
+        """
+        Export entries to SQLite using normalized schema, batch insert, and PRAGMA optimizations.
+        Use msgpack only for large/nested fields (not for normalized tables).
+        """
+        from tqdm import tqdm
+        # --- Informative summary will be printed at the end ---
+        if self.config.overwrite and self.config.db_path.exists():
+            self.logger.info(f"Removing existing SQLite file at {self.config.db_path}")
+            self.config.db_path.unlink()
+        conn = sqlite3.connect(str(self.config.db_path))
+        conn.execute("PRAGMA synchronous = OFF;")
+        conn.execute("PRAGMA journal_mode = WAL;")
+        conn.execute("PRAGMA temp_store = MEMORY;")
+        self.create_schema(conn)
+        cur = conn.cursor()
+        # --- Deduplication caches ---
+        definition_cache = {}
+        etymology_cache = {}
+        def get_definition_id(text):
+            if not text:
+                return None
+            if text in definition_cache:
+                return definition_cache[text]
+            cur.execute("INSERT OR IGNORE INTO definition (text) VALUES (?)", (text,))
+            cur.execute("SELECT id FROM definition WHERE text=?", (text,))
+            id_ = cur.fetchone()[0]
+            definition_cache[text] = id_
+            return id_
+        def get_etymology_id(text):
+            if not text:
+                return None
+            if text in etymology_cache:
+                return etymology_cache[text]
+            cur.execute("INSERT OR IGNORE INTO etymology_text (text) VALUES (?)", (text,))
+            cur.execute("SELECT id FROM etymology_text WHERE text=?", (text,))
+            id_ = cur.fetchone()[0]
+            etymology_cache[text] = id_
+            return id_
+        word_form_batch = []
+        feature_batch = []
+        translation_batch = []
+        etymology_template_batch = []
+        inflection_template_batch = []
+        category_batch = []
+        tag_batch = []
+        example_batch = []
+        possible_stress_index_batch = []
+        meta_batch = []
+        count = 0
+        for key, value in tqdm(data_iter, total=total, desc="SQL Export", ncols=80):
+            # Map fields using data_unifier types
+            form = value.get('form') or key
+            lemma = value.get('lemma')
+            pos = value.get('pos')
+            # Deduplicate main_definition and etymology
+            main_definition_id = get_definition_id(value.get('main_definition'))
+            roman = value.get('roman')
+            ipa = value.get('ipa')
+            etymology_id = get_etymology_id(value.get('etymology'))
+            etymology_number = value.get('etymology_number')
+            sense_id = value.get('sense_id')
+            # Insert word_form row (store IDs instead of text)
+            word_form_batch.append((form, lemma, pos, main_definition_id, roman, ipa, etymology_id, etymology_number, sense_id))
+            # Prepare nested/related rows (normalize repeated strings)
+            feats = value.get('feats', {})
+            for k, v in feats.items():
+                feature_batch.append((None, k, v))  # word_form_id to be filled after insert
+            translations = value.get('translations', []) or []
+            for t in translations:
+                # Compact translation JSON fields if present
+                lang = t.get('lang')
+                text = t.get('text')
+                sense = t.get('sense')
+                translation_batch.append((None, lang, text, sense))
+            etymology_templates = value.get('etymology_templates', []) or []
+            for et in etymology_templates:
+                et_name = et.get('name')
+                et_args = json.dumps(et.get('args', {}), ensure_ascii=False, separators=(',', ':'))
+                etymology_template_batch.append((None, et_name, et_args))
+            inflection_templates = value.get('inflection_templates', []) or []
+            for it in inflection_templates:
+                it_name = it.get('name')
+                it_args = json.dumps(it.get('args', {}), ensure_ascii=False, separators=(',', ':'))
+                inflection_template_batch.append((None, it_name, it_args))
+            categories = value.get('categories', []) or []
+            for cat in categories:
+                category_batch.append((None, cat))
+            tags = value.get('tags', []) or []
+            for tag in tags:
+                tag_batch.append((None, tag))
+            examples = value.get('examples', []) or []
+            for ex in examples:
+                example_batch.append((None, ex))
+            possible_stress_indices = value.get('possible_stress_indices', []) or []
+            if possible_stress_indices:
+                psi_json = json.dumps(possible_stress_indices, ensure_ascii=False, separators=(',', ':'))
+                possible_stress_index_batch.append((None, psi_json))
+            meta = value.get('meta', {})
+            if meta:
+                meta_json = json.dumps(meta, ensure_ascii=False, separators=(',', ':'))
+                meta_batch.append((None, meta_json))
+            count += 1
+            # Batch insert every batch_size word_forms
+            if len(word_form_batch) >= batch_size:
+                self._insert_batches(cur, word_form_batch, feature_batch, translation_batch, etymology_template_batch,
+                                    inflection_template_batch, category_batch, tag_batch, example_batch,
+                                    possible_stress_index_batch, meta_batch)
+                conn.commit()
+                word_form_batch.clear()
+                feature_batch.clear()
+                translation_batch.clear()
+                etymology_template_batch.clear()
+                inflection_template_batch.clear()
+                category_batch.clear()
+                tag_batch.clear()
+                example_batch.clear()
+                possible_stress_index_batch.clear()
+                meta_batch.clear()
+        # Insert any remaining
+        if word_form_batch:
+            self._insert_batches(cur, word_form_batch, feature_batch, translation_batch, etymology_template_batch,
+                                inflection_template_batch, category_batch, tag_batch, example_batch,
+                                possible_stress_index_batch, meta_batch)
+            conn.commit()
+        cur.close()
+        conn.execute("PRAGMA optimize;")
+        conn.close()
+        # Print informative summary after export
+        db_size = None
+        try:
+            db_size = self.config.db_path.stat().st_size
+        except Exception:
+            db_size = None
+        summary = f"[SQLITE] Exported {count} entries to SQLite at {self.config.db_path}"
+        if db_size is not None:
+            summary += f" | Final DB size: {db_size/1024/1024:.2f} MB"
+        print(summary)
+
+    def _insert_batches(self, cur, word_form_batch, feature_batch, translation_batch, etymology_template_batch,
+                       inflection_template_batch, category_batch, tag_batch, example_batch,
+                       possible_stress_index_batch, meta_batch):
+        # Insert word_form rows one by one to collect rowids
+        word_form_ids = []
+        for row in word_form_batch:
+            cur.execute('''
+                INSERT INTO word_form (form, lemma, pos, main_definition_id, roman, ipa, etymology_id, etymology_number, sense_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', row)
+            word_form_ids.append(cur.lastrowid)
+        # Helper to assign word_form_id to each related row
+        def assign_ids(batch):
+            out = []
+            idx = 0
+            for row in batch:
+                out.append((word_form_ids[idx],) + row[1:])
+                if len(out) % len(word_form_ids) == 0:
+                    idx += 1
+            return out
+        if feature_batch:
+            cur.executemany('''
+                INSERT INTO feature (word_form_id, key, value) VALUES (?, ?, ?)
+            ''', assign_ids(feature_batch))
+        if translation_batch:
+            cur.executemany('''
+                INSERT INTO translation (word_form_id, lang, text, sense) VALUES (?, ?, ?, ?)
+            ''', assign_ids(translation_batch))
+        if etymology_template_batch:
+            cur.executemany('''
+                INSERT INTO etymology_template (word_form_id, name, args_json) VALUES (?, ?, ?)
+            ''', assign_ids(etymology_template_batch))
+        if inflection_template_batch:
+            cur.executemany('''
+                INSERT INTO inflection_template (word_form_id, name, args_json) VALUES (?, ?, ?)
+            ''', assign_ids(inflection_template_batch))
+        if category_batch:
+            cur.executemany('''
+                INSERT INTO category (word_form_id, category) VALUES (?, ?)
+            ''', assign_ids(category_batch))
+        if tag_batch:
+            cur.executemany('''
+                INSERT INTO tag (word_form_id, tag) VALUES (?, ?)
+            ''', assign_ids(tag_batch))
+        if example_batch:
+            cur.executemany('''
+                INSERT INTO example (word_form_id, example) VALUES (?, ?)
+            ''', assign_ids(example_batch))
+        if possible_stress_index_batch:
+            cur.executemany('''
+                INSERT INTO possible_stress_index (word_form_id, stress_indices_json) VALUES (?, ?)
+            ''', assign_ids(possible_stress_index_batch))
+        if meta_batch:
+            cur.executemany('''
+                INSERT INTO meta (word_form_id, meta_json) VALUES (?, ?)
+            ''', assign_ids(meta_batch))
+
+
 class LMDBExportConfig:
     def __init__(self, db_path, map_size: Optional[int] = None, overwrite: bool = False):
         # Accept str or Path, always store as Path
@@ -13,6 +273,8 @@ class LMDBExportConfig:
         self.map_size = map_size
         self.overwrite = overwrite
 
+
+# --- LMDBExporter remains unchanged below (for optional use) ---
 class LMDBExporter:
     def __init__(self, config: LMDBExportConfig, logger=None):
         self.config = config
@@ -32,11 +294,6 @@ class LMDBExporter:
         return max(estimated, 100 * 1024 * 1024)  # At least 100MB
 
     def export_streaming(self, data_iter, total=None) -> None:
-        """
-        Export entries to LMDB in a streaming/chunked fashion with manual transaction batching.
-        data_iter: iterable of (key, value)
-        total: total number of entries (for progress bar)
-        """
         from tqdm import tqdm
         lmdb_data_file = self.config.db_path / "data.mdb"
         if self.config.overwrite and lmdb_data_file.exists():
@@ -129,10 +386,33 @@ def merge_caches_and_save(names, merged_prefix="MERGED"):
     import time
     cache_keys = [compute_parser_hash(SOURCES_CONFIGS[name]["parser_path"], SOURCES_CONFIGS[name]["db_path"]) for name in names]
     cache_paths = [cache_path_for_key(key, prefix=name) for key, name in zip(cache_keys, names)]
-    merged_cache_key = compute_merged_cache_key(cache_paths)
+    # Add hash of merger.py to merged cache key
+    def file_hash(path):
+        import hashlib
+        h = hashlib.sha256()
+        with open(path, 'rb') as f:
+            while True:
+                chunk = f.read(8192)
+                if not chunk:
+                    break
+                h.update(chunk)
+        return h.hexdigest()
+    merger_py_path = Path(__file__).resolve()
+    merger_hash = file_hash(merger_py_path)
+    merged_cache_key = compute_merged_cache_key(cache_paths) + '_' + merger_hash[:16]
     merged_cache_path = cache_path_for_key(merged_cache_key, prefix=merged_prefix)
-    # Use the same cache folder as msgpack caches
     cache_folder = os.path.join(os.path.dirname(__file__), "cache")
+    # --- Delete all old MERGED_* files before creating new merged cache ---
+    for f in Path(cache_folder).glob(f"{merged_prefix}*"):
+        try:
+            if f.is_file():
+                f.unlink()
+            elif f.is_dir():
+                import shutil
+                shutil.rmtree(f)
+        except Exception as e:
+            print(f"[CLEANUP] Could not delete {f}: {e}")
+    sql_db_path = Path(os.path.join(cache_folder, f"{merged_prefix}_{merged_cache_key}.sqlite3"))
     lmdb_dir = Path(os.path.join(cache_folder, f"{merged_prefix}_{merged_cache_key}_lmdb"))
 
     logger = logging.getLogger("merger")
@@ -143,11 +423,114 @@ def merge_caches_and_save(names, merged_prefix="MERGED"):
     )
 
     start_time = time.time()
+    # --- Default: Use SQL export ---
+    force_export = False
+    if sql_db_path.exists():
+        # Check if DB has zero rows; if so, delete and force export
+        import sqlite3
+        try:
+            conn = sqlite3.connect(str(sql_db_path))
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM word_form")
+            count = cur.fetchone()[0]
+            cur.close()
+            conn.close()
+            if count == 0:
+                print(f"[SQLITE] Existing DB at {sql_db_path} has zero rows. Deleting and forcing export...")
+                sql_db_path.unlink()
+                force_export = True
+        except Exception as e:
+            print(f"[SQLITE] Could not check row count: {e}. Forcing export...")
+            sql_db_path.unlink()
+            force_export = True
+    if not sql_db_path.exists() or force_export:
+        logger.info(f"[SQLITE] No merged SQLite DB found at {sql_db_path}. Will merge and export to SQLite.")
+        print(f"[SQLITE] No merged SQLite DB found at {sql_db_path}. Will merge and export to SQLite.")
+        dicts = []
+        for name, cache_path in zip(names, cache_paths):
+            if os.path.exists(cache_path) and os.path.getsize(cache_path) > 0:
+                logger.info(f"[CACHE] Using cache for {name} from {cache_path}")
+                print(f"[CACHE] Using cache for {name} from {cache_path}")
+                d = load_from_cache_streaming(cache_keys[names.index(name)], prefix=name)
+            else:
+                logger.info(f"[CACHE] No cache for {name} at {cache_path}. Will parse {name} from scratch.")
+                print(f"[CACHE] No cache for {name} at {cache_path}. Will parse {name} from scratch.")
+                d = None
+            dicts.append(d)
+        logger.info(f"[MERGE] Merging {len(dicts)} dictionaries...")
+        print(f"[MERGE] Merging {len(dicts)} dictionaries...")
+        start = time.time()
+        merged = merge_linguistic_dicts(dicts)
+        elapsed = time.time() - start
+        logger.info(f"[MERGE] Merged in {elapsed:.2f} seconds. Exporting merged cache to SQLite...")
+        print(f"[MERGE] Merged in {elapsed:.2f} seconds. Exporting merged cache to SQLite...")
+        export_config = SQLExportConfig(db_path=sql_db_path, overwrite=True)
+        exporter = SQLExporter(export_config, logger=logger)
+        print(f"[SQLITE] About to export merged data to {sql_db_path}")
+        # Flatten merged dict: for each lemma, for each WordForm, yield (form, word_form_dict)
+        def word_form_iter():
+            for lemma, entry in merged.items():
+                # entry is a LinguisticEntry (Pydantic model)
+                for wf in entry.forms:
+                    d = wf.model_dump()
+                    # Add lemma as a field if not present
+                    if 'lemma' not in d or d['lemma'] is None:
+                        d['lemma'] = lemma
+                    yield (d['form'], d)
+        exporter.export_streaming(word_form_iter(), total=sum(len(entry.forms) for entry in merged.values()))
+        print(f"[SQLITE] Merged cache exported to {sql_db_path}")
+        logger.info(f"[SQLITE] Merged cache exported to {sql_db_path}")
+        if not sql_db_path.exists():
+            raise RuntimeError(f"[CRITICAL] SQLite export failed: {sql_db_path} was not created!")
+        cache_used = False
+    else:
+        logger.info(f"[SQLITE] Using merged SQLite DB at {sql_db_path}")
+        print(f"[SQLITE] Using merged SQLite DB at {sql_db_path}")
+        cache_used = True
+        merged = None  # Not loaded into memory
+
+    elapsed = time.time() - start_time
+    logger.info(f"Merging complete. Unique lemmas: {len(merged) if merged is not None else 'N/A (SQLITE only)'}")
+    logger.info(f"Total merging time: {elapsed:.2f} seconds")
+    print("\n=== Merging Statistics ===")
+    print(f"Merged SQLite cache used: {cache_used}")
+    print(f"Unique lemmas: {len(merged) if merged is not None else 'N/A (SQLITE only)'}")
+    print(f"Merged SQLite cache path: {sql_db_path}")
+    print(f"Total merging time: {elapsed:.2f} seconds\n")
+    return merged, str(sql_db_path)
+
+# --- Optional: LMDB export ---
+def merge_caches_and_save_lmdb(names, merged_prefix="MERGED"):
+    """
+    Use this function to export to LMDB instead of SQLite. API is the same as merge_caches_and_save.
+    """
+    cache_keys = [compute_parser_hash(SOURCES_CONFIGS[name]["parser_path"], SOURCES_CONFIGS[name]["db_path"]) for name in names]
+    cache_paths = [cache_path_for_key(key, prefix=name) for key, name in zip(cache_keys, names)]
+    merged_cache_key = compute_merged_cache_key(cache_paths)
+    cache_folder = os.path.join(os.path.dirname(__file__), "cache")
+    # --- Delete all old MERGED_* files before creating new merged cache ---
+    for f in Path(cache_folder).glob(f"{merged_prefix}*"):
+        try:
+            if f.is_file():
+                f.unlink()
+            elif f.is_dir():
+                import shutil
+                shutil.rmtree(f)
+        except Exception as e:
+            print(f"[CLEANUP] Could not delete {f}: {e}")
+    lmdb_dir = Path(os.path.join(cache_folder, f"{merged_prefix}_{merged_cache_key}_lmdb"))
+    logger = logging.getLogger("merger")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] %(levelname)s %(name)s: %(message)s",
+        datefmt="%H:%M:%S"
+    )
+    start_time = time.time()
     if lmdb_dir.exists():
         logger.info(f"[LMDB] Using merged LMDB cache at {lmdb_dir}")
         print(f"[LMDB] Using merged LMDB cache at {lmdb_dir}")
         cache_used = True
-        merged = None  # Not loaded into memory
+        merged = None
     else:
         logger.info(f"[LMDB] No merged LMDB cache found at {lmdb_dir}. Will merge and export to LMDB.")
         print(f"[LMDB] No merged LMDB cache found at {lmdb_dir}. Will merge and export to LMDB.")
@@ -172,10 +555,9 @@ def merge_caches_and_save(names, merged_prefix="MERGED"):
         export_config = LMDBExportConfig(db_path=lmdb_dir, overwrite=True)
         exporter = LMDBExporter(export_config, logger=logger)
         print(f"[LMDB] About to export merged data to {lmdb_dir}")
-        exporter.export(merged)
+        exporter.export_streaming(merged.items(), total=len(merged))
         print(f"[LMDB] Merged cache exported to {lmdb_dir}")
         logger.info(f"[LMDB] Merged cache exported to {lmdb_dir}")
-        # Ensure LMDB directory exists after export
         if not lmdb_dir.exists():
             raise RuntimeError(f"[CRITICAL] LMDB export failed: {lmdb_dir} was not created!")
         cache_used = False

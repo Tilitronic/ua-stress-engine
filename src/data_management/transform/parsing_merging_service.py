@@ -183,7 +183,7 @@ def main():
 
     # Pretty print a few sample entries
     pp = pprint.PrettyPrinter(indent=2, width=120, compact=False)
-    for key in ["замок", "блоха", "клаксон", "помилка", "обід"]:
+    for key in ["замок", "блоха", "помилка"]:
         _tqdm.write(f"Merged entry for lemma: '{key}'")
         entry = merged.get(key)
         if not entry:

@@ -28,10 +28,9 @@ Description
 
 """
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-)
+
+# NOTE: Do not configure logging handlers or levels here.
+# Logging is managed by the main process for concurrency compatibility and clean progress bar output.
 logger = logging.getLogger("TRIE_Stress_Parser")
 
 DB_PATH = "src/data_management/sources/trie_ua_stresses/stress.trie"
@@ -119,7 +118,7 @@ def char_positions_to_vowel_indices(word: str, char_positions: List[int]) -> Lis
                 vowel_indices.append(vowel_index)
     return sorted(list(set(vowel_indices)))
 
-def parse_trie_to_unified_dict(input_path: Optional[str] = None, show_progress: bool = False) -> Dict[str, LinguisticEntry]:
+def parse_trie_to_unified_dict(input_path: Optional[str] = None, show_progress: bool = False, progress_callback=None) -> Dict[str, LinguisticEntry]:
     """
     Build a unified dictionary: lemma -> LinguisticEntry(forms=[WordForm, ...]) using lemmatizer for grouping.
     """
@@ -128,8 +127,6 @@ def parse_trie_to_unified_dict(input_path: Optional[str] = None, show_progress: 
     trie_path = Path(input_path)
     trie = marisa_trie.BytesTrie()
     trie.load(str(trie_path))
-    logger.info(f"Loaded trie from {trie_path} ({len(trie)} entries)")
-
     keys = list(trie.keys())
     iterator = tqdm(keys, desc="Parsing trie", unit="word") if show_progress else keys
 
@@ -165,12 +162,17 @@ def parse_trie_to_unified_dict(input_path: Optional[str] = None, show_progress: 
         return tags
 
     unified_data: Dict[str, LinguisticEntry] = {}
+    total_tokens = 0
+    word_forms_count = 0
+    start_time = time.time()
 
-    for word in iterator:
-        key = normalize_apostrophe(word).lower()
+    for idx, word in enumerate(iterator):
+        norm_word = normalize_apostrophe(word).lower()
+        lemma = get_lemma(norm_word)
         values = trie[word]
         if not values or len(values) != 1:
             continue
+        total_tokens += 1
         raw_value = values[0]
         forms = []
         if RECORD_SEPARATOR not in raw_value:
@@ -188,44 +190,57 @@ def parse_trie_to_unified_dict(input_path: Optional[str] = None, show_progress: 
                     morphology = decompress_tags(tags_bytes)
                     if vowel_indices:
                         forms.append((vowel_indices, morphology))
-        # Build LinguisticEntry for this key
-        word_forms = []
-        unique_stress_arrays = []
+
+        # Add forms to the correct lemma entry in unified_data
+        if lemma not in unified_data:
+            unified_data[lemma] = LinguisticEntry(
+                word=lemma,
+                forms=[],
+                possible_stress_indices=[],
+                meta={}
+            )
+        entry = unified_data[lemma]
         for stress_indices, feats in forms:
             # Ensure unique stress arrays (order-insensitive)
             sorted_indices = tuple(sorted(stress_indices))
-            if sorted_indices not in [tuple(sorted(arr)) for arr in unique_stress_arrays]:
-                unique_stress_arrays.append(list(sorted_indices))
+            if sorted_indices not in [tuple(sorted(arr)) for arr in entry.possible_stress_indices]:
+                entry.possible_stress_indices.append(list(sorted_indices))
             pos = UPOS(feats.get('upos')) if 'upos' in feats else UPOS.X
             feats_clean = {k: v for k, v in feats.items() if k != 'upos'}
-            word_forms.append(WordForm(
-                form=key,
-                stress_indices=stress_indices,
-                pos=pos,
-                feats=feats_clean,
-                lemma=key,
-                main_definition=None,
-                alt_definitions=None,
-                translations=None,
-                etymology_templates=None,
-                etymology_number=None,
-                tags=None,
-                examples=[],
-                roman=None,
-                ipa=None,
-                etymology=None,
-                inflection_templates=None,
-                categories=None,
-                sense_id=None
-            ))
-        if word_forms:
-            unified_data[key] = LinguisticEntry(
-                word=key,
-                forms=word_forms,
-                possible_stress_indices=unique_stress_arrays,
-                meta={}
-            )
-    return unified_data
+            # Only add unique WordForms by stress_indices and form
+            if not any((wf.stress_indices == stress_indices and wf.form == norm_word) for wf in entry.forms):
+                entry.forms.append(WordForm(
+                    form=norm_word,
+                    stress_indices=stress_indices,
+                    pos=pos,
+                    feats=feats_clean,
+                    lemma=lemma,
+                    main_definition=None,
+                    alt_definitions=None,
+                    translations=None,
+                    etymology_templates=None,
+                    etymology_number=None,
+                    tags=None,
+                    examples=[],
+                    roman=None,
+                    ipa=None,
+                    etymology=None,
+                    inflection_templates=None,
+                    categories=None,
+                    sense_id=None
+                ))
+                word_forms_count += 1
+        # Progress callback every 10000 words
+        if progress_callback and (idx % 10000 == 0 or idx == len(keys) - 1):
+            progress_callback(idx + 1, len(keys))
+    elapsed = time.time() - start_time
+    stats = {
+        "total_tokens": total_tokens,
+        "unique_lemmas": len(unified_data),
+        "elapsed": elapsed,
+        "word_forms_created": word_forms_count,
+    }
+    return unified_data, stats
 
 
 def main():
@@ -235,7 +250,7 @@ def main():
     """
     # Use the default DB_PATH or override as needed
     print("--- Building Unified Dictionary from Trie ---")
-    unified_dict = parse_trie_to_unified_dict(DB_PATH, show_progress=True)
+    unified_dict, stats = parse_trie_to_unified_dict(DB_PATH, show_progress=True)
 
     import pprint
     pp = pprint.PrettyPrinter(indent=2, width=120, compact=False)

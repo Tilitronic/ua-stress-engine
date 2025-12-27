@@ -172,6 +172,13 @@ def main():
         _tqdm.write(f"Parser {name} stats: {stats}")
     total_elapsed = time.time() - start_time
     _tqdm.write(f"Total concurrent parsing time: {total_elapsed:.2f} seconds")
+
+    # Merging step with visible progress/logs
+    _tqdm.write("\n=== Merging Dictionaries ===")
+    logger = logging.getLogger("merging")
+    logger.info("Starting merging step...")
+    merged = merge_linguistic_dicts(results)
+    logger.info(f"Merging complete. Unique lemmas: {len(merged)}")
     _tqdm.write(f"Merged unique lemmas: {len(merged)}")
 
     # Pretty print a few sample entries

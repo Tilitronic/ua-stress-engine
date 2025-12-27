@@ -1,3 +1,4 @@
+from src.data_management.sources.trie_ua_stresses.stress_db_file_manager import ensure_latest_db_file, DEFAULT_LOCAL_PATH
 # Standalone function to convert char positions to vowel indices
 
 
@@ -124,6 +125,8 @@ def parse_trie_to_unified_dict(input_path: Optional[str] = None, show_progress: 
     """
     Build a unified dictionary: lemma -> LinguisticEntry(forms=[WordForm, ...]) using lemmatizer for grouping.
     """
+    # Ensure the trie DB file is present and up-to-date
+    ensure_latest_db_file(str(trie_path))
     if input_path is None:
         input_path = DB_PATH
     trie_path = Path(input_path)

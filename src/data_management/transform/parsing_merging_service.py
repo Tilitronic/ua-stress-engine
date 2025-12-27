@@ -1,7 +1,5 @@
-
-
-
 import logging
+import os
 import multiprocessing
 from multiprocessing import Manager
 from typing import Callable, List, Optional
@@ -13,15 +11,31 @@ tqdm.set_lock(multiprocessing.RLock())
 import pprint
 
 # Top-level parser functions for multiprocessing (must be importable/picklable)
-def txt_parser(progress_callback=None):
-    import importlib
-    txt_parser_mod = importlib.import_module("src.data_management.sources.txt_ua_stresses.txt_stress_parser")
-    return txt_parser_mod.parse_txt_to_unified_dict(show_progress=True, progress_callback=progress_callback)
 
-def trie_parser(progress_callback=None):
-    import importlib
-    trie_parser_mod = importlib.import_module("src.data_management.sources.trie_ua_stresses.trie_stress_parser")
-    return trie_parser_mod.parse_trie_to_unified_dict(show_progress=True, progress_callback=progress_callback)
+# Absolute imports for parser runner functions
+from src.data_management.sources.txt_ua_stresses.txt_stress_parser import parse_txt_to_unified_dict
+from src.data_management.sources.trie_ua_stresses.trie_stress_parser import parse_trie_to_unified_dict
+from src.data_management.sources.kaikki.kaikki_parser import parse_kaikki_to_unified_dict
+
+def run_txt_parser(progress_callback=None):
+    print(f"[DEBUG] [PID {os.getpid()}] run_txt_parser called")
+    result = parse_txt_to_unified_dict(show_progress=True, progress_callback=progress_callback)
+    print(f"[DEBUG] [PID {os.getpid()}] run_txt_parser finished")
+    return result
+
+def run_trie_parser(progress_callback=None):
+    print(f"[DEBUG] [PID {os.getpid()}] run_trie_parser called")
+    result = parse_trie_to_unified_dict(show_progress=True, progress_callback=progress_callback)
+    print(f"[DEBUG] [PID {os.getpid()}] run_trie_parser finished")
+    return result
+
+def run_kaikki_parser(progress_callback=None):
+    print(f"[DEBUG] [PID {os.getpid()}] run_kaikki_parser called")
+    input_path = "src/data_management/sources/kaikki/kaikki.org-dictionary-Ukrainian.jsonl"  # <-- update as needed
+    # src\data_management\sources\kaikki\kaikki.org-dictionary-Ukrainian.jsonl
+    result = parse_kaikki_to_unified_dict(input_path, show_progress=True, progress_callback=progress_callback)
+    print(f"[DEBUG] [PID {os.getpid()}] run_kaikki_parser finished")
+    return result
 
 class ParsingMergingService:
     """
@@ -34,19 +48,24 @@ class ParsingMergingService:
 def parser_worker(func, name, progress_queue, result_queue):
     def progress_callback(current, total):
         progress_queue.put((name, current, total))
-    # Suppress all stdout/stderr in child process during parsing
     import sys, os
+    print(f"[DEBUG] [PID {os.getpid()}] parser_worker for {name} starting")
     class DevNull:
         def write(self, *_): pass
         def flush(self): pass
     sys.stdout = DevNull()
     sys.stderr = DevNull()
     try:
+        print(f"[DEBUG] [PID {os.getpid()}] Worker for {name} started.")
         data, stats = func(progress_callback=progress_callback)
+        print(f"[DEBUG] [PID {os.getpid()}] Worker for {name} finished.")
         result_queue.put((name, data, stats, None))
         progress_queue.put((name, None, None))  # Signal finished
     except Exception as e:
-        result_queue.put((name, None, None, str(e)))
+        import traceback
+        tb = traceback.format_exc()
+        print(f"[DEBUG] [PID {os.getpid()}] Worker for {name} exception: {e}\n{tb}")
+        result_queue.put((name, None, None, f"{e}\n{tb}"))
         progress_queue.put((name, None, None))
 
 def run_parsers_concurrently_mp(parser_funcs: List[Callable], names: List[str]) -> (List[dict], List[dict]):
@@ -57,6 +76,7 @@ def run_parsers_concurrently_mp(parser_funcs: List[Callable], names: List[str]) 
     processes = []
 
     for func, name in zip(parser_funcs, names):
+        print(f"[DEBUG] Launching process for {name}...")
         p = multiprocessing.Process(target=parser_worker, args=(func, name, progress_queue, result_queue))
         p.start()
         processes.append(p)
@@ -98,6 +118,7 @@ def run_parsers_concurrently_mp(parser_funcs: List[Callable], names: List[str]) 
     for _ in processes:
         name, data, stats, err = result_queue.get()
         if err:
+            print(f"❌ Parser '{name}' failed: {err}")
             errors.append((name, err))
         else:
             results.append(data)
@@ -155,9 +176,18 @@ def merge_linguistic_dicts(dicts: List[dict]) -> dict:
 def main():
 
     from tqdm import tqdm as _tqdm
+    # Ensure stanza models are downloaded before multiprocessing
+    try:
+        import stanza
+        stanza.download('uk')
+    except Exception as e:
+        _tqdm.write(f"[WARN] Could not download stanza model: {e}")
     _tqdm.write("\n=== Parsing and Merging Stress Dictionaries ===\n")
-    # Run both parsers concurrently using multiprocessing with progress bars
-    results, stats_list = run_parsers_concurrently_mp([txt_parser, trie_parser], ["TXT", "TRIE"])
+    # Run all parsers concurrently using multiprocessing with progress bars
+    results, stats_list = run_parsers_concurrently_mp(
+        [run_txt_parser, run_trie_parser, run_kaikki_parser],
+        ["TXT", "TRIE", "KAIKKI"]
+    )
     # Setup logging for merging
     logging.basicConfig(
         level=logging.INFO,

@@ -405,6 +405,7 @@ def parse_kaikki_to_unified_dict(
             print(f"Warning: Could not load double-stress lemma list: {e}")
         return lemmas
 
+    # Load double-stress lemmas inside the function to avoid global heavy work
     double_stress_lemmas = load_double_stress_lemmas()
     unified = {}
     for word, forms in word_entries.items():

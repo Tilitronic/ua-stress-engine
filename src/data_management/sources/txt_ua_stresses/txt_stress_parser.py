@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 from src.data_management.transform.data_unifier import LinguisticEntry, WordForm, UPOS
 
 from src.utils.normalize_apostrophe import normalize_apostrophe
-from lemmatizer.lemmatizer import Lemmatizer
+from src.lemmatizer.lemmatizer import Lemmatizer
 from src.data_management.sources.txt_ua_stresses.stress_db_file_manager import ensure_latest_db_file
 
 import logging

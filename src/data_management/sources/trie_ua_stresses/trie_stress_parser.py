@@ -125,11 +125,11 @@ def parse_trie_to_unified_dict(input_path: Optional[str] = None, show_progress: 
     """
     Build a unified dictionary: lemma -> LinguisticEntry(forms=[WordForm, ...]) using lemmatizer for grouping.
     """
-    # Ensure the trie DB file is present and up-to-date
-    ensure_latest_db_file(str(trie_path))
     if input_path is None:
         input_path = DB_PATH
     trie_path = Path(input_path)
+    # Ensure the trie DB file is present and up-to-date
+    ensure_latest_db_file(str(trie_path))
     trie = marisa_trie.BytesTrie()
     trie.load(str(trie_path))
     keys = list(trie.keys())

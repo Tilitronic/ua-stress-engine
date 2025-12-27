@@ -1,7 +1,13 @@
-import stanza
 import pymorphy3
 from typing import List, Dict, Optional
 from pydantic import BaseModel, Field, ConfigDict
+
+_stanza_available = False
+try:
+    import stanza
+    _stanza_available = True
+except ImportError:
+    stanza = None
 
 class TokenLemma(BaseModel):
     word: str = Field(..., description="Original token text", examples=["слово", "імені"])
@@ -19,13 +25,8 @@ class Lemmatizer:
     def __init__(self, use_gpu: bool = True):
         # 1. Initialize VESUM (via pymorphy3)
         self.morph = pymorphy3.MorphAnalyzer(lang='uk')
-        # 2. Initialize Stanza for contextual analysis
-        self.nlp = stanza.Pipeline(
-            lang='uk', 
-            processors='tokenize,mwt,pos,lemma', 
-            use_gpu=use_gpu,
-            logging_level='WARN'
-        )
+        self._nlp = None
+        self._use_gpu = use_gpu
         # Mapping: Stanza Universal POS -> pymorphy3 (VESUM) POS
         self._pos_map = {
             "NOUN": "NOUN", "VERB": "VERB", "ADJ": "ADJF",
@@ -54,25 +55,31 @@ class Lemmatizer:
         Returns:
             List[TokenLemma]: List of token/lemma/POS objects (Pydantic models)
         """
+        if self._nlp is None:
+            if not _stanza_available:
+                raise ImportError("stanza is not installed but is required for analyze_sentence")
+            self._nlp = stanza.Pipeline(
+                lang='uk',
+                processors='tokenize,mwt,pos,lemma',
+                use_gpu=self._use_gpu,
+                logging_level='WARN'
+            )
         clean_sent = sentence.strip()
-        doc = self.nlp(clean_sent)
+        doc = self._nlp(clean_sent)
         results: List[TokenLemma] = []
 
         for sent in doc.sentences:
             for word in sent.words:
                 stanza_lemma: str = word.lemma
                 stanza_pos: str = word.upos
-                
                 # Try to refine lemma using VESUM dictionary, guided by Stanza POS
                 choices = self.morph.parse(word.text)
                 target_vesum_pos = self._pos_map.get(stanza_pos)
-                
                 # Snap to dictionary: look for lemma matching POS in context
                 best_match: Optional[str] = next(
-                    (p.normal_form for p in choices if p.tag.POS == target_vesum_pos), 
+                    (p.normal_form for p in choices if p.tag.POS == target_vesum_pos),
                     None
                 )
-                
                 results.append(TokenLemma(
                     word=word.text,
                     lemma=best_match if best_match else stanza_lemma,

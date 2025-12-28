@@ -367,7 +367,7 @@ class LMDBExporter:
 import os
 import hashlib
 from src.data_management.transform.cache_utils import cache_path_for_key, save_to_cache_streaming, load_from_cache_streaming, to_serializable
-from src.data_management.transform.parsing_merging_service import SOURCES_CONFIGS, compute_parser_hash, merge_linguistic_dicts
+from src.data_management.transform.parsing_merging_service import compute_parser_hash, merge_linguistic_dicts
 
 def compute_merged_cache_key(cache_paths):
     h = hashlib.sha256()
@@ -380,11 +380,12 @@ def compute_merged_cache_key(cache_paths):
                 h.update(chunk)
     return h.hexdigest()
 
-def merge_caches_and_save(names, merged_prefix="MERGED"):
+from typing import Dict, Any, List
+def merge_caches_and_save(names: List[str], export_config: Any, merged_prefix: str = "MERGED") -> (Any, str):
     import logging
     from tqdm import tqdm
     import time
-    cache_keys = [compute_parser_hash(SOURCES_CONFIGS[name]["parser_path"], SOURCES_CONFIGS[name]["db_path"]) for name in names]
+    cache_keys = [compute_parser_hash(export_config.sources_configs[name]["parser_path"], export_config.sources_configs[name]["db_path"]) for name in names]
     cache_paths = [cache_path_for_key(key, prefix=name) for key, name in zip(cache_keys, names)]
     # Add hash of merger.py to merged cache key
     def file_hash(path):
@@ -448,14 +449,20 @@ def merge_caches_and_save(names, merged_prefix="MERGED"):
         print(f"[SQLITE] No merged SQLite DB found at {sql_db_path}. Will merge and export to SQLite.")
         dicts = []
         for name, cache_path in zip(names, cache_paths):
-            if os.path.exists(cache_path) and os.path.getsize(cache_path) > 0:
-                logger.info(f"[CACHE] Using cache for {name} from {cache_path}")
-                print(f"[CACHE] Using cache for {name} from {cache_path}")
-                d = load_from_cache_streaming(cache_keys[names.index(name)], prefix=name)
-            else:
-                logger.info(f"[CACHE] No cache for {name} at {cache_path}. Will parse {name} from scratch.")
-                print(f"[CACHE] No cache for {name} at {cache_path}. Will parse {name} from scratch.")
-                d = None
+            d = None
+            try:
+                if os.path.exists(cache_path) and os.path.getsize(cache_path) > 0:
+                    logger.info(f"[CACHE] Using cache for {name} from {cache_path}")
+                    print(f"[CACHE] Using cache for {name} from {cache_path}")
+                    d = load_from_cache_streaming(cache_keys[names.index(name)], prefix=name)
+                else:
+                    logger.info(f"[CACHE] No cache for {name} at {cache_path}. Will parse {name} from scratch.")
+                    print(f"[CACHE] No cache for {name} at {cache_path}. Will parse {name} from scratch.")
+            except Exception as e:
+                logger.error(f"[CACHE] Error loading cache for {name}: {e}")
+                print(f"[CACHE] Error loading cache for {name}: {e}")
+            if d is None:
+                d = {}
             dicts.append(d)
         logger.info(f"[MERGE] Merging {len(dicts)} dictionaries...")
         print(f"[MERGE] Merging {len(dicts)} dictionaries...")
@@ -464,8 +471,8 @@ def merge_caches_and_save(names, merged_prefix="MERGED"):
         elapsed = time.time() - start
         logger.info(f"[MERGE] Merged in {elapsed:.2f} seconds. Exporting merged cache to SQLite...")
         print(f"[MERGE] Merged in {elapsed:.2f} seconds. Exporting merged cache to SQLite...")
-        export_config = SQLExportConfig(db_path=sql_db_path, overwrite=True)
-        exporter = SQLExporter(export_config, logger=logger)
+        sql_export_config = SQLExportConfig(db_path=sql_db_path, overwrite=True)
+        exporter = SQLExporter(sql_export_config, logger=logger)
         print(f"[SQLITE] About to export merged data to {sql_db_path}")
         # Flatten merged dict: for each lemma, for each WordForm, yield (form, word_form_dict)
         def word_form_iter():

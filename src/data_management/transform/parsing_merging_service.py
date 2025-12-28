@@ -1,3 +1,5 @@
+# --- ParserConfig TypedDict ---
+
 # --- Export configuration ---
 from enum import Enum
 import logging
@@ -23,6 +25,10 @@ from src.data_management.sources.kaikki.kaikki_parser import parse_kaikki_to_uni
 from src.data_management.transform.cache_utils import compute_parser_hash, cache_path_for_key, save_to_cache, load_from_cache
 
 
+class ParserConfig(TypedDict):
+    parser_func: str
+    parser_path: str
+    db_path: str
 
 # --- Pipeline/Export/Query Configs ---
 class ExportFormat(str, Enum):
@@ -36,16 +42,16 @@ class ExportConfig:
         self.query_words = query_words or []
         # Default sources_configs if not provided
         self.sources_configs: Dict[str, ParserConfig] = sources_configs or {
-            "TXT": {
-                "parser_func": "run_txt_parser",
-                "parser_path": "src/data_management/sources/txt_ua_stresses/txt_stress_parser.py",
-                "db_path": "src/data_management/sources/txt_ua_stresses/ua_word_stress_dictionary.txt",
-            },
-            "TRIE": {
-                "parser_func": "run_trie_parser",
-                "parser_path": "src/data_management/sources/trie_ua_stresses/trie_stress_parser.py",
-                "db_path": "src/data_management/sources/trie_ua_stresses/stress.trie",
-            },
+            # "TXT": {
+            #     "parser_func": "run_txt_parser",
+            #     "parser_path": "src/data_management/sources/txt_ua_stresses/txt_stress_parser.py",
+            #     "db_path": "src/data_management/sources/txt_ua_stresses/ua_word_stress_dictionary.txt",
+            # },
+            # "TRIE": {
+            #     "parser_func": "run_trie_parser",
+            #     "parser_path": "src/data_management/sources/trie_ua_stresses/trie_stress_parser.py",
+            #     "db_path": "src/data_management/sources/trie_ua_stresses/stress.trie",
+            # },
             "KAIKKI": {
                 "parser_func": "run_kaikki_parser",
                 "parser_path": "src/data_management/sources/kaikki/kaikki_parser.py",
@@ -59,32 +65,6 @@ export_config = ExportConfig(
     query_words=["замок"]    # Add more words to query as needed, or leave empty for no test queries
     # sources_configs is defaulted inside ExportConfig
 )
-class ParserConfig(TypedDict):
-    parser_func: str
-    parser_path: str
-    db_path: str
-# --- Export and Query Config ---
-    format=ExportFormat.SQL,  # Change to ExportFormat.LMDB for LMDB
-    query_words=["замок"]    # Add more words to query as needed, or leave empty for no test queries
-    # sources_configs is defaulted inside ExportConfig
-
-SOURCES_CONFIGS: Dict[str, ParserConfig] = {
-    # "TXT": {
-    #     "parser_func": "run_txt_parser",
-    #     "parser_path": "src/data_management/sources/txt_ua_stresses/txt_stress_parser.py",
-    #     "db_path": "src/data_management/sources/txt_ua_stresses/ua_word_stress_dictionary.txt",
-    # },
-    # "TRIE": {
-    #     "parser_func": "run_trie_parser",
-    #     "parser_path": "src/data_management/sources/trie_ua_stresses/trie_stress_parser.py",
-    #     "db_path": "src/data_management/sources/trie_ua_stresses/stress.trie",
-    # },
-    "KAIKKI": {
-        "parser_func": "run_kaikki_parser",
-        "parser_path": "src/data_management/sources/kaikki/kaikki_parser.py",
-        "db_path": "src/data_management/sources/kaikki/kaikki.org-dictionary-Ukrainian.jsonl",
-    },
-}
 
 
 
@@ -290,8 +270,9 @@ def run_parsers_concurrently_mp(
     from src.data_management.transform.cache_utils import load_from_cache_streaming
     loaded_results = []
     for name in names:
+        config = export_config.sources_configs[name]
         loaded = load_from_cache_streaming(
-            compute_parser_hash(SOURCES_CONFIGS[name]["parser_path"], SOURCES_CONFIGS[name]["db_path"]),
+            compute_parser_hash(config["parser_path"], config["db_path"]),
             prefix=name
         )
         loaded_results.append(loaded)
@@ -479,7 +460,7 @@ def main():
             try:
                 from src.data_management.transform.merger import merge_caches_and_save
                 # merge_caches_and_save returns (merged, db_path)
-                _, sql_db_path = merge_caches_and_save(enabled_names, merged_prefix="MERGED")
+                _, sql_db_path = merge_caches_and_save(enabled_names, export_config, merged_prefix="MERGED")
                 logger.info(f"[SQLITE] SQLite export complete: {sql_db_path}")
                 _tqdm.write(f"[SQLITE] SQLite export complete: {sql_db_path}")
             except Exception as e:

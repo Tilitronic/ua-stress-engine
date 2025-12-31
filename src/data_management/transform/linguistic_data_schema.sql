@@ -8,13 +8,21 @@ CREATE TABLE word_form (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     form TEXT NOT NULL,
     lemma TEXT,
-    pos TEXT NOT NULL,
+    pos TEXT,
     main_definition_id INTEGER REFERENCES definition(id),
     roman TEXT,
     ipa TEXT,
     etymology_id INTEGER REFERENCES etymology_text(id),
     etymology_number INTEGER,
-    sense_id TEXT
+    sense_id TEXT,
+    stress_indices_json TEXT NOT NULL -- JSON array of stress indices for this word form
+);
+
+-- Lemma-level possible stress indices
+CREATE TABLE lemma_entry (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lemma TEXT NOT NULL UNIQUE,
+    possible_stress_indices_json TEXT NOT NULL -- JSON array of all possible stress indices for this lemma
 );
 -- Deduplicated definition and etymology tables
 CREATE TABLE IF NOT EXISTS definition (

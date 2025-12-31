@@ -1,25 +1,82 @@
 import logging
 import time
-from tqdm import tqdm
-import heapq
-import itertools
-from .parsing_merging_service import merge_linguistic_dicts
-from pydantic import TypeAdapter
-from .data_unifier import LinguisticEntry
-import msgpack
-import lmdb
 import os
-from typing import List
-from pathlib import Path
-
-import lmdb
-import msgpack
-from typing import Dict, Any, Optional, List, Iterator, Tuple
-import logging
-import shutil, tempfile
-
+import shutil
+import tempfile
 import sqlite3
 import json
+import hashlib
+import itertools
+import heapq
+from pathlib import Path
+from typing import List, Dict, Any, Optional, Iterator, Tuple
+from tqdm import tqdm
+from pydantic import TypeAdapter
+import msgpack
+import lmdb
+from .data_unifier import LinguisticEntry
+from src.data_management.transform.cache_utils import (
+    cache_path_for_key, save_to_cache_streaming, load_from_cache_streaming, to_serializable, compute_parser_hash
+)
+import os
+import hashlib
+from typing import Tuple
+def merge_linguistic_dicts(dicts: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Merge multiple dictionaries of LinguisticEntry losslessly.
+    - For each lemma, merge all WordForms (deduplicate by all fields)
+    - Merge possible_stress_indices as unique arrays
+    - Merge meta dicts (shallow merge)
+    """
+    merged = {}
+
+    logger = logging.getLogger("merging")
+    total_lemmas = sum(len(d) for d in dicts)
+    logger.info(f"Starting merging of {len(dicts)} dictionaries, total lemmas: {total_lemmas}")
+
+    def covers(form_a, form_b):
+        # Returns True if form_a covers form_b (all fields in b are in a and equal)
+        a = form_a.model_dump()
+        b = form_b.model_dump()
+        return all(k in a and a[k] == v for k, v in b.items())
+
+    for d in dicts:
+        for lemma, entry in d.items():
+            entry_obj = TypeAdapter(LinguisticEntry).validate_python(entry) if isinstance(entry, dict) else entry
+            if lemma not in merged:
+                merged[lemma] = entry_obj.model_copy(deep=True)
+            else:
+                # --- Enhanced WordForm merge logic ---
+                existing_forms = merged[lemma].forms
+                new_forms = []
+                for wf in entry_obj.forms:
+                    add = True
+                    to_replace = None
+                    for i, ef in enumerate(existing_forms):
+                        if covers(wf, ef):
+                            to_replace = i
+                            add = True
+                            break
+                        elif covers(ef, wf):
+                            add = False
+                            break
+                    if to_replace is not None:
+                        existing_forms[to_replace] = wf
+                    elif add:
+                        existing_forms.append(wf)
+                # --- End WordForm merge logic ---
+                # Merge possible_stress_indices (unique arrays)
+                psi = merged[lemma].possible_stress_indices
+                for arr in entry_obj.possible_stress_indices:
+                    arr_sorted = sorted(arr)
+                    if not any(sorted(x) == arr_sorted for x in psi):
+                        psi.append(list(arr_sorted))
+                # Merge meta (shallow)
+                merged[lemma].meta.update(entry_obj.meta)
+    logger.info(f"Merging complete. Unique lemmas: {len(merged)}")
+    return merged
+
+
 
 # --- Streaming, disk-backed, scientific-grade merge to LMDB ---
 def merge_caches_and_save_lmdb(lmdb_dirs: List[str], *, merged_prefix="MERGED") -> str:
@@ -89,18 +146,23 @@ def merge_caches_and_save_lmdb(lmdb_dirs: List[str], *, merged_prefix="MERGED") 
     batch_size = 1000
     import heapq, itertools
     streams = [stream_lmdb_entries(p) for p in lmdb_dirs]
-    with tqdm(total=total_lemmas, desc="Merging to LMDB", ncols=100, dynamic_ncols=True, leave=True) as pbar:
+    with tqdm(total=None, desc="Merging and Writing to LMDB", ncols=100, dynamic_ncols=True, leave=True) as pbar:
         for lemma, group in itertools.groupby(heapq.merge(*streams, key=lambda x: x[0]), key=lambda x: x[0]):
             entries = [entry for _, entry in group]
             key = lemma.encode('utf-8')
+            def ensure_dict(obj):
+                return obj.model_dump() if hasattr(obj, "model_dump") else obj
             if txn.get(key):
                 existing = msgpack.unpackb(txn.get(key), raw=False)
                 merged = per_lemma_merge(existing, entries[0]) if len(entries) == 1 else per_lemma_merge(existing, merge_linguistic_dicts([{lemma: e} for e in entries])[lemma])
+                merged = ensure_dict(merged)
                 txn.put(key, msgpack.packb(merged, use_bin_type=True))
             elif len(entries) == 1:
-                txn.put(key, msgpack.packb(entries[0], use_bin_type=True))
+                entry = ensure_dict(entries[0])
+                txn.put(key, msgpack.packb(entry, use_bin_type=True))
             else:
                 merged = merge_linguistic_dicts([{lemma: e} for e in entries])[lemma]
+                merged = ensure_dict(merged)
                 txn.put(key, msgpack.packb(merged, use_bin_type=True))
             count += 1
             pbar.update(1)
@@ -268,6 +330,8 @@ class SQLExporter:
         example_batch = []
         possible_stress_index_batch = []
         meta_batch = []
+        lemma_entry_batch = []  # (lemma, possible_stress_indices_json)
+        lemma_stress_map = {}   # lemma -> set of tuple(stress_indices)
         count = 0
         # Estimate total for progress bar if not provided
         if total is None:
@@ -287,6 +351,17 @@ class SQLExporter:
                 value_dict = value
             forms = value_dict.get('forms', [])
             lemma = value_dict.get('word') or value_dict.get('lemma') or key
+            # Collect all unique possible stress indices for this lemma
+            for form_obj in forms:
+                if hasattr(form_obj, "model_dump"):
+                    form_dict = form_obj.model_dump()
+                else:
+                    form_dict = form_obj
+                stress_indices = tuple(sorted(form_dict.get('stress_indices', []) or []))
+                if lemma not in lemma_stress_map:
+                    lemma_stress_map[lemma] = set()
+                if stress_indices:
+                    lemma_stress_map[lemma].add(stress_indices)
             for form_obj in forms:
                 # Support both dict and Pydantic model for forms
                 if hasattr(form_obj, "model_dump"):
@@ -309,7 +384,7 @@ class SQLExporter:
                     debug_count += 1
                 word_form_batch.append((form, lemma, pos, main_definition_id, roman, ipa, etymology_id, etymology_number, sense_id, json.dumps(stress_indices, ensure_ascii=False, separators=(',', ':'))))
             # Prepare nested/related rows (normalize repeated strings)
-            feats = value_dict.get('feats', {})
+            feats = form_dict.get('feats', {})
             for k, v in feats.items():
                 feature_batch.append((None, k, v))  # word_form_id to be filled after insert
             translations = value_dict.get('translations', []) or []
@@ -338,10 +413,7 @@ class SQLExporter:
             examples = value_dict.get('examples', []) or []
             for ex in examples:
                 example_batch.append((None, ex))
-            possible_stress_indices = value_dict.get('possible_stress_indices', []) or []
-            if possible_stress_indices:
-                psi_json = json.dumps(possible_stress_indices, ensure_ascii=False, separators=(',', ':'))
-                possible_stress_index_batch.append((None, psi_json))
+            # (No longer insert possible_stress_indices per form; handled at lemma level)
             meta = value_dict.get('meta', {})
             if meta:
                 meta_json = json.dumps(meta, ensure_ascii=False, separators=(',', ':'))
@@ -372,6 +444,20 @@ class SQLExporter:
             self._insert_batches(cur, word_form_batch, feature_batch, translation_batch, etymology_template_batch,
                                 inflection_template_batch, category_batch, tag_batch, example_batch,
                                 possible_stress_index_batch, meta_batch)
+            conn.commit()
+
+        # --- Insert lemma_entry table with possible_stress_indices per lemma ---
+        for lemma, stress_set in lemma_stress_map.items():
+            # Only keep non-empty stress patterns
+            unique_patterns = [list(pattern) for pattern in sorted(stress_set) if pattern]
+            if unique_patterns:
+                psi_json = json.dumps(unique_patterns, ensure_ascii=False, separators=(',', ':'))
+                lemma_entry_batch.append((lemma, psi_json))
+        if lemma_entry_batch:
+            cur.executemany('''
+                INSERT OR REPLACE INTO lemma_entry (lemma, possible_stress_indices_json)
+                VALUES (?, ?)
+            ''', lemma_entry_batch)
             conn.commit()
         cur.close()
         conn.execute("PRAGMA optimize;")
@@ -546,10 +632,7 @@ class LMDBExporter:
             stats = txn.stat()
         env.close()
         return {"entries": stats["entries"], "sample_found": f"{found}/{len(sample_words)}"}
-import os
-import hashlib
-from src.data_management.transform.cache_utils import cache_path_for_key, save_to_cache_streaming, load_from_cache_streaming, to_serializable
-from src.data_management.transform.parsing_merging_service import compute_parser_hash, merge_linguistic_dicts
+
 
 def compute_merged_cache_key(cache_paths):
     h = hashlib.sha256()
@@ -564,18 +647,64 @@ def compute_merged_cache_key(cache_paths):
 
 
 # --- Streaming, disk-backed, scientific-grade merge function ---
-from typing import Tuple
 def merge_caches_and_save(lmdb_dirs: List[str], export_config=None, *, merged_prefix="MERGED") -> Tuple[None, str]:
     """
     Streaming, disk-backed, scientific-grade merge directly into SQLite.
     No in-memory dicts. Merges per-lemma from all LMDB caches and writes directly to SQLite.
     """
-    import logging
-    import time
-    from tqdm import tqdm
-    import heapq
-    import itertools
-    from .parsing_merging_service import merge_linguistic_dicts
+    # All imports are now at the top of the file
+
+    def merge_linguistic_dicts(dicts: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Merge multiple dictionaries of LinguisticEntry losslessly.
+        - For each lemma, merge all WordForms (deduplicate by all fields)
+        - Merge possible_stress_indices as unique arrays
+        - Merge meta dicts (shallow merge)
+        """
+        merged = {}
+        total_lemmas = sum(len(d) for d in dicts)
+        logger = logging.getLogger("merging")
+        logger.info(f"Starting merging of {len(dicts)} dictionaries, total lemmas: {total_lemmas}")
+
+        def covers(form_a, form_b):
+            # Returns True if form_a covers form_b (all fields in b are in a and equal)
+            a = form_a.model_dump()
+            b = form_b.model_dump()
+            return all(k in a and a[k] == v for k, v in b.items())
+
+        with tqdm(total=total_lemmas, desc="Merging", leave=True, ncols=80) as pbar:
+            for d in dicts:
+                for lemma, entry in d.items():
+                    entry_obj = TypeAdapter(LinguisticEntry).validate_python(entry) if isinstance(entry, dict) else entry
+                    if lemma not in merged:
+                        merged[lemma] = entry_obj.model_copy(deep=True)
+                    else:
+                        existing_forms = merged[lemma].forms
+                        new_forms = []
+                        for wf in entry_obj.forms:
+                            add = True
+                            to_replace = None
+                            for i, ef in enumerate(existing_forms):
+                                if covers(wf, ef):
+                                    to_replace = i
+                                    add = True
+                                    break
+                                elif covers(ef, wf):
+                                    add = False
+                                    break
+                            if to_replace is not None:
+                                existing_forms[to_replace] = wf
+                            elif add:
+                                existing_forms.append(wf)
+                        psi = merged[lemma].possible_stress_indices
+                        for arr in entry_obj.possible_stress_indices:
+                            arr_sorted = sorted(arr)
+                            if not any(sorted(x) == arr_sorted for x in psi):
+                                psi.append(list(arr_sorted))
+                        merged[lemma].meta.update(entry_obj.meta)
+                    pbar.update(1)
+        logger.info(f"Merging complete. Unique lemmas: {len(merged)}")
+        return merged
     from pydantic import TypeAdapter
     from .data_unifier import LinguisticEntry
 

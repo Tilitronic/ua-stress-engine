@@ -1,36 +1,3 @@
-def stream_txt_to_lmdb(progress_callback=None, config=None):
-    """
-    Streams (lemma, entry) pairs from the TXT parser directly into LMDB as cache.
-    Returns (lmdb_path, stats) for use by the parsing/merging service.
-    """
-    import os
-    from pathlib import Path
-    from src.data_management.transform.cache_utils import compute_parser_hash, to_serializable
-    from src.data_management.transform.merger import LMDBExporter, LMDBExportConfig
-    # Determine config and cache key
-    if config is None:
-        # Default config for standalone use
-        config = {
-            "parser_path": str(Path(__file__).resolve()),
-            "db_path": str(get_db_path()),
-        }
-    cache_key = compute_parser_hash(config["parser_path"], config["db_path"])
-    lmdb_dir = os.path.join(os.path.dirname(__file__), "..", "..", "transform", "cache", f"TXT_{cache_key}_lmdb")
-    lmdb_dir = os.path.abspath(lmdb_dir)
-    # If LMDB cache exists and is non-empty, use it
-    if os.path.exists(lmdb_dir) and os.listdir(lmdb_dir):
-        logger.info(f"[CACHE] Using LMDB cache for TXT at {lmdb_dir}")
-        return lmdb_dir, {"cache_used": True, "lmdb_path": lmdb_dir}
-    logger.info(f"[TXT->LMDB] Streaming TXT parser output to LMDB at {lmdb_dir}")
-    entry_iter = parse_txt_to_unified_dict(show_progress=True, progress_callback=progress_callback)
-    config_obj = LMDBExportConfig(db_path=Path(lmdb_dir), overwrite=True)
-    exporter = LMDBExporter(config_obj)
-    def serializable_iter():
-        for lemma, entry in entry_iter:
-            yield lemma, to_serializable(entry)
-    exporter.export_streaming(serializable_iter(), show_progress=False)
-    logger.info(f"[TXT->LMDB] Finished LMDB export at {lmdb_dir}")
-    return lmdb_dir, {"cache_used": False, "lmdb_path": lmdb_dir}
 #!/usr/bin/env python3
 import warnings
 warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API*", category=UserWarning)
@@ -46,6 +13,11 @@ from src.lemmatizer.lemmatizer import Lemmatizer
 from src.data_management.sources.txt_ua_stresses.stress_db_file_manager import ensure_latest_db_file
 
 import logging
+
+import os
+from pathlib import Path
+from src.data_management.transform.cache_utils import compute_parser_hash, to_serializable
+from src.data_management.transform.merger import LMDBExporter, LMDBExportConfig
 """
 
 Ukrainian TXT Stress Dictionary Parser
@@ -319,7 +291,52 @@ def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: b
         entry = LinguisticEntry(word=lemma, forms=forms, possible_stress_indices=unique_stress_arrays)
         yield lemma, entry
 
-# Example usage:
+def stream_txt_to_lmdb(progress_callback=None, config=None):
+    """
+    Streams (lemma, entry) pairs from the TXT parser directly into LMDB as cache.
+    Returns (lmdb_path, stats) for use by the parsing/merging service.
+    """
+
+    # Determine config and cache key
+    if config is None:
+        # Default config for standalone use
+        config = {
+            "parser_path": str(Path(__file__).resolve()),
+            "db_path": str(get_db_path()),
+        }
+    prefix = "TXT"
+    cache_key = compute_parser_hash(config["parser_path"], config["db_path"])
+    lmdb_dir = os.path.join(os.path.dirname(__file__), "..", "..", "transform", "cache", f"{prefix}_{cache_key}_lmdb")
+    lmdb_dir = os.path.abspath(lmdb_dir)
+    # If LMDB cache exists and is non-empty, use it
+    if os.path.exists(lmdb_dir) and os.listdir(lmdb_dir):
+        logger.info(f"[CACHE] Using LMDB cache for TXT at {lmdb_dir}")
+        return lmdb_dir, {"cache_used": True, "lmdb_path": lmdb_dir}
+
+    logger.info(f"[TXT->LMDB] Streaming TXT parser output to LMDB at {lmdb_dir}")
+    entry_iter = parse_txt_to_unified_dict(show_progress=True, progress_callback=progress_callback)
+    config_obj = LMDBExportConfig(db_path=Path(lmdb_dir), overwrite=True)
+    exporter = LMDBExporter(config_obj)
+    def serializable_iter():
+        for lemma, entry in entry_iter:
+            yield lemma, to_serializable(entry)
+    exporter.export_streaming(serializable_iter(), show_progress=False)
+    logger.info(f"[TXT->LMDB] Finished LMDB export at {lmdb_dir}")
+
+    # --- Old cache cleanup ---
+    cache_root = os.path.dirname(lmdb_dir)
+    current_key = os.path.basename(lmdb_dir)
+    import glob, shutil
+    for d in glob.glob(os.path.join(cache_root, f"{prefix}_*_lmdb")):
+        if os.path.basename(d) != current_key:
+            try:
+                shutil.rmtree(d)
+                logger.info(f"[TXT->LMDB] Deleted old cache: {d}")
+            except Exception as e:
+                logger.warning(f"[TXT->LMDB] Failed to delete old cache {d}: {e}")
+
+    return lmdb_dir, {"cache_used": False, "lmdb_path": lmdb_dir}
+
 
 def main():
     logger.info("Ukrainian TXT Stress Dictionary Parser (Streaming)")

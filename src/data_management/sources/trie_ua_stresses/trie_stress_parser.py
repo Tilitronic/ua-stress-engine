@@ -1,8 +1,8 @@
-from src.data_management.sources.trie_ua_stresses.stress_db_file_manager import ensure_latest_db_file, DEFAULT_LOCAL_PATH
-# Standalone function to convert char positions to vowel indices
-
-
 #!/usr/bin/env python3
+
+from src.data_management.transform.cache_utils import compute_parser_hash, to_serializable
+from src.data_management.transform.merger import LMDBExporter, LMDBExportConfig
+import os
 import warnings
 warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API*", category=UserWarning)
 
@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from src.data_management.transform.data_unifier import LinguisticEntry, WordForm, UPOS
+from src.data_management.sources.trie_ua_stresses.stress_db_file_manager import ensure_latest_db_file, DEFAULT_LOCAL_PATH
 
 from src.utils.normalize_apostrophe import normalize_apostrophe
 from src.lemmatizer.lemmatizer import Lemmatizer
@@ -25,6 +26,12 @@ except ImportError:
     raise ImportError(
         "marisa-trie is required. Install with: pip install marisa-trie"
     )
+
+
+# Standalone function to convert char positions to vowel indices
+
+
+
 
 """"
 Description
@@ -247,6 +254,51 @@ def parse_trie_to_unified_dict(input_path: Optional[str] = None, show_progress: 
     }
     return unified_data, stats
 
+def stream_trie_to_lmdb(progress_callback=None, config=None):
+    """
+    Streams (lemma, entry) pairs from the TRIE parser directly into LMDB as cache.
+    Returns (lmdb_path, stats) for use by the parsing/merging service.
+    """
+    from pathlib import Path
+    # Determine config and cache key
+    if config is None:
+        config = {
+            "parser_path": str(Path(__file__).resolve()),
+            "db_path": str(DB_PATH),
+        }
+    prefix = "TRIE"
+    cache_key = compute_parser_hash(config["parser_path"], config["db_path"])
+    lmdb_dir = os.path.join(os.path.dirname(__file__), "..", "..", "transform", "cache", f"{prefix}_{cache_key}_lmdb")
+    lmdb_dir = os.path.abspath(lmdb_dir)
+    # If LMDB cache exists and is non-empty, use it
+    if os.path.exists(lmdb_dir) and os.listdir(lmdb_dir):
+        logger.info(f"[CACHE] Using LMDB cache for TRIE at {lmdb_dir}")
+        return lmdb_dir, {"cache_used": True, "lmdb_path": lmdb_dir}
+
+    logger.info(f"[TRIE->LMDB] Streaming TRIE parser output to LMDB at {lmdb_dir}")
+    def entry_iter():
+        # Use generator version of the parser
+        unified_data, stats = parse_trie_to_unified_dict(config["db_path"], show_progress=True, progress_callback=progress_callback)
+        for lemma, entry in unified_data.items():
+            yield lemma, to_serializable(entry)
+    config_obj = LMDBExportConfig(db_path=Path(lmdb_dir), overwrite=True)
+    exporter = LMDBExporter(config_obj)
+    exporter.export_streaming(entry_iter(), show_progress=False)
+    logger.info(f"[TRIE->LMDB] Finished LMDB export at {lmdb_dir}")
+
+    # --- Old cache cleanup ---
+    cache_root = os.path.dirname(lmdb_dir)
+    current_key = os.path.basename(lmdb_dir)
+    import glob, shutil
+    for d in glob.glob(os.path.join(cache_root, f"{prefix}_*_lmdb")):
+        if os.path.basename(d) != current_key:
+            try:
+                shutil.rmtree(d)
+                logger.info(f"[TRIE->LMDB] Deleted old cache: {d}")
+            except Exception as e:
+                logger.warning(f"[TRIE->LMDB] Failed to delete old cache {d}: {e}")
+
+    return lmdb_dir, {"cache_used": False, "lmdb_path": lmdb_dir}
 
 def main():
 

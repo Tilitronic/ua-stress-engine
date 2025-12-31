@@ -1,3 +1,36 @@
+def stream_txt_to_lmdb(progress_callback=None, config=None):
+    """
+    Streams (lemma, entry) pairs from the TXT parser directly into LMDB as cache.
+    Returns (lmdb_path, stats) for use by the parsing/merging service.
+    """
+    import os
+    from pathlib import Path
+    from src.data_management.transform.cache_utils import compute_parser_hash, to_serializable
+    from src.data_management.transform.merger import LMDBExporter, LMDBExportConfig
+    # Determine config and cache key
+    if config is None:
+        # Default config for standalone use
+        config = {
+            "parser_path": str(Path(__file__).resolve()),
+            "db_path": str(get_db_path()),
+        }
+    cache_key = compute_parser_hash(config["parser_path"], config["db_path"])
+    lmdb_dir = os.path.join(os.path.dirname(__file__), "..", "..", "transform", "cache", f"TXT_{cache_key}_lmdb")
+    lmdb_dir = os.path.abspath(lmdb_dir)
+    # If LMDB cache exists and is non-empty, use it
+    if os.path.exists(lmdb_dir) and os.listdir(lmdb_dir):
+        logger.info(f"[CACHE] Using LMDB cache for TXT at {lmdb_dir}")
+        return lmdb_dir, {"cache_used": True, "lmdb_path": lmdb_dir}
+    logger.info(f"[TXT->LMDB] Streaming TXT parser output to LMDB at {lmdb_dir}")
+    entry_iter = parse_txt_to_unified_dict(show_progress=True, progress_callback=progress_callback)
+    config_obj = LMDBExportConfig(db_path=Path(lmdb_dir), overwrite=True)
+    exporter = LMDBExporter(config_obj)
+    def serializable_iter():
+        for lemma, entry in entry_iter:
+            yield lemma, to_serializable(entry)
+    exporter.export_streaming(serializable_iter(), show_progress=False)
+    logger.info(f"[TXT->LMDB] Finished LMDB export at {lmdb_dir}")
+    return lmdb_dir, {"cache_used": False, "lmdb_path": lmdb_dir}
 #!/usr/bin/env python3
 import warnings
 warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API*", category=UserWarning)
@@ -205,31 +238,31 @@ def clean_up_word(word: str) -> str:
     return cleaned_word
 
 
-def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: bool = False, progress_callback=None) -> Dict[str, LinguisticEntry]:
+
+def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: bool = False, progress_callback=None):
+    """
+    Generator version of the TXT stress parser.
+    Yields (lemma, LinguisticEntry) pairs as soon as all forms for a lemma are processed.
+    This enables streaming and disk-backed aggregation.
+    """
     if input_path is None:
         input_path = str(get_db_path())
-    unified_data = {}
-    total_tokens = 0
-    skipped_multisyllable = 0
-    word_forms_count = 0
-    start_time = time.time()
     try:
         with open(input_path, 'r', encoding='utf-8') as f:
             all_lines = f.readlines()
     except Exception as e:
         logger.error(f"Failed to read input file '{input_path}': {e}")
-        return {}
+        return
     filtered_lines = [l for l in all_lines if l.strip() and not l.strip().startswith('#')]
     total_lines = len(filtered_lines)
     lines_iter = tqdm(filtered_lines, desc='[Parsing]', unit='line') if show_progress else filtered_lines
-    unified_data = {}
+    lemma_forms: Dict[str, List[WordForm]] = {}
     for idx, line in enumerate(lines_iter):
         try:
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
             for token in line.replace('-', ' ').split():
-                total_tokens += 1
                 try:
                     clean_word_form = clean_up_word(token)
                 except Exception as e:
@@ -251,8 +284,6 @@ def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: b
                     if len(vowel_positions) == 1:
                         stress_indices = [0]  # Only one vowel, index 0
                     else:
-                        # Multi-syllable word with no stress marker: skip
-                        skipped_multisyllable += 1
                         continue
                 pos = UPOS.X  # Unknown, since not provided
                 feats = {}
@@ -268,47 +299,36 @@ def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: b
                 except Exception as e:
                     logger.warning(f"Failed to create WordForm for '{token}': {e}")
                     continue
-                # Merge by lemma and stress_indices only
-                if lemma not in unified_data:
-                    unified_data[lemma] = LinguisticEntry(word=lemma, forms=[], possible_stress_indices=[])
+                if lemma not in lemma_forms:
+                    lemma_forms[lemma] = []
                 # Only add unique WordForms by stress_indices
-                if not any(wf.stress_indices == word_form.stress_indices for wf in unified_data[lemma].forms):
-                    unified_data[lemma].forms.append(word_form)
-                    word_forms_count += 1
+                if not any(wf.stress_indices == word_form.stress_indices for wf in lemma_forms[lemma]):
+                    lemma_forms[lemma].append(word_form)
         except Exception as e:
             logger.error(f"Error processing line: {line}\n{e}")
             continue
-        # Progress callback every 100 lines
         if progress_callback and (idx % 100 == 0 or idx == total_lines - 1):
             progress_callback(idx + 1, total_lines)
-
-    # After all forms are collected, set possible_stress_indices as unique stress arrays for each lemma
-    for lemma, entry in unified_data.items():
+    # Yield (lemma, LinguisticEntry) pairs
+    for lemma, forms in lemma_forms.items():
         unique_stress_arrays = []
-        for wf in entry.forms:
+        for wf in forms:
             sorted_indices = tuple(sorted(wf.stress_indices))
             if sorted_indices not in [tuple(sorted(arr)) for arr in unique_stress_arrays]:
                 unique_stress_arrays.append(list(sorted_indices))
-        entry.possible_stress_indices = unique_stress_arrays
-
-    elapsed = time.time() - start_time
-    stats = {
-        "total_lines": total_lines,
-        "total_tokens": total_tokens,
-        "unique_lemmas": len(unified_data),
-        "word_forms_created": word_forms_count,
-        "skipped_multisyllable": skipped_multisyllable,
-        "elapsed": elapsed,
-    }
-    return unified_data, stats
+        entry = LinguisticEntry(word=lemma, forms=forms, possible_stress_indices=unique_stress_arrays)
+        yield lemma, entry
 
 # Example usage:
+
 def main():
-    logger.info("Ukrainian TXT Stress Dictionary Parser")
+    logger.info("Ukrainian TXT Stress Dictionary Parser (Streaming)")
     if not TEST_MODE:
         ensure_latest_db_file(str(get_db_path()))
     try:
-        unified_data, stats = parse_txt_to_unified_dict(str(PATH), show_progress=True)
+        entry_iter = parse_txt_to_unified_dict(str(PATH), show_progress=True)
+        # Collect into a dict for demonstration (not for production use)
+        unified_data = {lemma: entry for lemma, entry in entry_iter}
     except Exception as e:
         logger.error(f"Critical error during parsing: {e}")
         return

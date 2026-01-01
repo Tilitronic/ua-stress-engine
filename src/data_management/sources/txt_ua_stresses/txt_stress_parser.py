@@ -1,23 +1,20 @@
 #!/usr/bin/env python3
 import warnings
-warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API*", category=UserWarning)
-import time
 from tqdm import tqdm
 from pathlib import Path
 from typing import Dict, List, Optional
-
 from src.data_management.transform.data_unifier import LinguisticEntry, WordForm, UPOS
-
 from src.utils.normalize_apostrophe import normalize_apostrophe
 from src.lemmatizer.lemmatizer import Lemmatizer
 from src.data_management.sources.txt_ua_stresses.stress_db_file_manager import ensure_latest_db_file
-
 import logging
-
 import os
 from pathlib import Path
 from src.data_management.transform.cache_utils import compute_parser_hash, to_serializable
 from src.data_management.transform.merger import LMDBExporter, LMDBExportConfig
+
+warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API*", category=UserWarning)
+
 """
 
 Ukrainian TXT Stress Dictionary Parser
@@ -113,45 +110,6 @@ def auto_stress_single_vowel(word: str, stress_positions: List[int]) -> List[int
     # Otherwise return empty (no stress data)
     return stress_positions
 
-
-
-
-
-def extract_stress_indices_fn(word: str) -> List[int]:
-    """
-    Extract stress positions from a word with stress marks.
-
-    Args:
-        word: Word with stress marks (e.g., "за́мок")
-
-    Returns:
-        List of 0-based vowel indices where stress occurs
-    """
-    # Remove stress marks and track stressed positions
-    clean_word = ""
-    stressed_positions = set()
-
-    i = 0
-    while i < len(word):
-        char = word[i]
-        if char in (STRESS_MARK_ACUTE, STRESS_MARK_COMBINING):
-            # Previous character was stressed
-            if clean_word:
-                stressed_positions.add(len(clean_word) - 1)
-        else:
-            clean_word += char
-        i += 1
-
-    # Convert character positions to vowel indices
-    vowel_indices = []
-    vowel_count = 0
-    for i, char in enumerate(clean_word.lower()):
-        if char in UKRAINIAN_VOWELS:
-            if i in stressed_positions:
-                vowel_indices.append(vowel_count)
-            vowel_count += 1
-
-    return vowel_indices
 
 def extract_stress_indices(word: str) -> List[int]:
         """
@@ -279,7 +237,7 @@ def parse_txt_to_unified_dict(input_path: Optional[str] = None, show_progress: b
         except Exception as e:
             logger.error(f"Error processing line: {line}\n{e}")
             continue
-        if progress_callback and (idx % 100 == 0 or idx == total_lines - 1):
+        if progress_callback and (idx % 1000 == 0 or idx == total_lines - 1):
             progress_callback(idx + 1, total_lines)
     # Yield (lemma, LinguisticEntry) pairs
     for lemma, forms in lemma_forms.items():

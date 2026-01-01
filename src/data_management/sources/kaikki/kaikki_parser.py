@@ -1,11 +1,29 @@
 
+
+"""
+Kaikki.org Ukrainian Dictionary Parser
+
+Parses Kaikki.org JSONL dictionary data for Ukrainian, normalizes stress indices and morphological features, and streams unified entries to LMDB for scalable linguistic analysis.
+
+Input Format:
+    - Source: https://kaikki.org/dictionary/Ukrainian/index.html
+    - License: CC BY-SA 4.0
+    - Format: JSONL (one object per word/part-of-speech)
+    - See README.md for full format details
+
+Output:
+    - Streams (lemma, LinguisticEntry) pairs for disk-backed aggregation
+    - Supports robust, repeatable merging/export workflows
+"""
+
 import os
+import logging
 import glob
 import shutil
 import json
 import re
 from pathlib import Path
-from typing import Callable, Tuple, TypedDict, List, Dict, Optional, Any, Iterator
+from typing import Callable, Tuple, TypedDict, List, Dict, Optional, Iterator
 from tqdm import tqdm
 from src.utils.normalize_apostrophe import normalize_apostrophe
 from src.data_management.transform.data_unifier import LinguisticEntry, WordForm, UPOS, UDFeatKey, GenderVal, NumberVal, CaseVal
@@ -25,7 +43,7 @@ class FormEntry(TypedDict, total=False):
 
 class InflectionTemplate(TypedDict, total=False):
     name: str
-        # word_entries: Dict[str, list] = {}
+    args: Dict[str, str]
 
 class EtymologyTemplate(TypedDict, total=False):
     name: str
@@ -85,6 +103,7 @@ class KaikkiEntry(TypedDict, total=False):
     translations: Optional[List[TranslationEntry]]
 
 def normalize_pos(pos):
+    """Normalize part-of-speech string to UPOS enum."""
     if not pos:
         return None
     pos_map = {
@@ -98,6 +117,7 @@ def normalize_pos(pos):
     return pos_map.get(str(pos).lower(), UPOS.X)
 
 def normalize_tags(tags):
+    """Flatten and normalize tags to a sorted, unique list of lowercase strings."""
     if tags is None:
         return None
     if isinstance(tags, str):
@@ -112,6 +132,7 @@ def normalize_tags(tags):
     return sorted(set(flat)) if flat else None
 
 def strip_stress(form: str) -> str:
+    """Remove acute accents from vowels (both precomposed and combining)."""
     # Remove acute accents from vowels (both precomposed and combining)
     form = re.sub(r'[\u0301]', '', form)  # Remove combining acute
     form = re.sub(r'([аеєиіїоуюяАЕЄИІЇОУЮЯ])\u0301', r'\1', form)  # Remove combining after vowel
@@ -119,6 +140,7 @@ def strip_stress(form: str) -> str:
     return form
 
 def extract_stress_indices(form: str) -> list:
+    """Return the index/indices of accented vowels (0-based, left-to-right)."""
     # Return the index/indices of accented vowels (0-based, left-to-right)
     vowels = 'аеєиіїоуюяАЕЄИІЇОУЮЯ'
     precomposed = {
@@ -211,6 +233,7 @@ tag_to_ud = {
 }
 
 def merge_wordforms(forms, double_stress_lemmas):
+    """Merge word forms for variative and double-stress lemmas according to project rules."""
     merge_map = {}
     if not hasattr(merge_wordforms, '_variative_stress_lemmas'):
         # Use correct, project-root-relative path for variative stress words
@@ -269,6 +292,7 @@ def merge_wordforms(forms, double_stress_lemmas):
         return forms
 
 def load_variative_stress_lemmas(resource_path=None):
+    """Load set of variative-stress lemmas from resource file."""
     if resource_path is None:
         # Use correct, project-root-relative path for robust loading
         resource_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ua_variative_stressed_words', 'ua_variative_stressed_words.txt'))
@@ -280,7 +304,7 @@ def load_variative_stress_lemmas(resource_path=None):
                 if line and not line.startswith('#'):
                     lemmas.add(line.lower())
     except Exception as e:
-        print(f"Warning: Could not load variative-stress lemma list: {e}")
+        logging.warning(f"Could not load variative-stress lemma list: {e}")
     return lemmas
 
 def parse_kaikki_to_unified_dict(
@@ -304,124 +328,134 @@ def parse_kaikki_to_unified_dict(
         for idx, line in enumerate(tqdm(f, total=total_lines, desc="[Parsing Kaikki]", disable=not show_progress)):
             if not line.strip():
                 continue
-            entry = json.loads(line)
-            word = entry.get('word')
-            if not word:
-                continue
-            norm_word = normalize_apostrophe(strip_stress(word))
-            pos = normalize_pos(entry.get('pos'))
-            inflection_templates = entry.get('inflection_templates')
-            etymology_number = entry.get('etymology_number')
-            etymology = entry.get('etymology_text')
-            etymology_templates = entry.get('etymology_templates')
-            sounds = entry.get('sounds', [])
-            ipa = None
-            for s in sounds:
-                if 'ipa' in s:
-                    ipa = s['ipa']
-                    break
-            categories = [c['name'] if isinstance(c, dict) and 'name' in c else c for c in entry.get('categories', [])]
-            forms = entry.get('forms', [])
-            # Filter out invalid forms
-            valid_forms = [
-                f for f in forms
-                if 'form' in f
-                and f['form'] not in {"no-table-tags", "uk-ndecl"}
-                and not set(f.get('tags', [])) & {"inflection-template", "table-tags", "romanization"}
-            ]
 
-            # Find canonical form string from head_templates or inflection_templates
-            canonical_form_str = None
-            if 'head_templates' in entry and entry['head_templates']:
-                ht = entry['head_templates'][0]
-                if 'expansion' in ht and ht['expansion']:
-                    canonical_form_str = ht['expansion'].split()[0]
-                elif 'args' in ht and '1' in ht['args']:
-                    canonical_form_str = ht['args']['1']
-            if not canonical_form_str and inflection_templates:
-                it = inflection_templates[0]
-                if 'args' in it and '1' in it['args']:
-                    canonical_form_str = it['args']['1']
+            # Count total lines first for correct tqdm progress bar
+            with open(input_path, encoding="utf-8") as f:
+                total_lines = sum(1 for line in f if line.strip())
 
-            for sense in entry.get('senses', []):
-                glosses = sense.get('glosses', [])
-                main_definition = glosses[0] if glosses else None
-                alt_definitions = glosses[1:] if len(glosses) > 1 else None
-                sense_id = sense.get('id') or None
-                translations = sense.get('translations')
-                sense_tags = normalize_tags(sense.get('tags'))
-                sense_categories = [c['name'] if isinstance(c, dict) and 'name' in c else c for c in sense.get('categories', [])] if 'categories' in sense else None
-                for f in valid_forms:
-                    form_str = f.get('form', '')
-                    norm_form = normalize_apostrophe(strip_stress(form_str))
-                    # Always extract stress from the actual form string
-                    stress_indices = extract_stress_indices(form_str)
-                    if norm_word == 'замок':
-                        print(f"DEBUG: form_str='{form_str}' norm_form='{norm_form}' stress_indices={stress_indices}")
-                    if not stress_indices:
+            word_entries = {}
+            # Now iterate again, using tqdm with correct total
+            with open(input_path, encoding="utf-8") as f:
+                lines = [line for line in f if line.strip()]
+            iterator = tqdm(lines, total=total_lines, desc="[Parsing Kaikki]", disable=not show_progress)
+            for idx, line in enumerate(iterator):
+                try:
+                    entry = json.loads(line)
+                    word = entry.get('word')
+                    if not word:
                         continue
-                    # Map tags to UD features using the pedantic mapping
-                    feats = {}
-                    for tag in f.get('tags', []):
-                        mapping = tag_to_ud.get(tag)
-                        if mapping:
-                            k, v = mapping
-                            feats[k] = v
-                    roman = f.get('roman')
-                    wordform = WordForm(
-                        form=norm_form,
-                        pos=pos,
-                        feats=feats,
-                        lemma=norm_word,
-                        main_definition=main_definition,
-                        alt_definitions=alt_definitions,
-                        translations=translations,
-                        etymology_templates=etymology_templates,
-                        etymology_number=etymology_number,
-                        tags=sense_tags,
-                        roman=roman,
-                        ipa=ipa,
-                        etymology=etymology,
-                        inflection_templates=inflection_templates,
-                        categories=(categories or sense_categories),
-                        sense_id=sense_id,
-                        examples=[],
-                        stress_indices=stress_indices,
-                    )
-                    word_entries.setdefault(norm_word, []).append(wordform)
-            if progress_callback and (idx % 1000 == 0 or idx == total_lines - 1):
-                progress_callback(idx + 1, total_lines)
+                    norm_word = normalize_apostrophe(strip_stress(word))
+                    pos = normalize_pos(entry.get('pos'))
+                    inflection_templates = entry.get('inflection_templates')
+                    etymology_number = entry.get('etymology_number')
+                    etymology = entry.get('etymology_text')
+                    etymology_templates = entry.get('etymology_templates')
+                    sounds = entry.get('sounds', [])
+                    ipa = None
+                    for s in sounds:
+                        if 'ipa' in s:
+                            ipa = s['ipa']
+                            break
+                    categories = [c['name'] if isinstance(c, dict) and 'name' in c else c for c in entry.get('categories', [])]
+                    forms = entry.get('forms', [])
+                    # Filter out invalid forms
+                    valid_forms = [
+                        f for f in forms
+                        if 'form' in f
+                        and f['form'] not in {"no-table-tags", "uk-ndecl"}
+                        and not set(f.get('tags', [])) & {"inflection-template", "table-tags", "romanization"}
+                    ]
 
+                    # Find canonical form string from head_templates or inflection_templates
+                    canonical_form_str = None
+                    if 'head_templates' in entry and entry['head_templates']:
+                        ht = entry['head_templates'][0]
+                        if 'expansion' in ht and ht['expansion']:
+                            canonical_form_str = ht['expansion'].split()[0]
+                        elif 'args' in ht and '1' in ht['args']:
+                            canonical_form_str = ht['args']['1']
+                    if not canonical_form_str and inflection_templates:
+                        it = inflection_templates[0]
+                        if 'args' in it and '1' in it['args']:
+                            canonical_form_str = it['args']['1']
 
+                    for sense in entry.get('senses', []):
+                        glosses = sense.get('glosses', [])
+                        main_definition = glosses[0] if glosses else None
+                        alt_definitions = glosses[1:] if len(glosses) > 1 else None
+                        sense_id = sense.get('id') or None
+                        translations = sense.get('translations')
+                        sense_tags = normalize_tags(sense.get('tags'))
+                        sense_categories = [c['name'] if isinstance(c, dict) and 'name' in c else c for c in sense.get('categories', [])] if 'categories' in sense else None
+                        for f in valid_forms:
+                            form_str = f.get('form', '')
+                            norm_form = normalize_apostrophe(strip_stress(form_str))
+                            # Always extract stress from the actual form string
+                            stress_indices = extract_stress_indices(form_str)
+                            if norm_word == 'замок':
+                                logging.debug(f"form_str='{form_str}' norm_form='{norm_form}' stress_indices={stress_indices}")
+                            if not stress_indices:
+                                continue
+                            # Map tags to UD features using the pedantic mapping
+                            feats = {}
+                            for tag in f.get('tags', []):
+                                mapping = tag_to_ud.get(tag)
+                                if mapping:
+                                    key, val = mapping
+                                    feats[key] = val
+                            roman = f.get('roman')
+                            wordform = WordForm(
+                                form=norm_form,
+                                pos=pos,
+                                feats=feats,
+                                lemma=norm_word,
+                                main_definition=main_definition,
+                                alt_definitions=alt_definitions,
+                                translations=translations,
+                                etymology_templates=etymology_templates,
+                                etymology_number=etymology_number,
+                                tags=sense_tags,
+                                roman=roman,
+                                ipa=ipa,
+                                etymology=etymology,
+                                inflection_templates=inflection_templates,
+                                categories=(categories or sense_categories),
+                                sense_id=sense_id,
+                                examples=[],
+                                stress_indices=stress_indices,
+                            )
+                            word_entries.setdefault(norm_word, []).append(wordform)
+                    if progress_callback and (idx % 1000 == 0 or idx == total_lines - 1):
+                        progress_callback(idx + 1, total_lines)
+                except Exception as e:
+                    logging.error(f"Error parsing line {idx}: {e}")
+                    continue
 
+        # Load double-stress lemmas inside the function to avoid global heavy work
+        double_stress_lemmas = load_double_stress_lemmas()
+        unified = {}
+        for word, forms in word_entries.items():
+            try:
+                merged_forms = merge_wordforms(forms, double_stress_lemmas)
+                # Collect all unique, sorted stress index arrays from forms
+                stress_patterns = set()
+                for wf in merged_forms:
+                    if wf.stress_indices:
+                        stress_patterns.add(tuple(sorted(wf.stress_indices)))
+                possible_stress_indices = [list(pattern) for pattern in sorted(stress_patterns)] if stress_patterns else []
+                entry = LinguisticEntry(word=word, forms=merged_forms, possible_stress_indices=possible_stress_indices)
+                unified[word] = entry
+            except Exception as e:
+                logging.error(f"Failed to merge forms for word '{word}': {e}")
+        stats = {
+            'total_lines': total_lines,
+            'unique_lemmas': len(unified),
+            'lmdb_path': None  # Will be set by caller if needed
+        }
+        return unified, stats
 
-
-    # Load double-stress lemmas inside the function to avoid global heavy work
-    double_stress_lemmas = load_double_stress_lemmas()
-    unified = {}
-    for word, forms in word_entries.items():
-        try:
-            merged_forms = merge_wordforms(forms, double_stress_lemmas)
-            # Collect all unique, sorted stress index arrays from forms
-            stress_patterns = set()
-            for wf in merged_forms:
-                if wf.stress_indices:
-                    stress_patterns.add(tuple(sorted(wf.stress_indices)))
-            possible_stress_indices = [list(pattern) for pattern in sorted(stress_patterns)] if stress_patterns else []
-            entry = LinguisticEntry(word=word, forms=merged_forms, possible_stress_indices=possible_stress_indices)
-            unified[word] = entry
-        except Exception as e:
-            print(f"[ERROR] Failed to merge forms for word '{word}': {e}")
-    stats = {
-        'total_lines': total_lines,
-        'unique_lemmas': len(unified),
-        'lmdb_path': None  # Will be set by caller if needed
-    }
-    return unified, stats
-
-
-# Load double-stress lemmas
 def load_double_stress_lemmas(resource_path=None):
+    """Load set of double-stress lemmas from resource file."""
     if resource_path is None:
         # Use the same file as variative-stress for now, or handle gracefully if not found
         resource_path = os.path.join(os.path.dirname(__file__), '..', 'ua_variative_stressed_words', 'ua_variative_stressed_words.txt')
@@ -433,7 +467,7 @@ def load_double_stress_lemmas(resource_path=None):
                 if line and not line.startswith('#'):
                     lemmas.add(line.lower())
     except Exception as e:
-        print(f"Warning: Could not load double-stress lemma list: {e}")
+        logging.warning(f"Could not load double-stress lemma list: {e}")
     return lemmas
 
 def parse_kaikki_jsonl(filepath: str) -> Iterator[KaikkiEntry]:
@@ -449,7 +483,7 @@ def parse_kaikki_jsonl(filepath: str) -> Iterator[KaikkiEntry]:
             # Optionally: validate required fields here
             yield data  # type: ignore
 
-def stream_kaikki_to_lmdb(input_path: str, lmdb_path: str, map_size: int = 10 * 1024 * 1024 * 1024, show_progress: bool = True, batch_size: int = 10000):
+def stream_kaikki_to_lmdb(input_path: str, lmdb_path: str, map_size: int = 10 * 1024 * 1024 * 1024, show_progress: bool = True, batch_size: int = 10000, progress_callback: Optional[Callable[[int, int], None]] = None):
     """
     Stream Kaikki.org JSONL to LMDB, applying post-parsing merging logic per lemma.
     """
@@ -457,20 +491,28 @@ def stream_kaikki_to_lmdb(input_path: str, lmdb_path: str, map_size: int = 10 * 
     # Prepare cache dir
     if not os.path.exists(lmdb_path):
         os.makedirs(lmdb_path)
-    # Count total lines for progress bar
-    with open(input_path, encoding="utf-8") as f:
-        total_lines = sum(1 for line in f if line.strip())
-    # Streaming parse and yield (lemma, entry) pairs
-    def entry_iter():
+    # Count total lines before parsing for accurate progress bar
+    with open(input_path, encoding="utf-8") as f_count:
+        total_lines = sum(1 for _ in f_count)
+
+    def entry_iter(progress_callback=None):
         word_entries = {}
-        with open(input_path, encoding="utf-8") as f, tqdm(total=total_lines, desc="[Kaikki→LMDB]", disable=not show_progress) as pbar:
-            for idx, line in enumerate(f):
+        skipped_empty = 0
+        skipped_no_word = 0
+        skipped_no_stress = 0
+        processed = 0
+        # Always call progress_callback at start
+        if progress_callback:
+            progress_callback(0, total_lines)
+        with open(input_path, encoding="utf-8") as f:
+            for idx, line in enumerate(tqdm(f, total=total_lines, desc="[Kaikki→LMDB]", disable=not show_progress)):
                 if not line.strip():
+                    skipped_empty += 1
                     continue
                 entry = json.loads(line)
                 word = entry.get('word')
                 if not word:
-                    pbar.update(1)
+                    skipped_no_word += 1
                     continue
                 norm_word = normalize_apostrophe(strip_stress(word))
                 pos = normalize_pos(entry.get('pos'))
@@ -516,6 +558,7 @@ def stream_kaikki_to_lmdb(input_path: str, lmdb_path: str, map_size: int = 10 * 
                         norm_form = normalize_apostrophe(strip_stress(form_str))
                         stress_indices = extract_stress_indices(form_str)
                         if not stress_indices:
+                            skipped_no_stress += 1
                             continue
                         feats = {}
                         for tag in f.get('tags', []):
@@ -545,7 +588,10 @@ def stream_kaikki_to_lmdb(input_path: str, lmdb_path: str, map_size: int = 10 * 
                             stress_indices=stress_indices,
                         )
                         word_entries.setdefault(norm_word, []).append(wordform)
+                        processed += 1
                 # Periodically yield and clear
+                if progress_callback and (idx % 1000 == 0 or idx == total_lines - 1):
+                    progress_callback(idx + 1, total_lines)
                 if (idx + 1) % batch_size == 0:
                     for word, forms in word_entries.items():
                         merged_forms = merge_wordforms(forms, double_stress_lemmas)
@@ -554,7 +600,6 @@ def stream_kaikki_to_lmdb(input_path: str, lmdb_path: str, map_size: int = 10 * 
                         entry_obj = LinguisticEntry(word=word, forms=merged_forms, possible_stress_indices=possible_stress_indices)
                         yield word, to_serializable(entry_obj)
                     word_entries.clear()
-                pbar.update(1)
             # Final flush
             for word, forms in word_entries.items():
                 merged_forms = merge_wordforms(forms, double_stress_lemmas)
@@ -562,11 +607,13 @@ def stream_kaikki_to_lmdb(input_path: str, lmdb_path: str, map_size: int = 10 * 
                 possible_stress_indices = [list(pattern) for pattern in sorted(stress_patterns)] if stress_patterns else []
                 entry_obj = LinguisticEntry(word=word, forms=merged_forms, possible_stress_indices=possible_stress_indices)
                 yield word, to_serializable(entry_obj)
+        # Log audit summary
+        logging.info(f"[KAIKKI AUDIT] Total lines: {total_lines}, Skipped empty: {skipped_empty}, Skipped no word: {skipped_no_word}, Skipped no stress: {skipped_no_stress}, Processed: {processed}")
 
     config_obj = LMDBExportConfig(db_path=Path(lmdb_path), overwrite=True)
     exporter = LMDBExporter(config_obj)
-    exporter.export_streaming(entry_iter(), show_progress=False)
-    print(f"[Kaikki→LMDB] Finished LMDB export at {lmdb_path}")
+    exporter.export_streaming(entry_iter(progress_callback=progress_callback), show_progress=False)
+    logging.info(f"[Kaikki→LMDB] Finished LMDB export at {lmdb_path}")
 
     # --- Old cache cleanup ---
     prefix = "KAIKKI"
@@ -576,9 +623,9 @@ def stream_kaikki_to_lmdb(input_path: str, lmdb_path: str, map_size: int = 10 * 
         if os.path.basename(d) != current_key:
             try:
                 shutil.rmtree(d)
-                print(f"[Kaikki→LMDB] Deleted old cache: {d}")
+                logging.info(f"[Kaikki→LMDB] Deleted old cache: {d}")
             except Exception as e:
-                print(f"[Kaikki→LMDB] Failed to delete old cache {d}: {e}")
+                logging.warning(f"[Kaikki→LMDB] Failed to delete old cache {d}: {e}")
 
 
 def main():

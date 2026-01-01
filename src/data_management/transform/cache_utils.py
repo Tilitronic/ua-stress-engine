@@ -1,4 +1,11 @@
 import logging
+import os
+import hashlib
+import msgpack
+
+CACHE_DIR = os.path.join(os.path.dirname(__file__), 'cache')
+os.makedirs(CACHE_DIR, exist_ok=True)
+
 # --- Streaming Msgpack (Packer) ---
 def save_to_cache_streaming(obj, key, prefix=None):
     """Save a large dict to msgpack file using streaming (Packer)."""
@@ -58,12 +65,6 @@ def load_from_cache_lines(key, prefix=None):
         logging.warning(f"[CACHE] Failed to load cache from {path}: {e}")
         return None
 
-import os
-import hashlib
-import msgpack
-
-CACHE_DIR = os.path.join(os.path.dirname(__file__), 'cache')
-os.makedirs(CACHE_DIR, exist_ok=True)
 
 def compute_file_hash(file_path):
     """Compute SHA256 hash of a file's contents."""

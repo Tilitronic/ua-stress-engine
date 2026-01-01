@@ -1,20 +1,16 @@
 
-# --- All imports moved to top ---
 import os
 import glob
 import shutil
 import logging
 import multiprocessing
-from multiprocessing import Manager
+from multiprocessing import Manager, Process
 from enum import Enum
 from typing import Callable, List, Optional, Dict, Any, Tuple, TypedDict
-from pydantic import TypeAdapter
 from tqdm import tqdm
-import pprint
 import time
 import hashlib
 import sys
-import psutil
 import json
 import sqlite3
 from pathlib import Path
@@ -113,19 +109,11 @@ def run_kaikki_parser(progress_callback: Optional[Callable[[int, int], None]] = 
         stats = {"cache_used": True, "lmdb_path": lmdb_path}
         return lmdb_path, stats
     input_path = config["db_path"]
-    stream_kaikki_to_lmdb(input_path=input_path, lmdb_path=lmdb_path, show_progress=True)
+    stream_kaikki_to_lmdb(input_path=input_path, lmdb_path=lmdb_path, show_progress=True, progress_callback=progress_callback)
     stats = {"cache_used": False, "lmdb_path": lmdb_path}
     return lmdb_path, stats
 
 
-
-class ParsingMergingService:
-    """
-    Service to run multiple parser processes concurrently and merge their outputs losslessly.
-    - Accepts parser callables (functions/classes with .parse() or __call__ returning Dict[str, LinguisticEntry])
-    - Runs all parsers concurrently
-    - Merges all returned dictionaries under the same lemma keys, merging WordForms and stress indices losslessly
-    """
 
 def parser_worker(
     func: Callable[[Optional[Callable[[int, int], None]], Optional[ParserConfig]], Tuple[Dict[str, Any], Dict[str, Any]]],
@@ -136,32 +124,25 @@ def parser_worker(
     def progress_callback(current, total):
         progress_queue.put((name, current, total))
     # ...existing code...
-    def log_mem(stage):
-        process = psutil.Process(os.getpid())
-        # Memory tracking removed as per optimization
-    log_mem('start')
+    # Memory tracking removed as per optimization
     class DevNull:
         def write(self, *_): pass
         def flush(self): pass
     sys.stdout = DevNull()
     sys.stderr = DevNull()
     try:
-        log_mem('before_func')
         # ...existing code...
         _, stats = func(progress_callback=progress_callback)
-        log_mem('after_func')
         # ...existing code...
         # Only send stats, not large data, to avoid pickling large objects
         result_queue.put((name, None, stats, None))
         progress_queue.put((name, None, None))  # Signal finished
-        log_mem('after_result_queue')
     except Exception as e:
         import traceback
         tb = traceback.format_exc()
         # ...existing code...
         result_queue.put((name, None, None, f"{e}\n{tb}"))
         progress_queue.put((name, None, None))
-        log_mem('exception')
 
 def run_parsers_concurrently_mp(
     parser_funcs: List[Callable[[Optional[Callable[[int, int], None]], Optional[ParserConfig]], Tuple[Dict[str, Any], Dict[str, Any]]]],
@@ -201,10 +182,10 @@ def run_parsers_concurrently_mp(
     total = len(func_name_pairs)
 
     # Use full parser names for informative progress bar descriptions
-    bar_descs = [f"Parsing [{name}]" for name in names]
+    bar_descs = [f"[{name}] Parse→Cache" for name in names]
     pbar_list = []
     for i, desc in enumerate(bar_descs):
-        pbar_list.append(tqdm(total=1, desc=desc, position=i, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt}', leave=True, dynamic_ncols=True))
+        pbar_list.append(tqdm(total=1, desc=desc, position=i, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]', leave=True, dynamic_ncols=True, unit='line'))
     finished_count = 0
     expected_finishes = len(names)
     totals = [None for _ in names]
@@ -227,11 +208,14 @@ def run_parsers_concurrently_mp(
         if current is None:
             finished_count += 1
             if totals[idx_] is not None:
+                # Parser sent progress updates, complete the bar normally
                 pbar.n = totals[idx_]
                 pbar.refresh()
+                pbar.close()
             else:
-                pbar.n = pbar.total
-                pbar.refresh()
+                # Parser used cache (no progress updates), remove bar completely
+                pbar.leave = False
+                pbar.close()
             # Remove finished process
             for i, (proc, n) in enumerate(running):
                 if n == name:
@@ -245,9 +229,6 @@ def run_parsers_concurrently_mp(
                 pbar.refresh()
             pbar.n = current
             pbar.refresh()
-
-    for pbar in pbar_list:
-        pbar.close()
 
     results = []
     stats_list = []
@@ -317,6 +298,9 @@ def main():
     enabled_names = list(export_config.sources_configs.keys())
     enabled_funcs = [parser_func_map[name] for name in enabled_names]
 
+    # Start timer for total parsing time
+    start_time = time.time()
+    
     # --- Ensure all source LMDB caches exist, rerun missing ones if needed ---
     cache_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "cache"))
     cache_keys = [compute_parser_hash(export_config.sources_configs[name]["parser_path"], export_config.sources_configs[name]["db_path"]) for name in enabled_names]
@@ -389,11 +373,10 @@ def main():
         datefmt="%H:%M:%S"
     )
 
-    start_time = time.time()
+    total_elapsed = time.time() - start_time
     _tqdm.write("\n=== Parsing Summary (All Parsers) ===")
     for name, stats in stats_list:
         _tqdm.write(f"Parser {name} stats: {stats}")
-    total_elapsed = time.time() - start_time
     _tqdm.write(f"Total concurrent parsing time: {total_elapsed:.2f} seconds")
 
     # --- Merged cache logic ---

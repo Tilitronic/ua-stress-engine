@@ -1,23 +1,44 @@
+
 #!/usr/bin/env python3
+"""
+Ukrainian TRIE Stress Dictionary Parser
+
+Parses Ukrainian stress dictionary from marisa_trie.BytesTrie format and converts to unified format for streaming LMDB export and downstream linguistic analysis.
+
+Input Format:
+    - Source: https://github.com/lang-uk/ukrainian-word-stress
+    - License: MIT License
+    - Format: marisa_trie.BytesTrie
+    - Size: ~12 MB, ~2.9M word forms
+    - Key: Word (base form, no stress marks)
+    - Value: Byte string encoding stress positions and morphological tags
+        * Format #1: b'\x02' (single accent position)
+        * Format #2: b'{pos}\xFE{tags}\xFF...' (multiple accent positions, ambiguity)
+    - See README.md for full format details
+
+Output:
+    - Streams (lemma, LinguisticEntry) pairs for scalable, disk-backed aggregation
+    - Supports robust, repeatable merging/export workflows
+
+Attribution:
+    Ukrainian Word Stress Data
+    - Trie Database: Copyright (c) 2022 lang-uk, MIT License
+      https://github.com/lang-uk/ukrainian-word-stress
+"""
 
 from src.data_management.transform.cache_utils import compute_parser_hash, to_serializable
 from src.data_management.transform.merger import LMDBExporter, LMDBExportConfig
 import os
 import warnings
-warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API*", category=UserWarning)
-
 import time
 from tqdm import tqdm
 from pathlib import Path
 from typing import Dict, List, Optional
-
 from src.data_management.transform.data_unifier import LinguisticEntry, WordForm, UPOS
 from src.data_management.sources.trie_ua_stresses.stress_db_file_manager import ensure_latest_db_file, DEFAULT_LOCAL_PATH
-
 from src.utils.normalize_apostrophe import normalize_apostrophe
 from src.lemmatizer.lemmatizer import Lemmatizer
 import logging
-from pydantic import BaseModel, Field, ConfigDict
 from src.data_management.transform.data_unifier import UDFeatKey, UPOS
 
 try:
@@ -27,12 +48,7 @@ except ImportError:
         "marisa-trie is required. Install with: pip install marisa-trie"
     )
 
-
-# Standalone function to convert char positions to vowel indices
-
-
-
-
+warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API*", category=UserWarning)
 """"
 Description
 
@@ -84,25 +100,7 @@ TAG_BY_BYTE = {
 
 
 
-class TrieEntry(BaseModel):
-    """
-    Single entry from trie (one word form with specific morphology).
-    - stress_indices: Vowel indices where stress occurs (converted from char positions)
-    - feats: Morphological features (UD-compliant, if available)
-    """
-    stress_indices: List[int] = Field(
-        ...,
-        description="Vowel indices where stress occurs (converted from char positions)",
-        examples=[[0], [1], [0, 1]]
-    )
-    feats: Dict[str, str] = Field(
-        default_factory=dict,
-        description="Morphological features (UD-compliant, if available)"
-    )
-    model_config = ConfigDict(extra="forbid", validate_assignment=True)
-
-def extract_stress_indices() -> List[int]:
-    return []   
+    # ...existing code...
 
 lemmatizer = Lemmatizer(use_gpu=False)
 def get_lemma(word: str) -> str:
@@ -242,8 +240,8 @@ def parse_trie_to_unified_dict(input_path: Optional[str] = None, show_progress: 
                     sense_id=None
                 ))
                 word_forms_count += 1
-        # Progress callback every 10000 words
-        if progress_callback and (idx % 10000 == 0 or idx == len(keys) - 1):
+        # Progress callback every 1000 words
+        if progress_callback and (idx % 1000 == 0 or idx == len(keys) - 1):
             progress_callback(idx + 1, len(keys))
     elapsed = time.time() - start_time
     stats = {

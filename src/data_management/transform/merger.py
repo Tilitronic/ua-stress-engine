@@ -146,7 +146,7 @@ def merge_caches_and_save_lmdb(lmdb_dirs: List[str], *, merged_prefix="MERGED") 
     batch_size = 1000
     import heapq, itertools
     streams = [stream_lmdb_entries(p) for p in lmdb_dirs]
-    with tqdm(total=None, desc="Merging and Writing to LMDB", ncols=100, dynamic_ncols=True, leave=True) as pbar:
+    with tqdm(total=total_lemmas, desc="Merge→LMDB", unit='lemma', dynamic_ncols=True, leave=True) as pbar:
         for lemma, group in itertools.groupby(heapq.merge(*streams, key=lambda x: x[0]), key=lambda x: x[0]):
             entries = [entry for _, entry in group]
             key = lemma.encode('utf-8')
@@ -342,7 +342,6 @@ class SQLExporter:
             except Exception:
                 total = None
         pbar = tqdm(total=total, desc="SQL Export", ncols=100, dynamic_ncols=True, leave=True)
-        debug_count = 0
         for key, value in data_iter:
             # Support both dict and Pydantic model
             if hasattr(value, "model_dump"):
@@ -368,8 +367,6 @@ class SQLExporter:
                     form_dict = form_obj.model_dump()
                 else:
                     form_dict = form_obj
-                if debug_count < 10:
-                    print(f"[DEBUG][SQL EXPORT] Lemma: {lemma} form_dict: {form_dict}")
                 form = form_dict.get('form')
                 pos = form_dict.get('pos')
                 main_definition_id = get_definition_id(form_dict.get('main_definition'))
@@ -379,9 +376,6 @@ class SQLExporter:
                 etymology_number = form_dict.get('etymology_number')
                 sense_id = form_dict.get('sense_id')
                 stress_indices = form_dict.get('stress_indices', []) or []
-                if debug_count < 10:
-                    print(f"[DEBUG][SQL EXPORT] Lemma: {lemma} form: {form} stress_indices: {stress_indices}")
-                    debug_count += 1
                 word_form_batch.append((form, lemma, pos, main_definition_id, roman, ipa, etymology_id, etymology_number, sense_id, json.dumps(stress_indices, ensure_ascii=False, separators=(',', ':'))))
             # Prepare nested/related rows (normalize repeated strings)
             feats = form_dict.get('feats', {})

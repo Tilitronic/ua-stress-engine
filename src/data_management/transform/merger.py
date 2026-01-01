@@ -9,26 +9,80 @@ import hashlib
 import itertools
 import heapq
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Iterator, Tuple
+from typing import List, Dict, Any, Optional, Iterator, Tuple, TypedDict
 from tqdm import tqdm
 from pydantic import TypeAdapter
 import msgpack
 import lmdb
 from .data_unifier import LinguisticEntry
+
+
+# Type definitions for intermediate representations
+class LinguisticEntryDict(TypedDict, total=False):
+    """TypedDict for LinguisticEntry dict representation."""
+    word: str
+    lemma: str  # Alternative field name
+    forms: List[Dict[str, Any]]  # List of WordForm dicts
+    possible_stress_indices: List[List[int]]
+    meta: Dict[str, Any]
+
+
+class WordFormDict(TypedDict, total=False):
+    """TypedDict for WordForm dict representation."""
+    form: str
+    stress_indices: List[int]
+    pos: str
+    feats: Dict[str, str]
+    lemma: Optional[str]
+    main_definition: Optional[str]
+    alt_definitions: Optional[List[str]]
+    translations: Optional[List[Dict[str, Any]]]
+    etymology_templates: Optional[List[Dict[str, Any]]]
+    etymology_number: Optional[int]
+    tags: Optional[List[str]]
+    examples: List[str]
+    roman: Optional[str]
+    ipa: Optional[str]
+    etymology: Optional[str]
+    inflection_templates: Optional[List[Dict[str, Any]]]
+    categories: Optional[List[str]]
+    sense_id: Optional[str]
 from src.data_management.transform.cache_utils import (
     cache_path_for_key, save_to_cache_streaming, load_from_cache_streaming, to_serializable, compute_parser_hash
 )
+
+# NOTE: Type Safety Improvements
+# This module mixes LinguisticEntry (Pydantic) with Dict[str, Any] for flexibility.
+# Dict[str, Any] is used because:
+# 1. LMDB serialization requires dict compatibility (msgpack)
+# 2. Intermediate processing steps may have partial data
+# 3. SQL normalization breaks up the structure across tables
+#
+# To improve type safety, consider:
+# - Use Pydantic model_dump() to convert to dict explicitly
+# - Add TypedDict for intermediate representations (instead of Dict[str, Any])
+# - Use TypeAdapter for validation when converting back to LinguisticEntry
 import os
 import hashlib
 from typing import Tuple
-def merge_linguistic_dicts(dicts: List[Dict[str, Any]]) -> Dict[str, Any]:
+
+
+def merge_linguistic_dicts(dicts: List[Dict[str, LinguisticEntryDict]]) -> Dict[str, LinguisticEntry]:
     """
     Merge multiple dictionaries of LinguisticEntry losslessly.
+    
+    Args:
+        dicts: List of dictionaries mapping lemma -> LinguisticEntry dict
+        
+    Returns:
+        Dictionary mapping lemma -> merged LinguisticEntry object
+        
+    Details:
     - For each lemma, merge all WordForms (deduplicate by all fields)
     - Merge possible_stress_indices as unique arrays
     - Merge meta dicts (shallow merge)
     """
-    merged = {}
+    merged: Dict[str, LinguisticEntry] = {}
 
     logger = logging.getLogger("merging")
     total_lemmas = sum(len(d) for d in dicts)
@@ -111,7 +165,8 @@ def merge_caches_and_save_lmdb(lmdb_dirs: List[str], *, merged_prefix="MERGED") 
         import shutil
         shutil.rmtree(merged_lmdb_path)
 
-    def stream_lmdb_entries(lmdb_path: str) -> Iterator[Tuple[str, Any]]:
+    def stream_lmdb_entries(lmdb_path: str) -> Iterator[Tuple[str, LinguisticEntryDict]]:
+        """Stream entries from LMDB as (lemma, entry_dict) tuples."""
         if not os.path.exists(lmdb_path):
             raise FileNotFoundError(f"[LMDB MERGE] LMDB path does not exist: {lmdb_path}")
         env = lmdb.open(lmdb_path, readonly=True, lock=False)
@@ -120,7 +175,21 @@ def merge_caches_and_save_lmdb(lmdb_dirs: List[str], *, merged_prefix="MERGED") 
                 yield k.decode('utf-8'), msgpack.unpackb(v, raw=False)
         env.close()
 
-    def per_lemma_merge(existing, new):
+    def per_lemma_merge(existing: LinguisticEntryDict, new: LinguisticEntryDict) -> LinguisticEntry:
+        """
+        Merge two linguistic entries for the same lemma.
+        
+        Args:
+            existing: Dict representation of existing LinguisticEntry (from msgpack/LMDB)
+            new: Dict representation of new LinguisticEntry to merge in (from msgpack/LMDB)
+            
+        Returns:
+            Merged LinguisticEntry Pydantic object with combined forms and stress indices
+            
+        Note:
+            Uses TypeAdapter for safe validation from dict -> Pydantic model.
+            This ensures all data is validated against the schema before merging.
+        """
         # Use the scientific-grade merging logic from merge_linguistic_dicts, but for two entries
         from pydantic import TypeAdapter
         from .data_unifier import LinguisticEntry
@@ -150,7 +219,8 @@ def merge_caches_and_save_lmdb(lmdb_dirs: List[str], *, merged_prefix="MERGED") 
         for lemma, group in itertools.groupby(heapq.merge(*streams, key=lambda x: x[0]), key=lambda x: x[0]):
             entries = [entry for _, entry in group]
             key = lemma.encode('utf-8')
-            def ensure_dict(obj):
+            def ensure_dict(obj: Any) -> LinguisticEntryDict:
+                """Convert Pydantic model to dict for msgpack serialization."""
                 return obj.model_dump() if hasattr(obj, "model_dump") else obj
             if txn.get(key):
                 existing = msgpack.unpackb(txn.get(key), raw=False)
@@ -263,7 +333,7 @@ class SQLExporter:
         self.config = config
         self.logger = logger or logging.getLogger("SQLExporter")
 
-    def create_schema(self, conn):
+    def create_schema(self, conn: sqlite3.Connection) -> None:
         # Read schema from file and add dedup tables for main_definition and etymology
         schema_path = Path(__file__).parent / 'linguistic_data_schema.sql'
         with open(schema_path, encoding='utf-8') as f:
@@ -281,10 +351,15 @@ class SQLExporter:
         '''
         conn.executescript(schema_sql)
 
-    def export_streaming(self, data_iter, total=None, batch_size=1000):
+    def export_streaming(self, data_iter: Iterator[Tuple[str, Any]], total: Optional[int] = None, batch_size: int = 1000) -> None:
         """
         Export entries to SQLite using normalized schema, batch insert, and PRAGMA optimizations.
         Use msgpack only for large/nested fields (not for normalized tables).
+        
+        Args:
+            data_iter: Iterator yielding (lemma: str, entry_data: dict) tuples
+            total: Optional total count for progress bar
+            batch_size: Batch size for SQL inserts
         """
         from tqdm import tqdm
         # --- Informative summary will be printed at the end ---
@@ -344,6 +419,8 @@ class SQLExporter:
         pbar = tqdm(total=total, desc="SQL Export", ncols=100, dynamic_ncols=True, leave=True)
         for key, value in data_iter:
             # Support both dict and Pydantic model
+            # Convert to dict for consistent processing
+            value_dict: LinguisticEntryDict
             if hasattr(value, "model_dump"):
                 value_dict = value.model_dump()
             else:
@@ -363,6 +440,7 @@ class SQLExporter:
                     lemma_stress_map[lemma].add(stress_indices)
             for form_obj in forms:
                 # Support both dict and Pydantic model for forms
+                form_dict: WordFormDict
                 if hasattr(form_obj, "model_dump"):
                     form_dict = form_obj.model_dump()
                 else:
@@ -742,7 +820,8 @@ def merge_caches_and_save(lmdb_dirs: List[str], export_config=None, *, merged_pr
             sql_db_path.unlink()
             force_export = True
 
-    def stream_lmdb_entries(lmdb_path: str) -> Iterator[Tuple[str, Any]]:
+    def stream_lmdb_entries(lmdb_path: str) -> Iterator[Tuple[str, LinguisticEntryDict]]:
+        """Stream entries from LMDB as (lemma, entry_dict) tuples."""
         import lmdb, msgpack
         env = lmdb.open(lmdb_path, readonly=True, lock=False)
         with env.begin() as txn:
@@ -750,7 +829,7 @@ def merge_caches_and_save(lmdb_dirs: List[str], export_config=None, *, merged_pr
                 yield k.decode('utf-8'), msgpack.unpackb(v, raw=False)
         env.close()
 
-    def per_lemma_merge(lemma: str, entries: list) -> Any:
+    def per_lemma_merge(lemma: str, entries: List[LinguisticEntryDict]) -> LinguisticEntry:
         # Use the scientific-grade merging logic from merge_linguistic_dicts, but per-lemma
         merged = None
         for entry in entries:
@@ -802,7 +881,15 @@ def merge_caches_and_save(lmdb_dirs: List[str], export_config=None, *, merged_pr
                 merged.meta.update(entry_obj.meta)
         return merged
 
-    def merge_streaming_lmdbs(lmdb_paths: List[str]) -> Iterator[Tuple[str, Any]]:
+    def merge_streaming_lmdbs(lmdb_paths: List[str]) -> Iterator[Tuple[str, LinguisticEntry]]:
+        """Stream and merge all LMDBs, yielding (lemma, merged_entry) tuples.
+        
+        Args:
+            lmdb_paths: List of paths to LMDB directories to merge
+            
+        Yields:
+            Tuples of (lemma, merged_LinguisticEntry)
+        """
         # Streams all LMDBs in sorted order by lemma, merges per-lemma, yields (lemma, merged_entry)
         streams = [stream_lmdb_entries(p) for p in lmdb_paths]
         # heapq.merge merges sorted streams by lemma

@@ -29,70 +29,83 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 from enum import Enum
 
 # --- Universal Dependencies Enums ---
+# https://universaldependencies.org/u/pos/
+# https://universaldependencies.org/u/feat/
 
 class UPOS(str, Enum):
-    ADJ = "ADJ"      # прикметник
-    ADP = "ADP"      # прийменник
-    ADV = "ADV"      # прислівник
-    AUX = "AUX"      # допоміжне дієслово
-    CCONJ = "CCONJ"  # сурядний сполучник
-    DET = "DET"      # детермінатив (займенник, артикль)
-    INTJ = "INTJ"    # вигук
-    NOUN = "NOUN"    # іменник
-    NUM = "NUM"      # числівник
-    PART = "PART"    # частка
-    PRON = "PRON"    # займенник
-    PROPN = "PROPN"  # власна назва
-    PUNCT = "PUNCT"  # пунктуація
-    SCONJ = "SCONJ"  # підрядний сполучник
-    SYM = "SYM"      # символ
-    VERB = "VERB"    # дієслово
-    X = "X"          # інше/невідоме
+    """
+    Universal POS (Part-of-Speech) tags following UD standard.
+    Ref: https://universaldependencies.org/u/pos/
+    """
+    ADJ = "ADJ"      # прикметник (adjective)
+    ADP = "ADP"      # прийменник (adposition)
+    ADV = "ADV"      # прислівник (adverb)
+    AUX = "AUX"      # допоміжне дієслово (auxiliary verb)
+    CCONJ = "CCONJ"  # сурядний сполучник (coordinating conjunction)
+    DET = "DET"      # детермінатив (determiner/article)
+    INTJ = "INTJ"    # вигук (interjection)
+    NOUN = "NOUN"    # іменник (noun)
+    NUM = "NUM"      # числівник (numeral)
+    PART = "PART"    # частка (particle)
+    PRON = "PRON"    # займенник (pronoun)
+    PROPN = "PROPN"  # власна назва (proper noun)
+    PUNCT = "PUNCT"  # пунктуація (punctuation)
+    SCONJ = "SCONJ"  # підрядний сполучник (subordinating conjunction)
+    SYM = "SYM"      # символ (symbol)
+    VERB = "VERB"    # дієслово (verb)
+    X = "X"          # інше/невідоме (other/unknown)
 
 # Core UD features (expand as needed)
 class UDFeatKey(str, Enum):
-    Gender = "Gender"         # рід
-    Animacy = "Animacy"       # одушевленість
-    Number = "Number"         # число
-    Case = "Case"             # відмінок
-    Definite = "Definite"     # означеність
-    Degree = "Degree"         # ступінь порівняння
-    VerbForm = "VerbForm"     # форма дієслова
-    Mood = "Mood"             # спосіб
-    Tense = "Tense"           # час
-    Aspect = "Aspect"         # вид
-    Voice = "Voice"           # стан
-    Evident = "Evident"       # евиденціальність
-    Polarity = "Polarity"     # заперечення
-    Person = "Person"         # особа
-    Polite = "Polite"         # ввічливість
-    Clusivity = "Clusivity"   # включеність
-    PronType = "PronType"     # тип займенника
-    NumType = "NumType"       # тип числівника
-    Poss = "Poss"             # присвійність
-    Reflex = "Reflex"         # зворотність
-    Foreign = "Foreign"       # іншомовність
-    Abbr = "Abbr"             # абревіатура
-    Typo = "Typo"             # описка
+    """
+    Morphological feature keys following UD standard.
+    Ref: https://universaldependencies.org/u/feat/
+    """
+    Gender = "Gender"         # рід (grammatical gender)
+    Animacy = "Animacy"       # одушевленість (animate/inanimate)
+    Number = "Number"         # число (singular/plural/dual)
+    Case = "Case"             # відмінок (grammatical case)
+    Definite = "Definite"     # означеність (definiteness)
+    Degree = "Degree"         # ступінь порівняння (degree of comparison)
+    VerbForm = "VerbForm"     # форма дієслова (verb form type)
+    Mood = "Mood"             # спосіб (verb mood)
+    Tense = "Tense"           # час (verb tense)
+    Aspect = "Aspect"         # вид (verb aspect)
+    Voice = "Voice"           # стан (verb voice)
+    Evident = "Evident"       # евиденціальність (evidentiality)
+    Polarity = "Polarity"     # заперечення (negation/polarity)
+    Person = "Person"         # особа (grammatical person)
+    Polite = "Polite"         # ввічливість (politeness)
+    Clusivity = "Clusivity"   # включеність (inclusive/exclusive)
+    PronType = "PronType"     # тип займенника (pronoun type)
+    NumType = "NumType"       # тип числівника (numeral type)
+    Poss = "Poss"             # присвійність (possessive)
+    Reflex = "Reflex"         # зворотність (reflexive)
+    Foreign = "Foreign"       # іншомовність (foreign language)
+    Abbr = "Abbr"             # абревіатура (abbreviation)
+    Typo = "Typo"             # описка (spelling error)
 
 # Example values for some features (expand as needed)
 class GenderVal(str, Enum):
-    Masc = "Masc"
-    Fem = "Fem"
-    Neut = "Neut"
+    """Grammatical gender values (Gender feature)."""
+    Masc = "Masc"  # Masculine (чоловічий)
+    Fem = "Fem"    # Feminine (жіночий)
+    Neut = "Neut"  # Neuter (середній)
 
 class NumberVal(str, Enum):
-    Sing = "Sing"
-    Plur = "Plur"
+    """Number values (Number feature)."""
+    Sing = "Sing"  # Singular (однина)
+    Plur = "Plur"  # Plural (множина)
 
 class CaseVal(str, Enum):
-    Nom = "Nom"
-    Gen = "Gen"
-    Dat = "Dat"
-    Acc = "Acc"
-    Ins = "Ins"
-    Loc = "Loc"
-    Voc = "Voc"
+    """Case values (Case feature) - Ukrainian cases."""
+    Nom = "Nom"    # Nominative (називний)
+    Gen = "Gen"    # Genitive (родовий)
+    Dat = "Dat"    # Dative (давальний)
+    Acc = "Acc"    # Accusative (знахідний)
+    Ins = "Ins"    # Instrumental (орудним)
+    Loc = "Loc"    # Locative (місцевий)
+    Voc = "Voc"    # Vocative (кличний)
 
 # --- Unified Data Models ---
 
@@ -222,10 +235,6 @@ class WordForm(BaseModel):
 class LinguisticEntry(BaseModel):
     word: str = Field(..., description="Normalized word key", examples=["мати"])
     forms: List[WordForm] = Field(..., description="All forms/variants for this word")
-    possible_stress_indices: Optional[List[List[int]]] = Field(
-        default=None,
-        description="List of possible stress index patterns for this lemma, e.g. [[0,1]]"
-    )
     possible_stress_indices: List[List[int]] = Field(
         default_factory=list,
         description="All unique stress index arrays for this word across all forms (e.g., [[0], [1], [0, 1]]). Each entry is a unique, sorted list of stressed vowel indices for a form.",

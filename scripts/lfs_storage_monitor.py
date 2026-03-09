@@ -10,10 +10,16 @@ Can also be called manually:
     python scripts/lfs_storage_monitor.py [--limit-mb N]
 """
 
+import io
 import re
 import subprocess
 import sys
 from argparse import ArgumentParser
+
+# Git hooks run in the terminal's native encoding (cp1251 on Windows).
+# Force UTF-8 so emoji/unicode in output never crashes the hook.
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 
 FREE_TIER_MB = 1024  # GitHub free plan
@@ -113,36 +119,36 @@ def check(limit_mb: float = FREE_TIER_MB) -> int:
     after_mb = remote_mb + pending_mb
     pct = after_mb / limit_mb * 100
 
-    print("\n📊 Git LFS Storage Check")
+    print("\n[LFS] Git LFS Storage Check")
     print(f"   Remote (already pushed) : {remote_mb:>8.1f} MB")
 
     if pending_files:
         print(f"   Pending (this push)     : {pending_mb:>8.1f} MB")
         for path, size in pending_files:
-            flag = "  ⚠️ " if size > 200 else "    "
+            flag = "  [!]" if size > 200 else "     "
             print(f"   {flag}  {size:>7.1f} MB  {path}")
-        print(f"   ─────────────────────────────────────")
+        print(f"   {'-'*37}")
         print(f"   After push              : {after_mb:>8.1f} MB / {limit_mb:.0f} MB  ({pct:.1f}%)")
     else:
-        print(f"   ─────────────────────────────────────")
+        print(f"   {'-'*37}")
         print(f"   Total                   : {remote_mb:>8.1f} MB / {limit_mb:.0f} MB  ({pct:.1f}%)")
 
     if after_mb > limit_mb:
         over = after_mb - limit_mb
-        print(f"\n   ❌  PUSH BLOCKED — would exceed limit by {over:.1f} MB")
-        print(f"   💡  Options:")
-        print(f"       • Run: python scripts/lfs_cleanup.py --dry-run")
-        print(f"       • Add large source files to .gitignore instead of LFS")
-        print(f"       • Upgrade GitHub LFS storage pack ($5/month per 50 GB)")
+        print(f"\n   [BLOCKED] Would exceed limit by {over:.1f} MB")
+        print(f"   Options:")
+        print(f"     - Run: python scripts/lfs_cleanup.py --dry-run")
+        print(f"     - Add large source files to .gitignore instead of LFS")
+        print(f"     - Upgrade GitHub LFS storage pack ($5/month per 50 GB)")
         print()
         return 1
     elif pct > 90:
-        print(f"\n   ⚠️   {pct:.0f}% used — approaching limit, cleanup soon")
-        print(f"   💡  Run: python scripts/lfs_cleanup.py --dry-run")
+        print(f"\n   [WARNING] {pct:.0f}% used -- approaching limit, cleanup soon")
+        print(f"   Run: python scripts/lfs_cleanup.py --dry-run")
     elif pct > 75:
-        print(f"\n   ⚡  {pct:.0f}% used")
+        print(f"\n   [NOTE] {pct:.0f}% used")
     else:
-        print(f"\n   ✅  Storage healthy")
+        print(f"\n   [OK] Storage healthy")
 
     print()
     return 0
@@ -152,13 +158,12 @@ def main() -> None:
     parser = ArgumentParser(description="Check Git LFS storage before pushing")
     parser.add_argument('--limit-mb', type=float, default=FREE_TIER_MB,
                         help=f'Storage limit in MB (default: {FREE_TIER_MB})')
-    # When called as a hook, git passes remote name + URL as positional args — ignore them
-    parser.add_argument('remote', nargs='?', help=argparse.SUPPRESS if False else None)
-    parser.add_argument('url',    nargs='?', help=argparse.SUPPRESS if False else None)
+    # When called as a hook, git passes remote name + URL as positional args -- ignore them
+    parser.add_argument('remote', nargs='?')
+    parser.add_argument('url',    nargs='?')
     args = parser.parse_args()
     sys.exit(check(limit_mb=args.limit_mb))
 
 
 if __name__ == '__main__':
-    import argparse  # noqa: F811 — re-import to satisfy the ArgumentParser alias above
     main()

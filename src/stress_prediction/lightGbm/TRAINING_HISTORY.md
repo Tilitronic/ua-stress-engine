@@ -101,11 +101,12 @@ Fixes all v1.3 bugs, uses TPE + Hyperband, warm-starts from v1.3 results.
 
 ### Phase 7: Bulbul v4 Extended Research — 2-Syllable Specialist (2026-03-04)
 
-| Script                    | Lines | Key Idea                                          | Outcome                           |
-| ------------------------- | ----- | ------------------------------------------------- | --------------------------------- |
-| `batch_train_2syl_v4.py`  | ~1900 | 3-phase Optuna (Random/CMA-ES/TPE), 100 features  | **8h, 2153 trials, best fit=0.8167** |
+| Script                   | Lines | Key Idea                                         | Outcome                              |
+| ------------------------ | ----- | ------------------------------------------------ | ------------------------------------ |
+| `batch_train_2syl_v4.py` | ~1900 | 3-phase Optuna (Random/CMA-ES/TPE), 100 features | **8h, 2153 trials, best fit=0.8167** |
 
 **Full run summary:**
+
 - P1 (Random): 944 trials — broad landscape exploration
 - P2 (CMA-ES): 394 trials — continuous optimisation
 - P3 (TPE): 815 trials — Bayesian fine-tuning
@@ -113,17 +114,18 @@ Fixes all v1.3 bugs, uses TPE + Hyperband, warm-starts from v1.3 results.
 
 **Leaderboard top-5:**
 
-| Rank | Trial    | Phase | ext_acc | hand   | F1      | Size  | Fitness | Key params                                          |
-| ---- | -------- | ----- | ------- | ------ | ------- | ----- | ------- | --------------------------------------------------- |
-| #1   | P3_0175  | P3    | 95.74%  | 40/44  | 74.94%  | ~3 MB | 0.8167  | leaves=331, lr=0.15151, mc=24, depth=13             |
-| #2   | P3_0811  | P3    | 95.84%  | 40/44  | 74.89%  | ~4 MB | 0.8164  | leaves=394, lr=0.12578, mc=24, depth=12             |
-| #3   | P2_0419  | P2    | 95.86%  | 40/44  | 74.80%  | ~6 MB | 0.8161  | leaves=318, lr=0.07713, mc=24, depth=14             |
-| #4   | P3_0097  | P3    | 95.28%  | 40/44  | 74.86%  | ~5 MB | 0.8156  | leaves=212, lr=0.14516, mc=37, depth=12             |
-| #5   | P2_0356  | P2    | 95.70%  | 40/44  | 74.65%  | ~8 MB | 0.8147  | leaves=183, lr=0.08366, mc=22, depth=13             |
+| Rank | Trial   | Phase | ext_acc | hand  | F1     | Size  | Fitness | Key params                              |
+| ---- | ------- | ----- | ------- | ----- | ------ | ----- | ------- | --------------------------------------- |
+| #1   | P3_0175 | P3    | 95.74%  | 40/44 | 74.94% | ~3 MB | 0.8167  | leaves=331, lr=0.15151, mc=24, depth=13 |
+| #2   | P3_0811 | P3    | 95.84%  | 40/44 | 74.89% | ~4 MB | 0.8164  | leaves=394, lr=0.12578, mc=24, depth=12 |
+| #3   | P2_0419 | P2    | 95.86%  | 40/44 | 74.80% | ~6 MB | 0.8161  | leaves=318, lr=0.07713, mc=24, depth=14 |
+| #4   | P3_0097 | P3    | 95.28%  | 40/44 | 74.86% | ~5 MB | 0.8156  | leaves=212, lr=0.14516, mc=37, depth=12 |
+| #5   | P2_0356 | P2    | 95.70%  | 40/44 | 74.65% | ~8 MB | 0.8147  | leaves=183, lr=0.08366, mc=22, depth=13 |
 
 **Winner (full-data refit):** `P3_0175_FINAL_FULLDATA/` in `artifacts/v2syl_v4_research/`
 
 **Key lessons from v4:**
+
 - ✅ `specialist_binary` preset works well for P1/P2 coarse search
 - ⚠️ `acc` weight at 25% is a weak discriminator once all top configs are ≥95% ext_acc
 - ⚠️ Stubborn misses (hand=40/44): шпада, чікса (10/10 configs), кислій (9/10) — data gaps, not model failures
@@ -134,11 +136,12 @@ Fixes all v1.3 bugs, uses TPE + Hyperband, warm-starts from v1.3 results.
 
 ### Phase 8: Luscinia-LGBM-STR-UA-2S-v1 (current generation)
 
-| Script                             | Lines | Key Idea                                               | Status       |
-| ---------------------------------- | ----- | ------------------------------------------------------ | ------------ |
-| `luscinia-lgbm-str-ua-2s-v1.py`   | 1960  | 4-phase (Random/CMA-ES/TPE + Ensemble), luscinia preset | Training     |
+| Script                          | Lines | Key Idea                                                | Status   |
+| ------------------------------- | ----- | ------------------------------------------------------- | -------- |
+| `luscinia-lgbm-str-ua-2s-v1.py` | 1960  | 4-phase (Random/CMA-ES/TPE + Ensemble), luscinia preset | Training |
 
 **Architecture improvements over v4:**
+
 - `luscinia_specialist` fitness preset for Phase 3: `hand_acc=25%` (was 15%), `acc=15%` (was 25%)
 - Phase 4 Ensemble: top-K models (default K=5) via fitness-weighted soft vote; auto-accept if `sanity_gain ≥ 0.001` OR `hand_gain > 0`
 - Guaranteed final refit on 100% data after any winning config (solo or ensemble)
@@ -153,14 +156,14 @@ Fixes all v1.3 bugs, uses TPE + Hyperband, warm-starts from v1.3 results.
 **Script:** `luscinia-lgbm-str-ua-2s-v1.py` | **Run:** 38h total, 99 trials (P1: 20, P2: 22, P3: 57 via resume)  
 **Winner:** `P3_0547` → refit as `P3_0547_FINAL_FULLDATA/P3_0547_full.lgb` (15 MB)
 
-| Metric | Val (90%) | Full-data refit |
-| --- | --- | --- |
-| Fitness | 0.8434 | — |
-| Val accuracy | — | — |
-| Sanity acc (5000 words) | — | **97.32%** (4866/5000) |
-| Handcrafted (44 words) | — | **44/44 (100%)** |
-| Train time | — | 5.1s |
-| Model size | — | 15 MB |
+| Metric                  | Val (90%) | Full-data refit        |
+| ----------------------- | --------- | ---------------------- |
+| Fitness                 | 0.8434    | —                      |
+| Val accuracy            | —         | —                      |
+| Sanity acc (5000 words) | —         | **97.32%** (4866/5000) |
+| Handcrafted (44 words)  | —         | **44/44 (100%)**       |
+| Train time              | —         | 5.1s                   |
+| Model size              | —         | 15 MB                  |
 
 **Winner params:** `leaves=341, lr=0.135, mc=13, depth=12, l2=2.77, col=0.347`
 
@@ -170,9 +173,9 @@ Fixes all v1.3 bugs, uses TPE + Hyperband, warm-starts from v1.3 results.
 
 ### Phase 10: Luscinia-LGBM-STR-UA-UNIV-v1 — Universal model (2026-03-06 → 03-08)
 
-| Script                              | Lines | Key Idea                                            | Status       |
-| ----------------------------------- | ----- | --------------------------------------------------- | ------------ |
-| `luscinia-lgbm-str-ua-univ-v1.py`  | 1711  | Universal 11-class model, all syllable counts 2–10+ | **Complete** |
+| Script                            | Lines | Key Idea                                            | Status       |
+| --------------------------------- | ----- | --------------------------------------------------- | ------------ |
+| `luscinia-lgbm-str-ua-univ-v1.py` | 1711  | Universal 11-class model, all syllable counts 2–10+ | **Complete** |
 
 **Architecture:** single LightGBM multiclass model replacing per-syllable-count specialists.  
 **Feature set:** `build_features_universal` — 132 features (97 base v13 + 35 universal extensions).  
@@ -182,35 +185,35 @@ Fixes all v1.3 bugs, uses TPE + Hyperband, warm-starts from v1.3 results.
 
 #### Training run summary
 
-| Phase | Trials | Duration | Best fitness | Δ vs prev |
-| ----- | ------ | -------- | ------------ | --------- |
-| P1 — Random exploration | 53 | ~631 min | 0.8111 | baseline |
-| P2 — CMA-ES | 22 | ~653 min | 0.8133 | **+0.0022** |
-| P3 — TPE Bayesian | 24 | ~1008 min | **0.8237** | **+0.0104** |
-| **Total** | **99** | **38.2h** | **0.8237** | — |
+| Phase                   | Trials | Duration  | Best fitness | Δ vs prev   |
+| ----------------------- | ------ | --------- | ------------ | ----------- |
+| P1 — Random exploration | 53     | ~631 min  | 0.8111       | baseline    |
+| P2 — CMA-ES             | 22     | ~653 min  | 0.8133       | **+0.0022** |
+| P3 — TPE Bayesian       | 24     | ~1008 min | **0.8237**   | **+0.0104** |
+| **Total**               | **99** | **38.2h** | **0.8237**   | —           |
 
 **Winner:** `P3_0017` → refit as `P3_0017_FINAL_FULLDATA/P3_0017_full.lgb` (272 MB)
 
 #### Final refit metrics (full data, 2,725,477 rows)
 
-| Metric | Value |
-| --- | --- |
+| Metric                                  | Value                  |
+| --------------------------------------- | ---------------------- |
 | Sanity acc (5000 words, all syl counts) | **99.44%** (4972/5000) |
-| Handcrafted (197 words) | **192/197 (97.5%)** |
-| Train time | 1734s (~29 min) |
-| Model size | 272 MB |
-| Boosting rounds | 908 |
+| Handcrafted (197 words)                 | **192/197 (97.5%)**    |
+| Train time                              | 1734s (~29 min)        |
+| Model size                              | 272 MB                 |
+| Boosting rounds                         | 908                    |
 
 **Per-syllable sanity breakdown:**
 
 | Syl count | Correct | Total | Accuracy |
-| --- | --- | --- | --- |
-| 2 | 213 | 218 | 97.7% |
-| 3 | 957 | 966 | 99.1% |
-| 4 | 1437 | 1445 | 99.5% |
-| 5 | 1216 | 1221 | 99.6% |
-| 6 | 689 | 690 | 99.9% |
-| 7 | 460 | 460 | 100.0% |
+| --------- | ------- | ----- | -------- |
+| 2         | 213     | 218   | 97.7%    |
+| 3         | 957     | 966   | 99.1%    |
+| 4         | 1437    | 1445  | 99.5%    |
+| 5         | 1216    | 1221  | 99.6%    |
+| 6         | 689     | 690   | 99.9%    |
+| 7         | 460     | 460   | 100.0%   |
 
 **Winner params:** `leaves=712, lr=0.0955, mc=18, depth=16, l1=0.741, l2=12.96, col=0.860, ffn=0.488, msh=26.74`
 
@@ -226,13 +229,13 @@ Fixes all v1.3 bugs, uses TPE + Hyperband, warm-starts from v1.3 results.
 
 #### What made P3_0017 the outlier vs the plateau cluster
 
-| Parameter | Plateau cluster mean (7 trials) | P3_0017 | Interpretation |
-| --- | --- | --- | --- |
-| `num_leaves` | 540 | **712** | More complex trees |
-| `learning_rate` | 0.106 | **0.096** | Slightly lower — more careful |
-| `lambda_l2` | 9.76 | **12.96** | Stronger L2 regularisation |
-| `feature_fraction_bynode` | 0.694 | **0.488** | Aggressive per-node feature subsampling |
-| `min_sum_hessian_in_leaf` | 32.5 | **26.74** | Slightly lower leaf floor |
+| Parameter                 | Plateau cluster mean (7 trials) | P3_0017   | Interpretation                          |
+| ------------------------- | ------------------------------- | --------- | --------------------------------------- |
+| `num_leaves`              | 540                             | **712**   | More complex trees                      |
+| `learning_rate`           | 0.106                           | **0.096** | Slightly lower — more careful           |
+| `lambda_l2`               | 9.76                            | **12.96** | Stronger L2 regularisation              |
+| `feature_fraction_bynode` | 0.694                           | **0.488** | Aggressive per-node feature subsampling |
+| `min_sum_hessian_in_leaf` | 32.5                            | **26.74** | Slightly lower leaf floor               |
 
 **Key insight:** big tree + aggressive per-node subsampling + strong L2 = better generalisation on imbalanced 11-class multiclass. The `feature_fraction_bynode=0.488` is the most distinctive differentiator.
 
@@ -253,12 +256,12 @@ Fixes all v1.3 bugs, uses TPE + Hyperband, warm-starts from v1.3 results.
 **Test set:** ALL 2-syllable words in the training DB (124,285 records, group-filtered, non-conflicting)  
 **Class 0** (stress on 1st vowel): 83,464 (67.2%) | **Class 1** (stress on 2nd vowel): 40,821 (32.8%)
 
-| Metric | 2S specialist (P3_0547) | Universal (P3_0017) | Δ |
-| --- | --- | --- | --- |
-| **Accuracy** | 99.32% | **99.45%** | **+0.13%** |
-| F1 class-0 (stress=1st) | 0.9949 | **0.9959** | +0.0010 |
-| F1 class-1 (stress=2nd) | 0.9898 | **0.9916** | +0.0018 |
-| F1 macro | 0.9924 | **0.9938** | +0.0014 |
+| Metric                  | 2S specialist (P3_0547) | Universal (P3_0017) | Δ          |
+| ----------------------- | ----------------------- | ------------------- | ---------- |
+| **Accuracy**            | 99.32%                  | **99.45%**          | **+0.13%** |
+| F1 class-0 (stress=1st) | 0.9949                  | **0.9959**          | +0.0010    |
+| F1 class-1 (stress=2nd) | 0.9898                  | **0.9916**          | +0.0018    |
+| F1 macro                | 0.9924                  | **0.9938**          | +0.0014    |
 
 **Confusion matrices (rows=true, cols=pred):**
 
@@ -270,12 +273,12 @@ Fixes all v1.3 bugs, uses TPE + Hyperband, warm-starts from v1.3 results.
 
 **Agreement analysis:**
 
-| Category | Count | % |
-| --- | --- | --- |
-| Both correct | 122,963 | 98.9% |
-| Both wrong | 204 | 0.2% |
-| Only 2S correct (univ fails) | 480 | 0.4% |
-| Only Univ correct (2S fails) | 638 | 0.5% |
+| Category                     | Count   | %     |
+| ---------------------------- | ------- | ----- |
+| Both correct                 | 122,963 | 98.9% |
+| Both wrong                   | 204     | 0.2%  |
+| Only 2S correct (univ fails) | 480     | 0.4%  |
+| Only Univ correct (2S fails) | 638     | 0.5%  |
 
 **Verdict: Universal WINS by +0.13% accuracy on the 2-syllable domain.**
 
@@ -292,13 +295,13 @@ The universal model has drastically fewer false positives for class 0 (193 vs 79
 
 #### Proposed improvements and effort estimates
 
-| Improvement | Expected gain | Est. training time | Complexity |
-| --- | --- | --- | --- |
-| **A. Class weights / focal loss** — upweight rare classes 5–10 in the objective | +0.005–0.015 F1 macro | ~38h (full HPO run) | Low — config change only |
-| **B. Feature selection** — remove/consolidate the ~30% of 132 features that `ffn=0.488` suggests are conflicting | +0.002–0.008 fitness | ~20h (1 refit + short HPO) | Medium — needs importance analysis |
-| **C. More data for rare classes** — augment 5–10 syllable words from additional sources (Wiktionary UA, ВЕСЬ) | +0.010–0.030 F1 macro | 1–2 days data prep + 38h HPO | High — data pipeline work |
-| **D. P2 sigma tuning** — wider CMA-ES sigma (0.35–0.4) and more diverse seeds to escape the P1 basin | +0.002–0.005 fitness | ~38h | Low — config change |
-| **E. Warm-start v1.1 from P3_0017** — use winner params as P2 seed + tighter P3 search box | Reduce P1/P2 waste, more P3 budget | ~20h (skip P1 exploration) | Low |
+| Improvement                                                                                                      | Expected gain                      | Est. training time           | Complexity                         |
+| ---------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ---------------------------- | ---------------------------------- |
+| **A. Class weights / focal loss** — upweight rare classes 5–10 in the objective                                  | +0.005–0.015 F1 macro              | ~38h (full HPO run)          | Low — config change only           |
+| **B. Feature selection** — remove/consolidate the ~30% of 132 features that `ffn=0.488` suggests are conflicting | +0.002–0.008 fitness               | ~20h (1 refit + short HPO)   | Medium — needs importance analysis |
+| **C. More data for rare classes** — augment 5–10 syllable words from additional sources (Wiktionary UA, ВЕСЬ)    | +0.010–0.030 F1 macro              | 1–2 days data prep + 38h HPO | High — data pipeline work          |
+| **D. P2 sigma tuning** — wider CMA-ES sigma (0.35–0.4) and more diverse seeds to escape the P1 basin             | +0.002–0.005 fitness               | ~38h                         | Low — config change                |
+| **E. Warm-start v1.1 from P3_0017** — use winner params as P2 seed + tighter P3 search box                       | Reduce P1/P2 waste, more P3 budget | ~20h (skip P1 exploration)   | Low                                |
 
 #### Recommendation: is v1.1 worth it?
 
@@ -310,6 +313,7 @@ The universal model has drastically fewer false positives for class 0 (193 vs 79
 - **C** (more data): highest impact but also highest effort. Deferred to v1.2.
 
 **Recommended v1.1 plan:**
+
 1. Apply class weights: `class_weight = {5: 10, 6: 20, 7: 40, 8: 80, 9: 160, 10: 320}` (inverse-frequency scaling)
 2. Warm-start from P3_0017 params (skip broad P1 random, start P2 from known-good region)
 3. Widen CMA-ES sigma to 0.35
@@ -373,10 +377,9 @@ The universal model has drastically fewer false positives for class 0 (193 vs 79
 
 10. **Caching by hyperparameters only** is a subtle bug when you vary training budget (num_rounds) across phases. Always include ALL training parameters in cache keys.
 
-
 ---
 
-## Luscinia Universal Model  v1.0 and v1.1
+## Luscinia Universal Model v1.0 and v1.1
 
 > **Date:** 2026-03-08 / 2026-03-09
 > **Scripts:** `luscinia-lgbm-str-ua-univ-v1.py`, `luscinia-lgbm-str-ua-univ-v1.1.py`
@@ -388,28 +391,28 @@ Training run: ~38.2 h wall time, 99 trials (P1 + P2 + P3 + ensemble)
 
 #### Final refit metrics (P3_0017, full dataset - 2,725,477 rows)
 
-| Metric | Value |
-|---|---|
-| HPO fitness | 0.8237 |
-| Sanity accuracy (full data) | 99.44% |
-| Hand-curated words correct | 192 / 197 (97.5%) |
-| 2-syllable accuracy | 97.71% (213/218) |
-| 3-syllable accuracy | 99.07% (957/966) |
-| 4-syllable accuracy | 99.45% (1437/1445) |
-| 5-syllable accuracy | 99.59% (1216/1221) |
-| 6-syllable accuracy | 99.86% (689/690) |
-| 7-syllable accuracy | 100.00% (460/460) |
-| Boost rounds | 908 (converged) |
-| Train time (refit) | 1734 s |
+| Metric                      | Value              |
+| --------------------------- | ------------------ |
+| HPO fitness                 | 0.8237             |
+| Sanity accuracy (full data) | 99.44%             |
+| Hand-curated words correct  | 192 / 197 (97.5%)  |
+| 2-syllable accuracy         | 97.71% (213/218)   |
+| 3-syllable accuracy         | 99.07% (957/966)   |
+| 4-syllable accuracy         | 99.45% (1437/1445) |
+| 5-syllable accuracy         | 99.59% (1216/1221) |
+| 6-syllable accuracy         | 99.86% (689/690)   |
+| 7-syllable accuracy         | 100.00% (460/460)  |
+| Boost rounds                | 908 (converged)    |
+| Train time (refit)          | 1734 s             |
 
-Winner params: num_leaves=712  max_depth=16  learning_rate=0.0955  min_child_samples=18  lambda_l1=0.741  lambda_l2=12.96
+Winner params: num_leaves=712 max_depth=16 learning_rate=0.0955 min_child_samples=18 lambda_l1=0.741 lambda_l2=12.96
 
 HPO leaderboard top-5 (5000-word sanity sample):
-  #1  P3_0017  fit=0.8237  F1=74.56%  hand=165/197  sanity=98.26%
-  #2  P3_0018  fit=0.8195  F1=74.69%  hand=162/197  sanity=98.26%
-  #3  P3_0022  fit=0.8173  F1=74.99%  hand=160/197  sanity=98.36%
-  #4  P3_0021  fit=0.8151  F1=74.25%  hand=161/197  sanity=98.20%
-  #5  P3_0015  fit=0.8140  F1=75.02%  hand=160/197  sanity=98.24%
+#1 P3_0017 fit=0.8237 F1=74.56% hand=165/197 sanity=98.26%
+#2 P3_0018 fit=0.8195 F1=74.69% hand=162/197 sanity=98.26%
+#3 P3_0022 fit=0.8173 F1=74.99% hand=160/197 sanity=98.36%
+#4 P3_0021 fit=0.8151 F1=74.25% hand=161/197 sanity=98.20%
+#5 P3_0015 fit=0.8140 F1=75.02% hand=160/197 sanity=98.24%
 
 ---
 
@@ -424,26 +427,27 @@ fixes and warm-start HPO seeded from v1.0 winner params.
 
 #### Head-to-head (full-data refit)
 
-| Metric | v1.0 | v1.1 | Delta |
-|---|---|---|---|
-| HPO fitness | 0.8237 | 0.7601 | -0.0636 |
-| Sanity accuracy | 99.44% | 96.80% | -2.64 pp |
-| Hand correct | 192/197 (97.5%) | 174/197 (88.3%) | -18 words |
-| 2-syllable | 97.71% | 89.91% | -7.80 pp |
-| 3-syllable | 99.07% | 93.58% | -5.49 pp |
-| 4-syllable | 99.45% | 96.47% | -2.98 pp |
-| 5-syllable | 99.59% | 98.20% | -1.39 pp |
-| 6-syllable | 99.86% | 99.57% | -0.29 pp |
-| 7-syllable | 100% | 100% | 0 |
-| Boost rounds | 908 (converged) | 1500 (hit max) | not converged |
-| Train time (refit) | 1734 s | 2217 s | +28% |
-| P3 trials | 65+ | 22 | 3x fewer |
-| P3 pruned | -- | 0/22 | pruner ineffective |
+| Metric             | v1.0            | v1.1            | Delta              |
+| ------------------ | --------------- | --------------- | ------------------ |
+| HPO fitness        | 0.8237          | 0.7601          | -0.0636            |
+| Sanity accuracy    | 99.44%          | 96.80%          | -2.64 pp           |
+| Hand correct       | 192/197 (97.5%) | 174/197 (88.3%) | -18 words          |
+| 2-syllable         | 97.71%          | 89.91%          | -7.80 pp           |
+| 3-syllable         | 99.07%          | 93.58%          | -5.49 pp           |
+| 4-syllable         | 99.45%          | 96.47%          | -2.98 pp           |
+| 5-syllable         | 99.59%          | 98.20%          | -1.39 pp           |
+| 6-syllable         | 99.86%          | 99.57%          | -0.29 pp           |
+| 7-syllable         | 100%            | 100%            | 0                  |
+| Boost rounds       | 908 (converged) | 1500 (hit max)  | not converged      |
+| Train time (refit) | 1734 s          | 2217 s          | +28%               |
+| P3 trials          | 65+             | 22              | 3x fewer           |
+| P3 pruned          | --              | 0/22            | pruner ineffective |
 
-v1.1 winner params: num_leaves=543  max_depth=13  learning_rate=0.051
-  min_child_samples=36  lambda_l1=0.608  lambda_l2=3.086  class_weight_power=0.5
+v1.1 winner params: num_leaves=543 max_depth=13 learning_rate=0.051
+min_child_samples=36 lambda_l1=0.608 lambda_l2=3.086 class_weight_power=0.5
 
 Root causes:
+
 1. Class weights slowed convergence past budget. All 22 P3 trials hit hard cap 1500
    (avg best_iter=1500 exactly). Model never converged within budget.
 2. Weights hurt majority classes. Classes 8-10 (28-686 samples) upweighted up to 57x.
@@ -453,11 +457,12 @@ Root causes:
    (leaves=543, lr=0.051) far from seed (leaves=712, lr=0.0955) after only 22 trials.
 
 HPO leaderboard top-3 (5000-word sanity sample):
-  #1  P3_0021  fit=0.7601  F1=64.01%  hand=160/197  sanity=94.96%
-  #2  P3_0019  fit=0.7574  F1=64.57%  hand=157/197  sanity=95.06%
-  #3  P3_0020  fit=0.7556  F1=63.85%  hand=158/197  sanity=94.82%
+#1 P3_0021 fit=0.7601 F1=64.01% hand=160/197 sanity=94.96%
+#2 P3_0019 fit=0.7574 F1=64.57% hand=157/197 sanity=95.06%
+#3 P3_0020 fit=0.7556 F1=63.85% hand=158/197 sanity=94.82%
 
 Recommendations if revisiting class weighting in v1.2:
+
 - CLASS_WEIGHT_POWER=0.0 first (control run), then try 0.25
 - MAX_ROUNDS_P3 -> 2500 (v1.1 never converged at 1500)
 - Early-stopping patience in P3 -> 100-120 rounds (weighted plateau is wider)

@@ -5,6 +5,9 @@ raw_data/
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Local Stanza resources (downloaded models)
+src/data_management/export/stanza_resources/
 *.so
 .Python
 build/
@@ -53,6 +56,36 @@ htmlcov/
 
 src/scrappers/
 sandbox/
-src/stress_db_generator
+src/stress_db_generator/
 ignore/
-src/data_management/transform/cache
+
+# Transform cache (large generated files, reproducible)
+src/data_management/transform/cache/
+
+# Large source data files — downloaded/generated, not versioned
+# stress_training.db: ~1.4 GB SQLite — regenerate with export_training_db.py
+src/stress_prediction/data/stress_training.db
+# kaikki Ukrainian dictionary: 186 MB JSONL — re-download from kaikki.org
+src/data_management/sources/kaikki/*.jsonl
+
+# ── stress_prediction: keep sources, ignore generated/transient artifacts ─────
+
+# Training artifacts: keep only the FINAL model dir and its leaderboard/results.
+# Intermediate HPO checkpoints, Optuna study DBs, batch logs are excluded.
+src/stress_prediction/lightGbm/artifacts/*/optuna_study.db
+src/stress_prediction/lightGbm/artifacts/*/optuna_study.db-*
+src/stress_prediction/lightGbm/artifacts/*/*_log.txt
+src/stress_prediction/lightGbm/artifacts/*/trials/
+src/stress_prediction/lightGbm/artifacts/*/P*/
+
+# Specifically UN-ignore the single final model directory so LFS can track it
+!src/stress_prediction/lightGbm/artifacts/luscinia-lgbm-str-ua-univ-v1/P3_0017_FINAL_FULLDATA/
+
+# Stripped/compact/infer model variants (generated from final, not source of truth)
+src/stress_prediction/lightGbm/artifacts/**/*_compact.lgb
+src/stress_prediction/lightGbm/artifacts/**/*_infer.lgb
+src/stress_prediction/lightGbm/artifacts/**/*_stripped.lgb
+
+# Web ONNX — keep only the gzipped version (the raw .onnx is 185 MB and reproducible)
+src/stress_prediction/lightGbm/artifacts/**/web/*.onnx
+!src/stress_prediction/lightGbm/artifacts/**/web/*.onnx.gz

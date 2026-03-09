@@ -31,6 +31,7 @@ from src.nlp.tokenization_service import (
 from src.nlp.stress_service import UkrainianStressService
 from src.nlp.phonetic import UkrainianPhoneticTranscriber
 from src.nlp.pipeline.stress_resolver import StressResolver
+from src.nlp.pipeline.ml_stress_resolver import MLStressResolver
 from pydantic import BaseModel, Field
 
 logger = getLogger(__name__)
@@ -147,6 +148,9 @@ class UkrainianPipeline:
         self,
         tokenizer_model: Optional[str] = None,
         stress_db_path: Optional[Path] = None,
+        stress_mode: str = "db",
+        ml_model_path: Optional[Path] = None,
+        ml_confidence_threshold: float = 0.70,
     ):
         """
         Initialize pipeline with all services.
@@ -154,16 +158,39 @@ class UkrainianPipeline:
         Args:
             tokenizer_model: spaCy model name (default: uk_core_news_lg)
             stress_db_path: Path to stress LMDB database
+            stress_mode: Stress engine mode: "db", "ml", or "hybrid"
+            ml_model_path: Path to trained LightGBM model (required for "ml")
+            ml_confidence_threshold: Hybrid cutoff for accepting ML prediction
         """
         logger.info("Initializing Ukrainian NLP Pipeline...")
+
+        mode = (stress_mode or "db").lower()
+        if mode not in {"db", "ml", "hybrid"}:
+            raise ValueError("stress_mode must be one of: db, ml, hybrid")
+        self.stress_mode = mode
+        self.ml_confidence_threshold = ml_confidence_threshold
         
         # Initialize services
         self.tokenizer = UkrainianTokenizationService(model_name=tokenizer_model)
         self.stress_service = UkrainianStressService(db_path=stress_db_path)
         self.stress_resolver = StressResolver(self.stress_service)
+        self.ml_stress_resolver = None
+        if mode in {"ml", "hybrid"}:
+            if ml_model_path is None:
+                if mode == "ml":
+                    raise ValueError("ml_model_path is required when stress_mode='ml'")
+                logger.warning(
+                    "hybrid mode requested without ml_model_path; falling back to db mode"
+                )
+                self.stress_mode = "db"
+            else:
+                self.ml_stress_resolver = MLStressResolver(model_path=ml_model_path)
         self.phonetic = UkrainianPhoneticTranscriber()
         
-        logger.info("Pipeline ready: tokenization → stress → phonetic")
+        logger.info(
+            "Pipeline ready: tokenization → stress(%s) → phonetic",
+            self.stress_mode,
+        )
     
     def process(self, text: str, normalize: bool = True) -> EnrichedDocumentData:
         """
@@ -256,8 +283,8 @@ class UkrainianPipeline:
         if not token.is_alpha or token.is_punct or token.is_space:
             return EnrichedTokenData(**enriched_dict)
         
-        # Stage 2: Resolve stress using dedicated resolver
-        stress_info = self.stress_resolver.resolve(token)
+        # Stage 2: Resolve stress
+        stress_info = self._resolve_stress(token)
         enriched_dict.update(stress_info)
         
         # Stage 3: Phonetic transcription
@@ -269,6 +296,27 @@ class UkrainianPipeline:
             enriched_dict.update(phonetic_info)
         
         return EnrichedTokenData(**enriched_dict)
+
+    def _resolve_stress(self, token: TokenData) -> dict:
+        """Resolve stress according to configured engine mode."""
+        if self.stress_mode == "db" or self.ml_stress_resolver is None:
+            return self.stress_resolver.resolve(token)
+
+        if self.stress_mode == "ml":
+            return self.ml_stress_resolver.resolve(token)
+
+        ml_info = self.ml_stress_resolver.resolve(token)
+        ml_score = ml_info.get("stress_match_score", 0.0)
+        ml_has_stress = ml_info.get("stress_position") is not None
+
+        if ml_has_stress and ml_score >= self.ml_confidence_threshold:
+            return ml_info
+
+        db_info = self.stress_resolver.resolve(token)
+        if db_info.get("stress_position") is not None:
+            return db_info
+
+        return ml_info
     
     def _transcribe_phonetic(self, word: str, stress_position: int) -> dict:
         """

@@ -1,0 +1,62 @@
+{
+  "script": "Luscinia-LGBM-STR-UA-UNIV-v1",
+  "num_classes": 11,
+  "source_trial": "P3_0017",
+  "source_fitness": 0.823728,
+  "full_data_sanity_accuracy": 0.9944,
+  "full_data_hand_correct": 192,
+  "full_data_hand_total": 197,
+  "full_data_per_syllable": {
+    "2": {
+      "correct": 213,
+      "total": 218,
+      "accuracy": 0.9771
+    },
+    "3": {
+      "correct": 957,
+      "total": 966,
+      "accuracy": 0.9907
+    },
+    "4": {
+      "correct": 1437,
+      "total": 1445,
+      "accuracy": 0.9945
+    },
+    "5": {
+      "correct": 1216,
+      "total": 1221,
+      "accuracy": 0.9959
+    },
+    "6": {
+      "correct": 689,
+      "total": 690,
+      "accuracy": 0.9986
+    },
+    "7": {
+      "correct": 460,
+      "total": 460,
+      "accuracy": 1.0
+    }
+  },
+  "num_boost_round": 908,
+  "train_rows_total": 2725477,
+  "train_time_sec": 1734.3,
+  "params": {
+    "num_leaves": 712,
+    "max_depth": 16,
+    "learning_rate": 0.09550928733174151,
+    "min_child_samples": 18,
+    "lambda_l1": 0.7406784932172471,
+    "lambda_l2": 12.96354023698354,
+    "subsample": 0.9822910070575026,
+    "colsample_bytree": 0.8597416459539806,
+    "subsample_freq": 1,
+    "feature_fraction_bynode": 0.48780702570946133,
+    "min_sum_hessian_in_leaf": 26.738220297801366,
+    "path_smooth": 0.7042219792157467,
+    "min_split_gain": 0.02137018400471102,
+    "is_unbalance": true,
+    "data_sample_strategy": "bagging"
+  },
+  "generated": "2026-03-08T11:44:02.764099"
+}

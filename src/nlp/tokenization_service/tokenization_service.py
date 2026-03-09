@@ -34,7 +34,10 @@ from pathlib import Path
 from typing import Optional
 from logging import getLogger
 
-from utils.normalize_apostrophe import normalize_apostrophe
+try:
+    from src.utils.normalize_apostrophe import normalize_apostrophe
+except ImportError:
+    from utils.normalize_apostrophe import normalize_apostrophe
 from .types import TokenData, SentenceData, DocumentData
 
 logger = getLogger(__name__)

@@ -4,9 +4,9 @@ Export stress prediction training database from merged SQL database.
 This script creates an optimized SQLite database for stress prediction model training,
 derived from the merged linguistic database. It includes:
 - All word forms with their stress patterns
-- Morphological features (Case, Gender, Number, etc.)
-- Definitions for context learning
+- Morphological features (Case, Gender, Number, etc.) - enriched with spaCy (default) and Stanza fallback
 - Variant type classification (single, grammatical_homonym, morphological_variant, free_variant)
+- Confidence scores for POS and morphological features
 - Training/validation/test splits
 
 The database is smaller and more focused than the full merged SQL DB.
@@ -24,15 +24,139 @@ import logging
 import hashlib
 import argparse
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Tuple, Any, Callable
 from tqdm import tqdm
 import sys
+
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from src.data_management.transform.data_unifier import LinguisticEntry, WordForm
 from pydantic import BaseModel, Field, ConfigDict
+
+try:
+    import spacy
+    SPACY_AVAILABLE = True
+except ImportError:
+    SPACY_AVAILABLE = False
+
+try:
+    import stanza
+    STANZA_AVAILABLE = True
+except ImportError:
+    STANZA_AVAILABLE = False
+
+
+# --- Enrichment providers -------------------------------------------------
+
+EnrichFn = Callable[[str], Tuple[Optional[str], Dict[str, str], float]]
+
+
+def _build_spacy_enricher(logger: logging.Logger, cache_limit: int = 20000) -> Optional[EnrichFn]:
+    """Create a spaCy-based enricher (default path)."""
+    if not SPACY_AVAILABLE:
+        logger.info("spaCy not installed; skipping spaCy enrichment")
+        return None
+
+    try:
+        # Disable NER to keep the pipeline light; POS/morph still available.
+        nlp = spacy.load("uk_core_news_lg", disable=["ner"])
+        logger.info("Using spaCy 'uk_core_news_lg' for POS/morph enrichment (default)")
+    except OSError:
+        logger.warning(
+            "spaCy model 'uk_core_news_lg' not found. Install with: python -m spacy download uk_core_news_lg"
+        )
+        return None
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning(f"spaCy failed to load: {exc}")
+        return None
+
+    cache: Dict[str, Tuple[Optional[str], Dict[str, str], float]] = {}
+
+    def enrich(form: str) -> Tuple[Optional[str], Dict[str, str], float]:
+        if form in cache:
+            return cache[form]
+
+        try:
+            doc = nlp(form)
+            token = next((t for t in doc if not t.is_space), None)
+            if not token:
+                return None, {}, 0.0
+
+            features = token.morph.to_dict() if token.morph else {}
+            result = (token.pos_ or "X", features, 0.85)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.debug(f"spaCy enrichment error for '{form}': {exc}")
+            result = (None, {}, 0.0)
+
+        if len(cache) >= cache_limit:
+            cache.pop(next(iter(cache)))
+        cache[form] = result
+        return result
+
+    return enrich
+
+
+def _build_stanza_enricher(logger: logging.Logger, cache_limit: int = 20000) -> Optional[EnrichFn]:
+    """Create a Stanza-based enricher (secondary, slower)."""
+    if not STANZA_AVAILABLE:
+        logger.info("Stanza not installed; skipping Stanza enrichment")
+        return None
+
+    try:
+        stanza_dir = Path(__file__).parent / "stanza_resources"
+        stanza_dir.mkdir(parents=True, exist_ok=True)
+
+        logger.info(f"Ensuring Stanza 'uk' models exist in {stanza_dir} ...")
+        stanza.download("uk", model_dir=str(stanza_dir), verbose=False)
+
+        logger.info("Loading Stanza pipeline for Ukrainian (secondary fallback)...")
+        nlp = stanza.Pipeline(
+            lang="uk",
+            processors="tokenize,mwt,pos,lemma",
+            dir=str(stanza_dir),
+            use_gpu=False,
+            logging_level="WARN",
+            verbose=False,
+        )
+        logger.info("Stanza pipeline ready (fallback)")
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning(f"Could not initialize Stanza enrichment: {exc}")
+        return None
+
+    cache: Dict[str, Tuple[Optional[str], Dict[str, str], float]] = {}
+
+    def enrich(form: str) -> Tuple[Optional[str], Dict[str, str], float]:
+        if form in cache:
+            return cache[form]
+
+        try:
+            doc = nlp(form)
+            if not doc.sentences or not doc.sentences[0].words:
+                return None, {}, 0.0
+
+            word = doc.sentences[0].words[0]
+            pos = (word.upos or word.pos or "X")
+
+            features: Dict[str, str] = {}
+            if word.feats:
+                for feat_pair in word.feats.split("|"):
+                    if "=" in feat_pair:
+                        key, val = feat_pair.split("=", 1)
+                        features[key] = val
+
+            result = (pos, features, 0.7)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.debug(f"Stanza enrichment error for '{form}': {exc}")
+            result = (None, {}, 0.0)
+
+        if len(cache) >= cache_limit:
+            cache.pop(next(iter(cache)))
+        cache[form] = result
+        return result
+
+    return enrich
 
 
 class TrainingDBConfig(BaseModel):
@@ -70,6 +194,10 @@ class StressTrainingDBExporter:
         pos TEXT NOT NULL,                      -- NOUN, VERB, ADJ, etc.
         features_json TEXT,                     -- JSON: {"Case": "Nom", "Gender": "Masc", ...}
         
+        -- Feature confidence scores (0.0-1.0)
+        pos_confidence REAL DEFAULT 1.0,        -- 1.0=from data, 0.9=from lemma, 0.7=from Stanza
+        features_confidence REAL DEFAULT 1.0,   -- 1.0=from data, 0.7=from Stanza
+        
         -- Classification
         variant_type TEXT NOT NULL,             -- 'single' | 'grammatical_homonym' | 'morphological_variant' | 'free_variant'
         is_disambiguable INTEGER DEFAULT 0,    -- 1 if morphology/definition disambiguates
@@ -106,11 +234,51 @@ class StressTrainingDBExporter:
     def __init__(self, config: TrainingDBConfig, logger=None):
         self.config = config
         self.logger = logger or logging.getLogger("StressTrainingDBExporter")
+        self.enrichment_cache_limit = 20000
+        self.enrichers: List[Tuple[str, EnrichFn]] = []
+
+        spacy_enricher = _build_spacy_enricher(self.logger, self.enrichment_cache_limit)
+        if spacy_enricher:
+            self.enrichers.append(("spaCy", spacy_enricher))
+
+        stanza_enricher = _build_stanza_enricher(self.logger, self.enrichment_cache_limit)
+        if stanza_enricher:
+            self.enrichers.append(("Stanza", stanza_enricher))
+
+        if not self.enrichers:
+            self.logger.info("No NLP enrichers available; using lemma-based fallback only.")
     
     def create_schema(self, conn: sqlite3.Connection) -> None:
         """Create database schema."""
         conn.executescript(self.SCHEMA_SQL)
         conn.commit()
+    
+    def _enrich_form(self, form: str) -> Tuple[Optional[str], float, Dict[str, str], float]:
+        """Try available enrichers (spaCy first, then Stanza) for POS/features."""
+        pos: Optional[str] = None
+        pos_conf = 0.0
+        feats: Dict[str, str] = {}
+        feats_conf = 0.0
+
+        for name, enrich_fn in self.enrichers:
+            try:
+                enriched_pos, enriched_feats, confidence = enrich_fn(form)
+            except Exception as exc:  # pragma: no cover - defensive
+                self.logger.debug(f"{name} enrichment failed for '{form}': {exc}")
+                continue
+
+            if enriched_pos and enriched_pos != "X" and pos is None:
+                pos = enriched_pos
+                pos_conf = confidence
+
+            if enriched_feats and not feats:
+                feats = enriched_feats
+                feats_conf = confidence
+
+            if pos and feats:
+                break
+
+        return pos, pos_conf, feats, feats_conf
     
     def determine_variant_type(
         self, 
@@ -246,12 +414,13 @@ class StressTrainingDBExporter:
         
         self.logger.info("Pass 1: Computing variant types per lemma...")
         
-        # Create temporary table for variant types
+        # Create temporary table for variant types and lemma POS
         training_conn.execute("""
             CREATE TEMPORARY TABLE lemma_variant_types (
                 lemma TEXT PRIMARY KEY,
                 variant_type TEXT NOT NULL,
-                is_disambiguable INTEGER NOT NULL
+                is_disambiguable INTEGER NOT NULL,
+                lemma_pos TEXT  -- Most common POS for this lemma
             )
         """)
         
@@ -316,13 +485,27 @@ class StressTrainingDBExporter:
             if lemma_forms:
                 variant_type = self.determine_variant_type(lemma, lemma_forms)
                 is_disambiguable = 1 if variant_type in ['morphological_variant', 'grammatical_homonym'] else 0
-                lemma_batch.append((lemma, variant_type, is_disambiguable))
+                
+                # Determine most common POS for lemma (use first non-X POS, or X if all missing)
+                lemma_pos = "X"
+                pos_counts = {}
+                for form_obj in lemma_forms:
+                    pos_val = form_obj.pos or "X"
+                    pos_counts[pos_val] = pos_counts.get(pos_val, 0) + 1
+                
+                # Prefer non-X POS
+                for pos_val in sorted(pos_counts.keys(), key=lambda x: (x == "X", -pos_counts[x])):
+                    if pos_val != "X":
+                        lemma_pos = pos_val
+                        break
+                
+                lemma_batch.append((lemma, variant_type, is_disambiguable, lemma_pos))
                 lemma_count += 1
             
             # Flush batch to temp table
             if len(lemma_batch) >= self.config.batch_size:
                 training_conn.executemany(
-                    "INSERT OR REPLACE INTO lemma_variant_types (lemma, variant_type, is_disambiguable) VALUES (?, ?, ?)",
+                    "INSERT OR REPLACE INTO lemma_variant_types (lemma, variant_type, is_disambiguable, lemma_pos) VALUES (?, ?, ?, ?)",
                     lemma_batch
                 )
                 training_conn.commit()
@@ -331,7 +514,7 @@ class StressTrainingDBExporter:
         # Final batch
         if lemma_batch:
             training_conn.executemany(
-                "INSERT OR REPLACE INTO lemma_variant_types (lemma, variant_type, is_disambiguable) VALUES (?, ?, ?)",
+                "INSERT OR REPLACE INTO lemma_variant_types (lemma, variant_type, is_disambiguable, lemma_pos) VALUES (?, ?, ?, ?)",
                 lemma_batch
             )
             training_conn.commit()
@@ -376,16 +559,19 @@ class StressTrainingDBExporter:
             
             # Parse features
             features = {}
+            pos_confidence = 1.0  # Original data
+            features_confidence = 1.0  # Original data
+            
             if features_str:
                 for feat_pair in features_str.split('|'):
                     if ':' in feat_pair:
                         key, value = feat_pair.split(':', 1)
                         features[key] = value
             
-            # Get variant type from temp table (O(1) lookup with index)
+            # Get variant type and lemma POS from temp table
             variant_cursor = training_conn.cursor()
             variant_cursor.execute(
-                "SELECT variant_type, is_disambiguable FROM lemma_variant_types WHERE lemma = ?",
+                "SELECT variant_type, is_disambiguable, lemma_pos FROM lemma_variant_types WHERE lemma = ?",
                 (lemma,)
             )
             variant_row = variant_cursor.fetchone()
@@ -397,7 +583,31 @@ class StressTrainingDBExporter:
             
             variant_type = variant_row[0]
             is_disambiguable = variant_row[1]
+            lemma_pos = variant_row[2]
             is_homonym = 0 if variant_type == 'single' else 1
+            
+            # Enrichment (spaCy preferred, Stanza as secondary)
+            enriched_pos = None
+            enriched_feats: Dict[str, str] = {}
+            enriched_pos_conf = 0.0
+            enriched_feats_conf = 0.0
+
+            if ((pos in ("X", None, "")) or not features) and self.enrichers:
+                enriched_pos, enriched_pos_conf, enriched_feats, enriched_feats_conf = self._enrich_form(form_val)
+
+            # Enrich POS: data > lemma > spaCy/Stanza
+            if pos in ("X", None, ""):
+                pos = lemma_pos
+                pos_confidence = 0.9  # From lemma
+
+                if (pos in ("X", None, "")) and enriched_pos:
+                    pos = enriched_pos
+                    pos_confidence = enriched_pos_conf
+
+            # Enrich morphology if missing
+            if not features and enriched_feats:
+                features.update(enriched_feats)
+                features_confidence = enriched_feats_conf
             
             batch.append((
                 lemma,                          # lemma
@@ -405,18 +615,21 @@ class StressTrainingDBExporter:
                 stress_indices_json,            # stress_indices
                 pos,                            # pos
                 json.dumps(features),           # features_json
+                pos_confidence,                 # pos_confidence
+                features_confidence,            # features_confidence
                 variant_type,                   # variant_type
                 is_disambiguable,               # is_disambiguable
-                is_homonym,                     # is_homonym (1 if multiple stress patterns)
-                'train'                        # split (default train, can be adjusted)
+                is_homonym,                     # is_homonym
+                'train'                        # split
             ))
             
             if len(batch) >= self.config.batch_size:
                 training_conn.executemany("""
                     INSERT OR IGNORE INTO training_entries
                     (lemma, form, stress_indices, pos, features_json,
+                     pos_confidence, features_confidence,
                      variant_type, is_disambiguable, is_homonym, split)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, batch)
                 rows_inserted += len(batch)
                 batch = []
@@ -428,8 +641,9 @@ class StressTrainingDBExporter:
             training_conn.executemany("""
                 INSERT OR IGNORE INTO training_entries
                 (lemma, form, stress_indices, pos, features_json,
+                 pos_confidence, features_confidence,
                  variant_type, is_disambiguable, is_homonym, split)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, batch)
             rows_inserted += len(batch)
         

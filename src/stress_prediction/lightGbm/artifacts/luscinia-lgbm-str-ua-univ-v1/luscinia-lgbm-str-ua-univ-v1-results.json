@@ -1,0 +1,4655 @@
+[
+  {
+    "phase": "P1",
+    "trial_number": 1,
+    "name": "P1_0001",
+    "timestamp": "2026-03-06T02:05:12.861905",
+    "params": {
+      "num_leaves": 319,
+      "max_depth": 16,
+      "learning_rate": 0.07441632389160634,
+      "min_child_samples": 75,
+      "lambda_l1": 0.46805592132730955,
+      "lambda_l2": 2.3399178050430396,
+      "subsample": 0.4348501673009197,
+      "colsample_bytree": 0.8929409166199482,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7207805082202461,
+      "min_sum_hessian_in_leaf": 2.124280213720889,
+      "path_smooth": 0.041168988591604894,
+      "min_split_gain": 0.48495492608099716,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 829.52,
+    "wall_elapsed_sec": 866.3,
+    "wall_elapsed_min": 14.44,
+    "internal": {
+      "f1": 0.653457,
+      "accuracy": 0.883787,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9726,
+      "correct": 4863,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.768004,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 2,
+    "name": "P1_0002",
+    "timestamp": "2026-03-06T02:16:15.392421",
+    "params": {
+      "num_leaves": 671,
+      "max_depth": 6,
+      "learning_rate": 0.009778325945801386,
+      "min_child_samples": 18,
+      "lambda_l1": 0.9127267288786132,
+      "lambda_l2": 7.871346474483568,
+      "subsample": 0.6591670111852694,
+      "colsample_bytree": 0.43298331215843355,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7282970263056656,
+      "min_sum_hessian_in_leaf": 0.004523529917658778,
+      "path_smooth": 0.5842892970704363,
+      "min_split_gain": 0.18318092164684585,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 644.08,
+    "wall_elapsed_sec": 1528.83,
+    "wall_elapsed_min": 25.48,
+    "internal": {
+      "f1": 0.5489,
+      "accuracy": 0.750594,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.7628,
+      "correct": 3814,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.641015,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 4,
+    "name": "P1_0004",
+    "timestamp": "2026-03-06T02:31:46.146972",
+    "params": {
+      "num_leaves": 265,
+      "max_depth": 5,
+      "learning_rate": 0.062395369491878315,
+      "min_child_samples": 43,
+      "lambda_l1": 0.3661147045343365,
+      "lambda_l2": 7.427653651669052,
+      "subsample": 0.42063311266913106,
+      "colsample_bytree": 0.9274563216630256,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.48114598712001183,
+      "min_sum_hessian_in_leaf": 1.2976941336928305,
+      "path_smooth": 0.6234221521788219,
+      "min_split_gain": 0.2600340105889054,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 587.79,
+    "wall_elapsed_sec": 2459.58,
+    "wall_elapsed_min": 40.99,
+    "internal": {
+      "f1": 0.602228,
+      "accuracy": 0.803673,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8298,
+      "correct": 4149,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.689841,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 6,
+    "name": "P1_0006",
+    "timestamp": "2026-03-06T02:46:36.951038",
+    "params": {
+      "num_leaves": 330,
+      "max_depth": 7,
+      "learning_rate": 0.10633034207853799,
+      "min_child_samples": 33,
+      "lambda_l1": 0.8428035290621423,
+      "lambda_l2": 8.140441247373728,
+      "subsample": 0.4845545349848576,
+      "colsample_bytree": 0.8417575846032317,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.35218545057583955,
+      "min_sum_hessian_in_leaf": 43.38624983446471,
+      "path_smooth": 1.5444895385933148,
+      "min_split_gain": 0.0993578407670862,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 705.84,
+    "wall_elapsed_sec": 3350.39,
+    "wall_elapsed_min": 55.84,
+    "internal": {
+      "f1": 0.670677,
+      "accuracy": 0.843585,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8986,
+      "correct": 4493,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.758829,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 12,
+    "name": "P1_0012",
+    "timestamp": "2026-03-06T03:26:09.827793",
+    "params": {
+      "num_leaves": 123,
+      "max_depth": 8,
+      "learning_rate": 0.1620197345919019,
+      "min_child_samples": 29,
+      "lambda_l1": 1.5563718652300982,
+      "lambda_l2": 10.545284383427667,
+      "subsample": 0.6181777614275764,
+      "colsample_bytree": 0.9774256661767686,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9737131064594777,
+      "min_sum_hessian_in_leaf": 0.01524464992287075,
+      "path_smooth": 0.9944970117847709,
+      "min_split_gain": 0.15043915490838483,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 926.78,
+    "wall_elapsed_sec": 5723.26,
+    "wall_elapsed_min": 95.39,
+    "internal": {
+      "f1": 0.663129,
+      "accuracy": 0.876153,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9528,
+      "correct": 4764,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.769052,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 17,
+    "name": "P1_0017",
+    "timestamp": "2026-03-06T04:06:38.299853",
+    "params": {
+      "num_leaves": 724,
+      "max_depth": 12,
+      "learning_rate": 0.017462887992825377,
+      "min_child_samples": 32,
+      "lambda_l1": 2.177867036610718,
+      "lambda_l2": 13.456653899288657,
+      "subsample": 0.9322518545590703,
+      "colsample_bytree": 0.8239004366860991,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7494221523080014,
+      "min_sum_hessian_in_leaf": 0.002485256233000783,
+      "path_smooth": 0.32325742818922754,
+      "min_split_gain": 0.4492770942635396,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1460.5,
+    "wall_elapsed_sec": 8151.73,
+    "wall_elapsed_min": 135.86,
+    "internal": {
+      "f1": 0.634807,
+      "accuracy": 0.859774,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9172,
+      "correct": 4586,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.756585,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 20,
+    "name": "P1_0020",
+    "timestamp": "2026-03-06T04:34:37.914994",
+    "params": {
+      "num_leaves": 717,
+      "max_depth": 12,
+      "learning_rate": 0.09382215291844212,
+      "min_child_samples": 54,
+      "lambda_l1": 1.7307116538790774,
+      "lambda_l2": 7.387765407282958,
+      "subsample": 0.5171457926788268,
+      "colsample_bytree": 0.7779616922092043,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.496540653708599,
+      "min_sum_hessian_in_leaf": 0.0013009481770360563,
+      "path_smooth": 1.2909445918143356,
+      "min_split_gain": 0.08855533970352447,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1241.29,
+    "wall_elapsed_sec": 9831.35,
+    "wall_elapsed_min": 163.86,
+    "internal": {
+      "f1": 0.66034,
+      "accuracy": 0.883838,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9792,
+      "correct": 4896,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.771111,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 21,
+    "name": "P1_0021",
+    "timestamp": "2026-03-06T04:54:37.547999",
+    "params": {
+      "num_leaves": 755,
+      "max_depth": 16,
+      "learning_rate": 0.14609576989091722,
+      "min_child_samples": 34,
+      "lambda_l1": 0.046369849586602285,
+      "lambda_l2": 13.924778438815881,
+      "subsample": 0.6569104889903886,
+      "colsample_bytree": 0.9733238552349357,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9745339839624769,
+      "min_sum_hessian_in_leaf": 10.192150892152643,
+      "path_smooth": 0.5888977841391714,
+      "min_split_gain": 0.19254886430096263,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1161.13,
+    "wall_elapsed_sec": 11030.98,
+    "wall_elapsed_min": 183.85,
+    "internal": {
+      "f1": 0.723842,
+      "accuracy": 0.892467,
+      "auc": 0.0,
+      "best_iteration": 607,
+      "num_trees": 6677
+    },
+    "external": {
+      "accuracy": 0.983,
+      "correct": 4915,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 6677000,
+      "saved": true
+    },
+    "fitness": 0.811145,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 607
+  },
+  {
+    "phase": "P1",
+    "trial_number": 23,
+    "name": "P1_0023",
+    "timestamp": "2026-03-06T05:21:46.033293",
+    "params": {
+      "num_leaves": 706,
+      "max_depth": 13,
+      "learning_rate": 0.06540802508033357,
+      "min_child_samples": 108,
+      "lambda_l1": 1.0784734536592655,
+      "lambda_l2": 4.403877663967401,
+      "subsample": 0.8856166932871081,
+      "colsample_bytree": 0.8480907157433446,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9069506230060724,
+      "min_sum_hessian_in_leaf": 19.556447354382165,
+      "path_smooth": 1.0226847977218756,
+      "min_split_gain": 0.2507581473435998,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1351.66,
+    "wall_elapsed_sec": 12659.47,
+    "wall_elapsed_min": 210.99,
+    "internal": {
+      "f1": 0.708059,
+      "accuracy": 0.892488,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9784,
+      "correct": 4892,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.801421,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 28,
+    "name": "P1_0028",
+    "timestamp": "2026-03-06T06:01:36.304418",
+    "params": {
+      "num_leaves": 766,
+      "max_depth": 13,
+      "learning_rate": 0.03864367784149968,
+      "min_child_samples": 79,
+      "lambda_l1": 1.2588001872833696,
+      "lambda_l2": 3.715964842517362,
+      "subsample": 0.613583607190757,
+      "colsample_bytree": 0.8062768883714952,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.3100754420408291,
+      "min_sum_hessian_in_leaf": 0.003510927456413377,
+      "path_smooth": 0.0920052840435055,
+      "min_split_gain": 0.020364401159485068,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1564.7,
+    "wall_elapsed_sec": 15049.74,
+    "wall_elapsed_min": 250.83,
+    "internal": {
+      "f1": 0.651781,
+      "accuracy": 0.879081,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9598,
+      "correct": 4799,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.775191,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 33,
+    "name": "P1_0033",
+    "timestamp": "2026-03-06T06:46:56.778668",
+    "params": {
+      "num_leaves": 597,
+      "max_depth": 14,
+      "learning_rate": 0.01415162491590078,
+      "min_child_samples": 18,
+      "lambda_l1": 2.251844254922575,
+      "lambda_l2": 12.10252108900896,
+      "subsample": 0.994303085200404,
+      "colsample_bytree": 0.5300941415291411,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.5604126600549482,
+      "min_sum_hessian_in_leaf": 4.449807395755716,
+      "path_smooth": 0.6816070805060357,
+      "min_split_gain": 0.46537866280178236,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1339.4,
+    "wall_elapsed_sec": 17770.21,
+    "wall_elapsed_min": 296.17,
+    "internal": {
+      "f1": 0.628935,
+      "accuracy": 0.854925,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9078,
+      "correct": 4539,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.745867,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 34,
+    "name": "P1_0034",
+    "timestamp": "2026-03-06T07:06:41.943143",
+    "params": {
+      "num_leaves": 691,
+      "max_depth": 9,
+      "learning_rate": 0.07978302536454374,
+      "min_child_samples": 129,
+      "lambda_l1": 0.3093716065077978,
+      "lambda_l2": 13.5382936001935,
+      "subsample": 0.7031514234687143,
+      "colsample_bytree": 0.8611659728861933,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.5240347207214282,
+      "min_sum_hessian_in_leaf": 16.144953142043835,
+      "path_smooth": 0.7784033574683262,
+      "min_split_gain": 0.00541882574014918,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1146.36,
+    "wall_elapsed_sec": 18955.38,
+    "wall_elapsed_min": 315.92,
+    "internal": {
+      "f1": 0.698916,
+      "accuracy": 0.868864,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9386,
+      "correct": 4693,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.785475,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 38,
+    "name": "P1_0038",
+    "timestamp": "2026-03-06T07:32:35.801850",
+    "params": {
+      "num_leaves": 656,
+      "max_depth": 16,
+      "learning_rate": 0.189934063649121,
+      "min_child_samples": 128,
+      "lambda_l1": 1.1287787565927472,
+      "lambda_l2": 1.2525107504800315,
+      "subsample": 0.866288149556462,
+      "colsample_bytree": 0.6467233997886441,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.5969554064728834,
+      "min_sum_hessian_in_leaf": 18.15231707044007,
+      "path_smooth": 0.22239496461230268,
+      "min_split_gain": 0.24631255214542958,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 861.15,
+    "wall_elapsed_sec": 20509.24,
+    "wall_elapsed_min": 341.82,
+    "internal": {
+      "f1": 0.704378,
+      "accuracy": 0.889623,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.981,
+      "correct": 4905,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.797415,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 43,
+    "name": "P1_0043",
+    "timestamp": "2026-03-06T08:05:12.261530",
+    "params": {
+      "num_leaves": 558,
+      "max_depth": 6,
+      "learning_rate": 0.14398922746506862,
+      "min_child_samples": 163,
+      "lambda_l1": 2.849399739875772,
+      "lambda_l2": 10.885792625825399,
+      "subsample": 0.7680491175614739,
+      "colsample_bytree": 0.5345944290324951,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9529099383478092,
+      "min_sum_hessian_in_leaf": 11.738382000764062,
+      "path_smooth": 0.09043734021237881,
+      "min_split_gain": 0.013183487248626002,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 754.2,
+    "wall_elapsed_sec": 22465.69,
+    "wall_elapsed_min": 374.43,
+    "internal": {
+      "f1": 0.688066,
+      "accuracy": 0.848671,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9034,
+      "correct": 4517,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.774778,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 46,
+    "name": "P1_0046",
+    "timestamp": "2026-03-06T08:36:05.358695",
+    "params": {
+      "num_leaves": 765,
+      "max_depth": 11,
+      "learning_rate": 0.011621695581199281,
+      "min_child_samples": 97,
+      "lambda_l1": 1.8543847213736875,
+      "lambda_l2": 5.372440770492608,
+      "subsample": 0.46813455531977743,
+      "colsample_bytree": 0.7372585564742398,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6642153906326553,
+      "min_sum_hessian_in_leaf": 4.256973596992067,
+      "path_smooth": 1.0403270022239868,
+      "min_split_gain": 0.42609075015927006,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 953.03,
+    "wall_elapsed_sec": 24318.79,
+    "wall_elapsed_min": 405.31,
+    "internal": {
+      "f1": 0.686244,
+      "accuracy": 0.835267,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8742,
+      "correct": 4371,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.767724,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 58,
+    "name": "P1_0058",
+    "timestamp": "2026-03-06T09:34:44.788828",
+    "params": {
+      "num_leaves": 746,
+      "max_depth": 11,
+      "learning_rate": 0.04118393356683127,
+      "min_child_samples": 25,
+      "lambda_l1": 2.308478799575811,
+      "lambda_l2": 2.8056562283628503,
+      "subsample": 0.5942075418425462,
+      "colsample_bytree": 0.5403491508931335,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6553272650791184,
+      "min_sum_hessian_in_leaf": 0.013774506914454216,
+      "path_smooth": 0.22967364947840707,
+      "min_split_gain": 0.3053100212208163,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1008.98,
+    "wall_elapsed_sec": 27838.22,
+    "wall_elapsed_min": 463.97,
+    "internal": {
+      "f1": 0.651248,
+      "accuracy": 0.876428,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9506,
+      "correct": 4753,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.765538,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 60,
+    "name": "P1_0060",
+    "timestamp": "2026-03-06T09:54:25.363860",
+    "params": {
+      "num_leaves": 227,
+      "max_depth": 12,
+      "learning_rate": 0.08258489918468044,
+      "min_child_samples": 74,
+      "lambda_l1": 1.4147285656504751,
+      "lambda_l2": 6.177613712209028,
+      "subsample": 0.6093209599257972,
+      "colsample_bytree": 0.9436233153982607,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8814335854514104,
+      "min_sum_hessian_in_leaf": 34.2477864327508,
+      "path_smooth": 0.24859444697108946,
+      "min_split_gain": 0.36543373760182213,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1025.19,
+    "wall_elapsed_sec": 29018.8,
+    "wall_elapsed_min": 483.65,
+    "internal": {
+      "f1": 0.704076,
+      "accuracy": 0.87735,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9578,
+      "correct": 4789,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.793048,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 62,
+    "name": "P1_0062",
+    "timestamp": "2026-03-06T10:13:04.659292",
+    "params": {
+      "num_leaves": 543,
+      "max_depth": 10,
+      "learning_rate": 0.018786157826634186,
+      "min_child_samples": 197,
+      "lambda_l1": 1.1773353222679062,
+      "lambda_l2": 12.248991592073656,
+      "subsample": 0.6634809451421311,
+      "colsample_bytree": 0.5015555435399262,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6238758499687245,
+      "min_sum_hessian_in_leaf": 0.026071474308984814,
+      "path_smooth": 1.4952187603525022,
+      "min_split_gain": 0.2513601950462396,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 972.29,
+    "wall_elapsed_sec": 30138.09,
+    "wall_elapsed_min": 502.3,
+    "internal": {
+      "f1": 0.624777,
+      "accuracy": 0.835633,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.876,
+      "correct": 4380,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.736584,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 63,
+    "name": "P1_0063",
+    "timestamp": "2026-03-06T10:29:52.885950",
+    "params": {
+      "num_leaves": 209,
+      "max_depth": 15,
+      "learning_rate": 0.020605671461576512,
+      "min_child_samples": 62,
+      "lambda_l1": 2.719416332893641,
+      "lambda_l2": 9.363569938709881,
+      "subsample": 0.4701388244250185,
+      "colsample_bytree": 0.9518656988907801,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7393956371499925,
+      "min_sum_hessian_in_leaf": 0.03747239380950095,
+      "path_smooth": 0.2785441453267745,
+      "min_split_gain": 0.397012594635148,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 968.67,
+    "wall_elapsed_sec": 31146.32,
+    "wall_elapsed_min": 519.11,
+    "internal": {
+      "f1": 0.621979,
+      "accuracy": 0.848928,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8966,
+      "correct": 4483,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.741537,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 68,
+    "name": "P1_0068",
+    "timestamp": "2026-03-06T11:01:59.414501",
+    "params": {
+      "num_leaves": 357,
+      "max_depth": 13,
+      "learning_rate": 0.1569936244330858,
+      "min_child_samples": 232,
+      "lambda_l1": 1.3525181142123963,
+      "lambda_l2": 1.698570687611329,
+      "subsample": 0.9909047193774008,
+      "colsample_bytree": 0.8711184691567473,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.3872638768422868,
+      "min_sum_hessian_in_leaf": 21.23285457009961,
+      "path_smooth": 1.7397927241242566,
+      "min_split_gain": 0.25941902856303606,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1008.22,
+    "wall_elapsed_sec": 33072.85,
+    "wall_elapsed_min": 551.21,
+    "internal": {
+      "f1": 0.704409,
+      "accuracy": 0.884764,
+      "auc": 0.0,
+      "best_iteration": 756,
+      "num_trees": 8316
+    },
+    "external": {
+      "accuracy": 0.9722,
+      "correct": 4861,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8316000,
+      "saved": true
+    },
+    "fitness": 0.796651,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 756
+  },
+  {
+    "phase": "P1",
+    "trial_number": 75,
+    "name": "P1_0075",
+    "timestamp": "2026-03-06T11:30:38.603550",
+    "params": {
+      "num_leaves": 107,
+      "max_depth": 7,
+      "learning_rate": 0.07179347236195627,
+      "min_child_samples": 183,
+      "lambda_l1": 2.4906595937009746,
+      "lambda_l2": 5.957752944276822,
+      "subsample": 0.8008510819423877,
+      "colsample_bytree": 0.3639874363326568,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.5052034111827093,
+      "min_sum_hessian_in_leaf": 16.287526114434666,
+      "path_smooth": 0.02600384702147207,
+      "min_split_gain": 0.04275426542723404,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 761.75,
+    "wall_elapsed_sec": 34792.04,
+    "wall_elapsed_min": 579.87,
+    "internal": {
+      "f1": 0.687491,
+      "accuracy": 0.838447,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.883,
+      "correct": 4415,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.760038,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 1,
+    "name": "P1_0001",
+    "timestamp": "2026-03-06T12:34:15.085784",
+    "params": {
+      "num_leaves": 319,
+      "max_depth": 16,
+      "learning_rate": 0.07441632389160634,
+      "min_child_samples": 75,
+      "lambda_l1": 0.46805592132730955,
+      "lambda_l2": 2.3399178050430396,
+      "subsample": 0.4348501673009197,
+      "colsample_bytree": 0.8929409166199482,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7207805082202461,
+      "min_sum_hessian_in_leaf": 2.124280213720889,
+      "path_smooth": 0.041168988591604894,
+      "min_split_gain": 0.48495492608099716,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 497.09,
+    "wall_elapsed_sec": 538.69,
+    "wall_elapsed_min": 8.98,
+    "internal": {
+      "f1": 0.631565,
+      "accuracy": 0.866653,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.947,
+      "correct": 4735,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.752949,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 2,
+    "name": "P1_0002",
+    "timestamp": "2026-03-06T12:40:50.239101",
+    "params": {
+      "num_leaves": 671,
+      "max_depth": 6,
+      "learning_rate": 0.009778325945801386,
+      "min_child_samples": 18,
+      "lambda_l1": 0.9127267288786132,
+      "lambda_l2": 7.871346474483568,
+      "subsample": 0.6591670111852694,
+      "colsample_bytree": 0.43298331215843355,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7282970263056656,
+      "min_sum_hessian_in_leaf": 0.004523529917658778,
+      "path_smooth": 0.5842892970704363,
+      "min_split_gain": 0.18318092164684585,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 375.52,
+    "wall_elapsed_sec": 933.84,
+    "wall_elapsed_min": 15.56,
+    "internal": {
+      "f1": 0.59179,
+      "accuracy": 0.749031,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.7616,
+      "correct": 3808,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.658226,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 4,
+    "name": "P1_0004",
+    "timestamp": "2026-03-06T12:48:00.529937",
+    "params": {
+      "num_leaves": 265,
+      "max_depth": 5,
+      "learning_rate": 0.062395369491878315,
+      "min_child_samples": 43,
+      "lambda_l1": 0.3661147045343365,
+      "lambda_l2": 7.427653651669052,
+      "subsample": 0.42063311266913106,
+      "colsample_bytree": 0.9274563216630256,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.48114598712001183,
+      "min_sum_hessian_in_leaf": 1.2976941336928305,
+      "path_smooth": 0.6234221521788219,
+      "min_split_gain": 0.2600340105889054,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 321.6,
+    "wall_elapsed_sec": 1364.13,
+    "wall_elapsed_min": 22.74,
+    "internal": {
+      "f1": 0.575671,
+      "accuracy": 0.800573,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8242,
+      "correct": 4121,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.684377,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 7,
+    "name": "P1_0007",
+    "timestamp": "2026-03-06T12:56:11.392086",
+    "params": {
+      "num_leaves": 35,
+      "max_depth": 14,
+      "learning_rate": 0.0678262606477337,
+      "min_child_samples": 118,
+      "lambda_l1": 2.3138110400578373,
+      "lambda_l2": 1.1106697760113553,
+      "subsample": 0.6150794371265635,
+      "colsample_bytree": 0.2926952476201038,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9041723981129155,
+      "min_sum_hessian_in_leaf": 0.8489052153337618,
+      "path_smooth": 0.6617960497052984,
+      "min_split_gain": 0.03177917514301182,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 321.64,
+    "wall_elapsed_sec": 1855.0,
+    "wall_elapsed_min": 30.92,
+    "internal": {
+      "f1": 0.660448,
+      "accuracy": 0.822573,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8528,
+      "correct": 4264,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.737587,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 8,
+    "name": "P1_0008",
+    "timestamp": "2026-03-06T13:03:46.161059",
+    "params": {
+      "num_leaves": 270,
+      "max_depth": 8,
+      "learning_rate": 0.07376373043637946,
+      "min_child_samples": 86,
+      "lambda_l1": 2.6616382277289796,
+      "lambda_l2": 7.08322387742924,
+      "subsample": 0.471756547562981,
+      "colsample_bytree": 0.7705958297783961,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8325495340318281,
+      "min_sum_hessian_in_leaf": 0.4339350349311303,
+      "path_smooth": 1.541934359909122,
+      "min_split_gain": 0.24689779818219537,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 423.67,
+    "wall_elapsed_sec": 2309.77,
+    "wall_elapsed_min": 38.5,
+    "internal": {
+      "f1": 0.677307,
+      "accuracy": 0.847621,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.906,
+      "correct": 4530,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.759066,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 16,
+    "name": "P1_0016",
+    "timestamp": "2026-03-06T13:31:45.211098",
+    "params": {
+      "num_leaves": 293,
+      "max_depth": 5,
+      "learning_rate": 0.15149024027574262,
+      "min_child_samples": 197,
+      "lambda_l1": 0.7738248831454668,
+      "lambda_l2": 9.899760690512686,
+      "subsample": 0.8903333201207295,
+      "colsample_bytree": 0.64416064927957,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6707554048492045,
+      "min_sum_hessian_in_leaf": 0.013691677481230513,
+      "path_smooth": 0.18620553561179842,
+      "min_split_gain": 0.4486078789766634,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 391.47,
+    "wall_elapsed_sec": 3988.82,
+    "wall_elapsed_min": 66.48,
+    "internal": {
+      "f1": 0.608103,
+      "accuracy": 0.827253,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8642,
+      "correct": 4321,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.706084,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 21,
+    "name": "P1_0021",
+    "timestamp": "2026-03-06T13:55:51.100889",
+    "params": {
+      "num_leaves": 755,
+      "max_depth": 16,
+      "learning_rate": 0.14609576989091722,
+      "min_child_samples": 34,
+      "lambda_l1": 0.046369849586602285,
+      "lambda_l2": 13.924778438815881,
+      "subsample": 0.6569104889903886,
+      "colsample_bytree": 0.9733238552349357,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9745339839624769,
+      "min_sum_hessian_in_leaf": 10.192150892152643,
+      "path_smooth": 0.5888977841391714,
+      "min_split_gain": 0.19254886430096263,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 678.5,
+    "wall_elapsed_sec": 5434.7,
+    "wall_elapsed_min": 90.58,
+    "internal": {
+      "f1": 0.692779,
+      "accuracy": 0.873174,
+      "auc": 0.0,
+      "best_iteration": 667,
+      "num_trees": 7337
+    },
+    "external": {
+      "accuracy": 0.961,
+      "correct": 4805,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 7337000,
+      "saved": true
+    },
+    "fitness": 0.784161,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 667
+  },
+  {
+    "phase": "P1",
+    "trial_number": 23,
+    "name": "P1_0023",
+    "timestamp": "2026-03-06T14:10:26.507195",
+    "params": {
+      "num_leaves": 706,
+      "max_depth": 13,
+      "learning_rate": 0.06540802508033357,
+      "min_child_samples": 108,
+      "lambda_l1": 1.0784734536592655,
+      "lambda_l2": 4.403877663967401,
+      "subsample": 0.8856166932871081,
+      "colsample_bytree": 0.8480907157433446,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9069506230060724,
+      "min_sum_hessian_in_leaf": 19.556447354382165,
+      "path_smooth": 1.0226847977218756,
+      "min_split_gain": 0.2507581473435998,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 766.54,
+    "wall_elapsed_sec": 6310.11,
+    "wall_elapsed_min": 105.17,
+    "internal": {
+      "f1": 0.715997,
+      "accuracy": 0.877233,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9584,
+      "correct": 4792,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.796613,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 27,
+    "name": "P1_0027",
+    "timestamp": "2026-03-06T14:22:35.770676",
+    "params": {
+      "num_leaves": 50,
+      "max_depth": 16,
+      "learning_rate": 0.10920947238915857,
+      "min_child_samples": 105,
+      "lambda_l1": 1.2268588332428096,
+      "lambda_l2": 2.5994148010626867,
+      "subsample": 0.49386222560265164,
+      "colsample_bytree": 0.4001943185316763,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6844586652942843,
+      "min_sum_hessian_in_leaf": 2.279632321759816,
+      "path_smooth": 1.3203947534354625,
+      "min_split_gain": 0.13996694847297142,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 311.44,
+    "wall_elapsed_sec": 7039.37,
+    "wall_elapsed_min": 117.32,
+    "internal": {
+      "f1": 0.616965,
+      "accuracy": 0.84012,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8942,
+      "correct": 4471,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.730412,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 29,
+    "name": "P1_0029",
+    "timestamp": "2026-03-06T14:40:05.778735",
+    "params": {
+      "num_leaves": 689,
+      "max_depth": 13,
+      "learning_rate": 0.028749144441178705,
+      "min_child_samples": 13,
+      "lambda_l1": 1.4748476253504972,
+      "lambda_l2": 7.102076561708485,
+      "subsample": 0.5039211219460091,
+      "colsample_bytree": 0.5470813193903785,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.5789533140781613,
+      "min_sum_hessian_in_leaf": 0.7831791876301766,
+      "path_smooth": 1.2701873017352876,
+      "min_split_gain": 0.02265200488602226,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 827.56,
+    "wall_elapsed_sec": 8089.38,
+    "wall_elapsed_min": 134.82,
+    "internal": {
+      "f1": 0.621821,
+      "accuracy": 0.859514,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.926,
+      "correct": 4630,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.754243,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 31,
+    "name": "P1_0031",
+    "timestamp": "2026-03-06T15:00:03.064606",
+    "params": {
+      "num_leaves": 329,
+      "max_depth": 12,
+      "learning_rate": 0.02710932012892634,
+      "min_child_samples": 63,
+      "lambda_l1": 2.8243944263295755,
+      "lambda_l2": 5.791539567011614,
+      "subsample": 0.9767143382943485,
+      "colsample_bytree": 0.9242805135648511,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.43705379435250746,
+      "min_sum_hessian_in_leaf": 0.0021180034942969643,
+      "path_smooth": 0.2015560027548533,
+      "min_split_gain": 0.009110912825774864,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1065.14,
+    "wall_elapsed_sec": 9286.67,
+    "wall_elapsed_min": 154.78,
+    "internal": {
+      "f1": 0.729491,
+      "accuracy": 0.856034,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.912,
+      "correct": 4560,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.793115,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 34,
+    "name": "P1_0034",
+    "timestamp": "2026-03-06T15:20:17.741672",
+    "params": {
+      "num_leaves": 691,
+      "max_depth": 9,
+      "learning_rate": 0.07978302536454374,
+      "min_child_samples": 129,
+      "lambda_l1": 0.3093716065077978,
+      "lambda_l2": 13.5382936001935,
+      "subsample": 0.7031514234687143,
+      "colsample_bytree": 0.8611659728861933,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.5240347207214282,
+      "min_sum_hessian_in_leaf": 16.144953142043835,
+      "path_smooth": 0.7784033574683262,
+      "min_split_gain": 0.00541882574014918,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 697.15,
+    "wall_elapsed_sec": 10501.35,
+    "wall_elapsed_min": 175.02,
+    "internal": {
+      "f1": 0.69664,
+      "accuracy": 0.856429,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9236,
+      "correct": 4618,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.774858,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 38,
+    "name": "P1_0038",
+    "timestamp": "2026-03-06T15:37:31.991194",
+    "params": {
+      "num_leaves": 656,
+      "max_depth": 16,
+      "learning_rate": 0.189934063649121,
+      "min_child_samples": 128,
+      "lambda_l1": 1.1287787565927472,
+      "lambda_l2": 1.2525107504800315,
+      "subsample": 0.866288149556462,
+      "colsample_bytree": 0.6467233997886441,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.5969554064728834,
+      "min_sum_hessian_in_leaf": 18.15231707044007,
+      "path_smooth": 0.22239496461230268,
+      "min_split_gain": 0.24631255214542958,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 466.98,
+    "wall_elapsed_sec": 11535.6,
+    "wall_elapsed_min": 192.26,
+    "internal": {
+      "f1": 0.700867,
+      "accuracy": 0.872238,
+      "auc": 0.0,
+      "best_iteration": 779,
+      "num_trees": 8569
+    },
+    "external": {
+      "accuracy": 0.959,
+      "correct": 4795,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8569000,
+      "saved": true
+    },
+    "fitness": 0.776461,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 779
+  },
+  {
+    "phase": "P1",
+    "trial_number": 63,
+    "name": "P1_0063",
+    "timestamp": "2026-03-06T16:50:15.398584",
+    "params": {
+      "num_leaves": 209,
+      "max_depth": 15,
+      "learning_rate": 0.020605671461576512,
+      "min_child_samples": 62,
+      "lambda_l1": 2.719416332893641,
+      "lambda_l2": 9.363569938709881,
+      "subsample": 0.4701388244250185,
+      "colsample_bytree": 0.9518656988907801,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7393956371499925,
+      "min_sum_hessian_in_leaf": 0.03747239380950095,
+      "path_smooth": 0.2785441453267745,
+      "min_split_gain": 0.397012594635148,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 586.07,
+    "wall_elapsed_sec": 15899.0,
+    "wall_elapsed_min": 264.98,
+    "internal": {
+      "f1": 0.659904,
+      "accuracy": 0.840482,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8846,
+      "correct": 4423,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.749807,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 68,
+    "name": "P1_0068",
+    "timestamp": "2026-03-06T17:07:30.482725",
+    "params": {
+      "num_leaves": 357,
+      "max_depth": 13,
+      "learning_rate": 0.1569936244330858,
+      "min_child_samples": 232,
+      "lambda_l1": 1.3525181142123963,
+      "lambda_l2": 1.698570687611329,
+      "subsample": 0.9909047193774008,
+      "colsample_bytree": 0.8711184691567473,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.3872638768422868,
+      "min_sum_hessian_in_leaf": 21.23285457009961,
+      "path_smooth": 1.7397927241242566,
+      "min_split_gain": 0.25941902856303606,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 465.57,
+    "wall_elapsed_sec": 16934.09,
+    "wall_elapsed_min": 282.23,
+    "internal": {
+      "f1": 0.725765,
+      "accuracy": 0.867137,
+      "auc": 0.0,
+      "best_iteration": 495,
+      "num_trees": 5445
+    },
+    "external": {
+      "accuracy": 0.9452,
+      "correct": 4726,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 5445000,
+      "saved": true
+    },
+    "fitness": 0.800331,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 495
+  },
+  {
+    "phase": "P1",
+    "trial_number": 70,
+    "name": "P1_0070",
+    "timestamp": "2026-03-06T17:18:49.115810",
+    "params": {
+      "num_leaves": 598,
+      "max_depth": 9,
+      "learning_rate": 0.011449866025158791,
+      "min_child_samples": 45,
+      "lambda_l1": 0.4225710611393996,
+      "lambda_l2": 2.6458047975933496,
+      "subsample": 0.6990206636436879,
+      "colsample_bytree": 0.5351403596036384,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9403921307476699,
+      "min_sum_hessian_in_leaf": 0.0504519622033924,
+      "path_smooth": 1.161176700556087,
+      "min_split_gain": 0.3161321439597652,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 558.97,
+    "wall_elapsed_sec": 17612.72,
+    "wall_elapsed_min": 293.55,
+    "internal": {
+      "f1": 0.603656,
+      "accuracy": 0.812953,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8394,
+      "correct": 4197,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.706553,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 80,
+    "name": "P1_0080",
+    "timestamp": "2026-03-06T17:44:33.285715",
+    "params": {
+      "num_leaves": 703,
+      "max_depth": 11,
+      "learning_rate": 0.045817779786651226,
+      "min_child_samples": 94,
+      "lambda_l1": 0.5261138358703488,
+      "lambda_l2": 13.716179188874397,
+      "subsample": 0.6512623149352439,
+      "colsample_bytree": 0.506510822599598,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6632423936979863,
+      "min_sum_hessian_in_leaf": 0.0016622321161456782,
+      "path_smooth": 0.3325667375121588,
+      "min_split_gain": 0.3690168082131852,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 618.07,
+    "wall_elapsed_sec": 19156.89,
+    "wall_elapsed_min": 319.28,
+    "internal": {
+      "f1": 0.609394,
+      "accuracy": 0.859317,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9252,
+      "correct": 4626,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.730845,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 96,
+    "name": "P1_0096",
+    "timestamp": "2026-03-06T18:28:07.939981",
+    "params": {
+      "num_leaves": 666,
+      "max_depth": 8,
+      "learning_rate": 0.06098072112974834,
+      "min_child_samples": 67,
+      "lambda_l1": 0.801084810508264,
+      "lambda_l2": 13.17944979532737,
+      "subsample": 0.8784556129641569,
+      "colsample_bytree": 0.7267614677267404,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8954072103659694,
+      "min_sum_hessian_in_leaf": 11.89568444612905,
+      "path_smooth": 1.4167259534300696,
+      "min_split_gain": 0.418506664181836,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 581.51,
+    "wall_elapsed_sec": 21771.54,
+    "wall_elapsed_min": 362.86,
+    "internal": {
+      "f1": 0.673224,
+      "accuracy": 0.846684,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.898,
+      "correct": 4490,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.762372,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 104,
+    "name": "P1_0104",
+    "timestamp": "2026-03-06T18:58:59.027481",
+    "params": {
+      "num_leaves": 696,
+      "max_depth": 10,
+      "learning_rate": 0.17785822715466798,
+      "min_child_samples": 18,
+      "lambda_l1": 2.6058695038668325,
+      "lambda_l2": 11.648952791876127,
+      "subsample": 0.8625531067864312,
+      "colsample_bytree": 0.8758265824935101,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8327167936600992,
+      "min_sum_hessian_in_leaf": 0.8761742943025047,
+      "path_smooth": 0.26248975536477515,
+      "min_split_gain": 0.016263089745625958,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 724.98,
+    "wall_elapsed_sec": 23622.63,
+    "wall_elapsed_min": 393.71,
+    "internal": {
+      "f1": 0.641288,
+      "accuracy": 0.875531,
+      "auc": 0.0,
+      "best_iteration": 642,
+      "num_trees": 7062
+    },
+    "external": {
+      "accuracy": 0.96,
+      "correct": 4800,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 7062000,
+      "saved": true
+    },
+    "fitness": 0.756242,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 642
+  },
+  {
+    "phase": "P1",
+    "trial_number": 112,
+    "name": "P1_0112",
+    "timestamp": "2026-03-06T19:21:00.429633",
+    "params": {
+      "num_leaves": 206,
+      "max_depth": 16,
+      "learning_rate": 0.18224143616424407,
+      "min_child_samples": 90,
+      "lambda_l1": 0.5986273527874354,
+      "lambda_l2": 10.20342363646937,
+      "subsample": 0.44331904538750555,
+      "colsample_bytree": 0.22452200176464487,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.48037802195784957,
+      "min_sum_hessian_in_leaf": 0.1492283706044831,
+      "path_smooth": 1.736545010816761,
+      "min_split_gain": 0.363584534883154,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 355.05,
+    "wall_elapsed_sec": 24944.03,
+    "wall_elapsed_min": 415.73,
+    "internal": {
+      "f1": 0.679065,
+      "accuracy": 0.851844,
+      "auc": 0.0,
+      "best_iteration": 797,
+      "num_trees": 8767
+    },
+    "external": {
+      "accuracy": 0.9324,
+      "correct": 4662,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8767000,
+      "saved": false
+    },
+    "fitness": 0.746502,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 797
+  },
+  {
+    "phase": "P1",
+    "trial_number": 114,
+    "name": "P1_0114",
+    "timestamp": "2026-03-06T19:35:33.237563",
+    "params": {
+      "num_leaves": 724,
+      "max_depth": 9,
+      "learning_rate": 0.01388240604145443,
+      "min_child_samples": 74,
+      "lambda_l1": 2.737090036850073,
+      "lambda_l2": 3.159932835084999,
+      "subsample": 0.7737799501380898,
+      "colsample_bytree": 0.7052481760740166,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8131791156906967,
+      "min_sum_hessian_in_leaf": 0.004151763494726193,
+      "path_smooth": 1.4316499293641771,
+      "min_split_gain": 0.4545162603328205,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 611.71,
+    "wall_elapsed_sec": 25816.84,
+    "wall_elapsed_min": 430.28,
+    "internal": {
+      "f1": 0.611774,
+      "accuracy": 0.817757,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8474,
+      "correct": 4237,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.72005,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 118,
+    "name": "P1_0118",
+    "timestamp": "2026-03-06T19:50:31.959939",
+    "params": {
+      "num_leaves": 542,
+      "max_depth": 10,
+      "learning_rate": 0.11255938369072802,
+      "min_child_samples": 154,
+      "lambda_l1": 1.7560630931902566,
+      "lambda_l2": 13.02406920769888,
+      "subsample": 0.523504726022061,
+      "colsample_bytree": 0.2895356955181823,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.4888247280618927,
+      "min_sum_hessian_in_leaf": 0.0018545964511454999,
+      "path_smooth": 1.062339056002064,
+      "min_split_gain": 0.46830284614748074,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 393.57,
+    "wall_elapsed_sec": 26715.56,
+    "wall_elapsed_min": 445.26,
+    "internal": {
+      "f1": 0.593614,
+      "accuracy": 0.851277,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9194,
+      "correct": 4597,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.725689,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 125,
+    "name": "P1_0125",
+    "timestamp": "2026-03-06T20:08:35.583747",
+    "params": {
+      "num_leaves": 330,
+      "max_depth": 9,
+      "learning_rate": 0.012009638986866128,
+      "min_child_samples": 34,
+      "lambda_l1": 0.6818088817894544,
+      "lambda_l2": 1.0979388565266546,
+      "subsample": 0.7620691560288267,
+      "colsample_bytree": 0.734570238844013,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.73364324220673,
+      "min_sum_hessian_in_leaf": 0.15064149220475698,
+      "path_smooth": 0.7595715603584596,
+      "min_split_gain": 0.4316668247859126,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 630.77,
+    "wall_elapsed_sec": 27799.19,
+    "wall_elapsed_min": 463.32,
+    "internal": {
+      "f1": 0.672478,
+      "accuracy": 0.815602,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8486,
+      "correct": 4243,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.74516,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 130,
+    "name": "P1_0130",
+    "timestamp": "2026-03-06T20:23:55.486259",
+    "params": {
+      "num_leaves": 64,
+      "max_depth": 12,
+      "learning_rate": 0.16717650226395625,
+      "min_child_samples": 76,
+      "lambda_l1": 2.4575665782803706,
+      "lambda_l2": 13.263096950226117,
+      "subsample": 0.5368478631693595,
+      "colsample_bytree": 0.3696358719265813,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7276866921956942,
+      "min_sum_hessian_in_leaf": 0.08539067577652598,
+      "path_smooth": 1.6797226057334407,
+      "min_split_gain": 0.4500115616990056,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 346.55,
+    "wall_elapsed_sec": 28719.09,
+    "wall_elapsed_min": 478.65,
+    "internal": {
+      "f1": 0.664739,
+      "accuracy": 0.847661,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9068,
+      "correct": 4534,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.758749,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 132,
+    "name": "P1_0132",
+    "timestamp": "2026-03-06T20:43:51.876178",
+    "params": {
+      "num_leaves": 598,
+      "max_depth": 15,
+      "learning_rate": 0.011122442432087301,
+      "min_child_samples": 13,
+      "lambda_l1": 0.07091575813900919,
+      "lambda_l2": 9.62957250664899,
+      "subsample": 0.7642564216532685,
+      "colsample_bytree": 0.637357930171256,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.46236296728118276,
+      "min_sum_hessian_in_leaf": 0.06868399521222444,
+      "path_smooth": 1.188952670372346,
+      "min_split_gain": 0.2483834294295847,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1004.89,
+    "wall_elapsed_sec": 29915.48,
+    "wall_elapsed_min": 498.59,
+    "internal": {
+      "f1": 0.6002,
+      "accuracy": 0.842634,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8884,
+      "correct": 4442,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.726924,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 137,
+    "name": "P1_0137",
+    "timestamp": "2026-03-06T20:58:36.959657",
+    "params": {
+      "num_leaves": 542,
+      "max_depth": 14,
+      "learning_rate": 0.1528848648856411,
+      "min_child_samples": 21,
+      "lambda_l1": 1.1979477474279245,
+      "lambda_l2": 2.2862401999562616,
+      "subsample": 0.9954901012950251,
+      "colsample_bytree": 0.9416007743394363,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6779699911963917,
+      "min_sum_hessian_in_leaf": 9.050846364355783,
+      "path_smooth": 1.0419159545440844,
+      "min_split_gain": 0.31179284400137985,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 418.3,
+    "wall_elapsed_sec": 30800.56,
+    "wall_elapsed_min": 513.34,
+    "internal": {
+      "f1": 0.696003,
+      "accuracy": 0.871941,
+      "auc": 0.0,
+      "best_iteration": 342,
+      "num_trees": 3762
+    },
+    "external": {
+      "accuracy": 0.9452,
+      "correct": 4726,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 3762000,
+      "saved": true
+    },
+    "fitness": 0.783242,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 342
+  },
+  {
+    "phase": "P1",
+    "trial_number": 141,
+    "name": "P1_0141",
+    "timestamp": "2026-03-06T21:16:58.143926",
+    "params": {
+      "num_leaves": 297,
+      "max_depth": 16,
+      "learning_rate": 0.05319192713306692,
+      "min_child_samples": 163,
+      "lambda_l1": 0.3975740182255453,
+      "lambda_l2": 12.930217234089339,
+      "subsample": 0.9536543143080366,
+      "colsample_bytree": 0.5896495350551487,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7243770564256842,
+      "min_sum_hessian_in_leaf": 3.924807072535836,
+      "path_smooth": 0.3496772545208251,
+      "min_split_gain": 0.2512830382317212,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 682.88,
+    "wall_elapsed_sec": 31901.75,
+    "wall_elapsed_min": 531.7,
+    "internal": {
+      "f1": 0.709318,
+      "accuracy": 0.87002,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9382,
+      "correct": 4691,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.788611,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 147,
+    "name": "P1_0147",
+    "timestamp": "2026-03-06T21:31:16.062637",
+    "params": {
+      "num_leaves": 40,
+      "max_depth": 7,
+      "learning_rate": 0.18296933248170963,
+      "min_child_samples": 151,
+      "lambda_l1": 2.8787299329631004,
+      "lambda_l2": 7.317810658895437,
+      "subsample": 0.46584171920650214,
+      "colsample_bytree": 0.6383675911789544,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6180641341919726,
+      "min_sum_hessian_in_leaf": 9.281295600090585,
+      "path_smooth": 0.19616516156848918,
+      "min_split_gain": 0.2441205685108891,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 316.0,
+    "wall_elapsed_sec": 32759.67,
+    "wall_elapsed_min": 545.99,
+    "internal": {
+      "f1": 0.669694,
+      "accuracy": 0.83803,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.8894,
+      "correct": 4447,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.750169,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 148,
+    "name": "P1_0148",
+    "timestamp": "2026-03-06T21:41:19.365156",
+    "params": {
+      "num_leaves": 146,
+      "max_depth": 8,
+      "learning_rate": 0.07590323349645357,
+      "min_child_samples": 49,
+      "lambda_l1": 1.1276648554373079,
+      "lambda_l2": 5.917144178550529,
+      "subsample": 0.675668061043592,
+      "colsample_bytree": 0.8280132350696456,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9244592822581641,
+      "min_sum_hessian_in_leaf": 30.838201084392825,
+      "path_smooth": 1.5738067725105902,
+      "min_split_gain": 0.15770344787400636,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 576.22,
+    "wall_elapsed_sec": 33362.97,
+    "wall_elapsed_min": 556.05,
+    "internal": {
+      "f1": 0.680146,
+      "accuracy": 0.849085,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9066,
+      "correct": 4533,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.765967,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 155,
+    "name": "P1_0155",
+    "timestamp": "2026-03-06T22:07:26.453883",
+    "params": {
+      "num_leaves": 713,
+      "max_depth": 12,
+      "learning_rate": 0.014355219338569375,
+      "min_child_samples": 159,
+      "lambda_l1": 2.584109989090308,
+      "lambda_l2": 12.69771508035417,
+      "subsample": 0.9513559201837327,
+      "colsample_bytree": 0.4017928161386893,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8285293501223947,
+      "min_sum_hessian_in_leaf": 0.1459020128781853,
+      "path_smooth": 1.683997105780123,
+      "min_split_gain": 0.3642453385808066,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 728.69,
+    "wall_elapsed_sec": 34930.06,
+    "wall_elapsed_min": 582.17,
+    "internal": {
+      "f1": 0.673652,
+      "accuracy": 0.838246,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.879,
+      "correct": 4395,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.757323,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 157,
+    "name": "P1_0157",
+    "timestamp": "2026-03-06T22:20:57.118624",
+    "params": {
+      "num_leaves": 420,
+      "max_depth": 14,
+      "learning_rate": 0.07463835184206376,
+      "min_child_samples": 62,
+      "lambda_l1": 1.7710430713763188,
+      "lambda_l2": 7.6254082037441995,
+      "subsample": 0.5785290707912923,
+      "colsample_bytree": 0.6520175942872128,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7822197114350634,
+      "min_sum_hessian_in_leaf": 12.697498954148054,
+      "path_smooth": 1.2725827079584962,
+      "min_split_gain": 0.380560768521579,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 611.79,
+    "wall_elapsed_sec": 35740.72,
+    "wall_elapsed_min": 595.68,
+    "internal": {
+      "f1": 0.67804,
+      "accuracy": 0.86744,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9464,
+      "correct": 4732,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": true
+    },
+    "fitness": 0.775797,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P1",
+    "trial_number": 171,
+    "name": "P1_0171",
+    "timestamp": "2026-03-06T22:56:01.341448",
+    "params": {
+      "num_leaves": 685,
+      "max_depth": 11,
+      "learning_rate": 0.034472568501724477,
+      "min_child_samples": 14,
+      "lambda_l1": 2.580419080048305,
+      "lambda_l2": 10.842214548127256,
+      "subsample": 0.440601017140001,
+      "colsample_bytree": 0.7662680777838149,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6804767521398523,
+      "min_sum_hessian_in_leaf": 0.002421168127924049,
+      "path_smooth": 0.9166012830573129,
+      "min_split_gain": 0.2423481435650235,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 596.98,
+    "wall_elapsed_sec": 37844.95,
+    "wall_elapsed_min": 630.75,
+    "internal": {
+      "f1": 0.601863,
+      "accuracy": 0.852667,
+      "auc": 0.0,
+      "best_iteration": 800,
+      "num_trees": 8800
+    },
+    "external": {
+      "accuracy": 0.9154,
+      "correct": 4577,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8800000,
+      "saved": false
+    },
+    "fitness": 0.742116,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 800
+  },
+  {
+    "phase": "P2",
+    "trial_number": 1,
+    "name": "P2_0001",
+    "timestamp": "2026-03-06T23:46:48.166676",
+    "params": {
+      "num_leaves": 319,
+      "max_depth": 16,
+      "learning_rate": 0.07441632389160634,
+      "min_child_samples": 75,
+      "lambda_l1": 0.46805592132730955,
+      "lambda_l2": 2.3399178050430396,
+      "subsample": 0.4348501673009197,
+      "colsample_bytree": 0.8929409166199482,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7207805082202461,
+      "min_sum_hessian_in_leaf": 2.124280213720889,
+      "path_smooth": 0.041168988591604894,
+      "min_split_gain": 0.48495492608099716,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1820.89,
+    "wall_elapsed_sec": 40891.77,
+    "wall_elapsed_min": 681.53,
+    "internal": {
+      "f1": 0.656039,
+      "accuracy": 0.889799,
+      "auc": 0.0,
+      "best_iteration": 2000,
+      "num_trees": 22000
+    },
+    "external": {
+      "accuracy": 0.9812,
+      "correct": 4906,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 22000000,
+      "saved": true
+    },
+    "fitness": 0.766865,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 2000
+  },
+  {
+    "phase": "P2",
+    "trial_number": 2,
+    "name": "P2_0002",
+    "timestamp": "2026-03-07T00:28:34.977976",
+    "params": {
+      "num_leaves": 352,
+      "max_depth": 16,
+      "learning_rate": 0.041697168147204984,
+      "min_child_samples": 55,
+      "lambda_l1": 1.4881372160801267,
+      "lambda_l2": 6.531215128176102,
+      "subsample": 0.8739778449102811,
+      "colsample_bytree": 0.583793200072924,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.3457239317070736,
+      "min_sum_hessian_in_leaf": 5.577890180679766,
+      "path_smooth": 1.4811175668882675,
+      "min_split_gain": 0.4014570678155937,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2396.88,
+    "wall_elapsed_sec": 43398.58,
+    "wall_elapsed_min": 723.31,
+    "internal": {
+      "f1": 0.650831,
+      "accuracy": 0.88581,
+      "auc": 0.0,
+      "best_iteration": 2000,
+      "num_trees": 22000
+    },
+    "external": {
+      "accuracy": 0.9702,
+      "correct": 4851,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 22000000,
+      "saved": true
+    },
+    "fitness": 0.763723,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 2000
+  },
+  {
+    "phase": "P2",
+    "trial_number": 3,
+    "name": "P2_0003",
+    "timestamp": "2026-03-07T01:13:02.171387",
+    "params": {
+      "num_leaves": 739,
+      "max_depth": 15,
+      "learning_rate": 0.10095653647712627,
+      "min_child_samples": 20,
+      "lambda_l1": 0.17935746674552114,
+      "lambda_l2": 9.907261763804883,
+      "subsample": 0.5218357427518864,
+      "colsample_bytree": 0.9562154629546917,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7160638098976083,
+      "min_sum_hessian_in_leaf": 13.97879697549953,
+      "path_smooth": 1.0506253776445273,
+      "min_split_gain": 0.30886420495666106,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1356.03,
+    "wall_elapsed_sec": 44824.71,
+    "wall_elapsed_min": 747.08,
+    "internal": {
+      "f1": 0.705884,
+      "accuracy": 0.888536,
+      "auc": 0.0,
+      "best_iteration": 997,
+      "num_trees": 10967
+    },
+    "external": {
+      "accuracy": 0.9826,
+      "correct": 4913,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10967000,
+      "saved": true
+    },
+    "fitness": 0.793456,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 997
+  },
+  {
+    "phase": "P2",
+    "trial_number": 4,
+    "name": "P2_0004",
+    "timestamp": "2026-03-07T01:44:12.048468",
+    "params": {
+      "num_leaves": 786,
+      "max_depth": 12,
+      "learning_rate": 0.04760610709033133,
+      "min_child_samples": 121,
+      "lambda_l1": 1.7657916917704082,
+      "lambda_l2": 13.188751868991927,
+      "subsample": 0.8421163238892343,
+      "colsample_bytree": 0.9888194998468487,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8368215875278171,
+      "min_sum_hessian_in_leaf": 11.889679983674027,
+      "path_smooth": 0.820710644105004,
+      "min_split_gain": 0.21180843891623405,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1790.8,
+    "wall_elapsed_sec": 46694.58,
+    "wall_elapsed_min": 778.24,
+    "internal": {
+      "f1": 0.711938,
+      "accuracy": 0.888178,
+      "auc": 0.0,
+      "best_iteration": 1000,
+      "num_trees": 11000
+    },
+    "external": {
+      "accuracy": 0.973,
+      "correct": 4865,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 11000000,
+      "saved": true
+    },
+    "fitness": 0.804978,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1000
+  },
+  {
+    "phase": "P2",
+    "trial_number": 5,
+    "name": "P2_0005",
+    "timestamp": "2026-03-07T02:03:57.381082",
+    "params": {
+      "num_leaves": 703,
+      "max_depth": 16,
+      "learning_rate": 0.14165231354465807,
+      "min_child_samples": 154,
+      "lambda_l1": 0.1164131643432338,
+      "lambda_l2": 12.093112323630342,
+      "subsample": 0.6039552188349604,
+      "colsample_bytree": 0.6646119239617823,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8873771744095487,
+      "min_sum_hessian_in_leaf": 0.48982572770771526,
+      "path_smooth": 0.14466923625851535,
+      "min_split_gain": 0.2926724724141731,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1130.49,
+    "wall_elapsed_sec": 47879.92,
+    "wall_elapsed_min": 798.0,
+    "internal": {
+      "f1": 0.654041,
+      "accuracy": 0.89138,
+      "auc": 0.0,
+      "best_iteration": 998,
+      "num_trees": 10978
+    },
+    "external": {
+      "accuracy": 0.9824,
+      "correct": 4912,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10978000,
+      "saved": true
+    },
+    "fitness": 0.774244,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 998
+  },
+  {
+    "phase": "P2",
+    "trial_number": 6,
+    "name": "P2_0006",
+    "timestamp": "2026-03-07T02:23:40.751311",
+    "params": {
+      "num_leaves": 736,
+      "max_depth": 16,
+      "learning_rate": 0.1228530779083513,
+      "min_child_samples": 21,
+      "lambda_l1": 1.6302843697190361,
+      "lambda_l2": 14.516973048336194,
+      "subsample": 0.6448484431428754,
+      "colsample_bytree": 0.6449287370048374,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8634803999513789,
+      "min_sum_hessian_in_leaf": 3.758292818483758,
+      "path_smooth": 0.6760876852450851,
+      "min_split_gain": 0.3104090632861839,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1129.27,
+    "wall_elapsed_sec": 49063.29,
+    "wall_elapsed_min": 817.72,
+    "internal": {
+      "f1": 0.665507,
+      "accuracy": 0.890787,
+      "auc": 0.0,
+      "best_iteration": 994,
+      "num_trees": 10934
+    },
+    "external": {
+      "accuracy": 0.98,
+      "correct": 4900,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10934000,
+      "saved": true
+    },
+    "fitness": 0.777526,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 994
+  },
+  {
+    "phase": "P2",
+    "trial_number": 7,
+    "name": "P2_0007",
+    "timestamp": "2026-03-07T02:47:18.733285",
+    "params": {
+      "num_leaves": 643,
+      "max_depth": 15,
+      "learning_rate": 0.10251092128368455,
+      "min_child_samples": 76,
+      "lambda_l1": 0.7147689808988597,
+      "lambda_l2": 12.954647636902555,
+      "subsample": 0.6932471896109638,
+      "colsample_bytree": 0.7714594052200365,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8713007766154435,
+      "min_sum_hessian_in_leaf": 0.5466456590258719,
+      "path_smooth": 0.06436456383762856,
+      "min_split_gain": 0.210512505559404,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1349.11,
+    "wall_elapsed_sec": 50481.27,
+    "wall_elapsed_min": 841.35,
+    "internal": {
+      "f1": 0.650821,
+      "accuracy": 0.89512,
+      "auc": 0.0,
+      "best_iteration": 999,
+      "num_trees": 10989
+    },
+    "external": {
+      "accuracy": 0.982,
+      "correct": 4910,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10989000,
+      "saved": true
+    },
+    "fitness": 0.777091,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 999
+  },
+  {
+    "phase": "P2",
+    "trial_number": 8,
+    "name": "P2_0008",
+    "timestamp": "2026-03-07T03:03:31.755375",
+    "params": {
+      "num_leaves": 800,
+      "max_depth": 16,
+      "learning_rate": 0.19999999999999998,
+      "min_child_samples": 11,
+      "lambda_l1": 0.7061551317315724,
+      "lambda_l2": 14.999999999999998,
+      "subsample": 0.5340794516287355,
+      "colsample_bytree": 0.9999999999999999,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7616920279097534,
+      "min_sum_hessian_in_leaf": 14.593514659950323,
+      "path_smooth": 0.004923590914183151,
+      "min_split_gain": 0.2148085253974185,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 948.13,
+    "wall_elapsed_sec": 51454.29,
+    "wall_elapsed_min": 857.57,
+    "internal": {
+      "f1": 0.738271,
+      "accuracy": 0.884427,
+      "auc": 0.0,
+      "best_iteration": 479,
+      "num_trees": 5269
+    },
+    "external": {
+      "accuracy": 0.9824,
+      "correct": 4912,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 5269000,
+      "saved": true
+    },
+    "fitness": 0.80771,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 479
+  },
+  {
+    "phase": "P2",
+    "trial_number": 9,
+    "name": "P2_0009",
+    "timestamp": "2026-03-07T03:24:44.694775",
+    "params": {
+      "num_leaves": 606,
+      "max_depth": 16,
+      "learning_rate": 0.19999999999999998,
+      "min_child_samples": 34,
+      "lambda_l1": 0.0,
+      "lambda_l2": 11.516870421215993,
+      "subsample": 0.6942983689617447,
+      "colsample_bytree": 0.9999999999999999,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9999999999999999,
+      "min_sum_hessian_in_leaf": 49.99999999999999,
+      "path_smooth": 1.297252565994009,
+      "min_split_gain": 0.12459885418584474,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1245.67,
+    "wall_elapsed_sec": 52727.23,
+    "wall_elapsed_min": 878.79,
+    "internal": {
+      "f1": 0.716723,
+      "accuracy": 0.885565,
+      "auc": 0.0,
+      "best_iteration": 517,
+      "num_trees": 5687
+    },
+    "external": {
+      "accuracy": 0.981,
+      "correct": 4905,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 5687000,
+      "saved": true
+    },
+    "fitness": 0.790968,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 517
+  },
+  {
+    "phase": "P2",
+    "trial_number": 10,
+    "name": "P2_0010",
+    "timestamp": "2026-03-07T03:54:45.382910",
+    "params": {
+      "num_leaves": 800,
+      "max_depth": 15,
+      "learning_rate": 0.053348897173189906,
+      "min_child_samples": 49,
+      "lambda_l1": 0.524301947676485,
+      "lambda_l2": 14.060079139175793,
+      "subsample": 0.7331178727578411,
+      "colsample_bytree": 0.7697054709077407,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8411579333405352,
+      "min_sum_hessian_in_leaf": 49.99999999999999,
+      "path_smooth": 0.8385185507710198,
+      "min_split_gain": 0.15321233608348733,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1727.03,
+    "wall_elapsed_sec": 54527.92,
+    "wall_elapsed_min": 908.8,
+    "internal": {
+      "f1": 0.70554,
+      "accuracy": 0.885506,
+      "auc": 0.0,
+      "best_iteration": 1000,
+      "num_trees": 11000
+    },
+    "external": {
+      "accuracy": 0.9716,
+      "correct": 4858,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 11000000,
+      "saved": true
+    },
+    "fitness": 0.799788,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1000
+  },
+  {
+    "phase": "P2",
+    "trial_number": 11,
+    "name": "P2_0011",
+    "timestamp": "2026-03-07T04:11:39.568831",
+    "params": {
+      "num_leaves": 621,
+      "max_depth": 10,
+      "learning_rate": 0.11641970286291597,
+      "min_child_samples": 134,
+      "lambda_l1": 0.45642823266570853,
+      "lambda_l2": 12.222602903141828,
+      "subsample": 0.5273551182260947,
+      "colsample_bytree": 0.6109010605328505,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9918556071255396,
+      "min_sum_hessian_in_leaf": 15.697746962448804,
+      "path_smooth": 0.005590471105858197,
+      "min_split_gain": 0.45297003518885937,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 959.54,
+    "wall_elapsed_sec": 55542.1,
+    "wall_elapsed_min": 925.7,
+    "internal": {
+      "f1": 0.698123,
+      "accuracy": 0.880844,
+      "auc": 0.0,
+      "best_iteration": 1000,
+      "num_trees": 11000
+    },
+    "external": {
+      "accuracy": 0.9718,
+      "correct": 4859,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 11000000,
+      "saved": true
+    },
+    "fitness": 0.784858,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1000
+  },
+  {
+    "phase": "P2",
+    "trial_number": 12,
+    "name": "P2_0012",
+    "timestamp": "2026-03-07T04:35:04.364559",
+    "params": {
+      "num_leaves": 620,
+      "max_depth": 14,
+      "learning_rate": 0.09230078482323165,
+      "min_child_samples": 35,
+      "lambda_l1": 0.38309427104694893,
+      "lambda_l2": 12.223895070524403,
+      "subsample": 0.6876364238672874,
+      "colsample_bytree": 0.86454963613815,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8473959251471839,
+      "min_sum_hessian_in_leaf": 2.692984564531791,
+      "path_smooth": 1.0208270466342741,
+      "min_split_gain": 0.30545379427910574,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1339.31,
+    "wall_elapsed_sec": 56946.9,
+    "wall_elapsed_min": 949.11,
+    "internal": {
+      "f1": 0.654399,
+      "accuracy": 0.893868,
+      "auc": 0.0,
+      "best_iteration": 999,
+      "num_trees": 10989
+    },
+    "external": {
+      "accuracy": 0.982,
+      "correct": 4910,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10989000,
+      "saved": true
+    },
+    "fitness": 0.776675,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 999
+  },
+  {
+    "phase": "P2",
+    "trial_number": 16,
+    "name": "P2_0016",
+    "timestamp": "2026-03-07T05:25:29.067748",
+    "params": {
+      "num_leaves": 578,
+      "max_depth": 12,
+      "learning_rate": 0.12305245602511843,
+      "min_child_samples": 38,
+      "lambda_l1": 1.2012524179611417,
+      "lambda_l2": 9.853845376044534,
+      "subsample": 0.7209920121395881,
+      "colsample_bytree": 0.8150349626121751,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9048829085893539,
+      "min_sum_hessian_in_leaf": 0.11652053596973258,
+      "path_smooth": 0.5544538503915835,
+      "min_split_gain": 0.40405891369076,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1084.64,
+    "wall_elapsed_sec": 59971.6,
+    "wall_elapsed_min": 999.53,
+    "internal": {
+      "f1": 0.646388,
+      "accuracy": 0.891702,
+      "auc": 0.0,
+      "best_iteration": 998,
+      "num_trees": 10978
+    },
+    "external": {
+      "accuracy": 0.9798,
+      "correct": 4899,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10978000,
+      "saved": true
+    },
+    "fitness": 0.767311,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 998
+  },
+  {
+    "phase": "P2",
+    "trial_number": 17,
+    "name": "P2_0017",
+    "timestamp": "2026-03-07T05:48:08.932014",
+    "params": {
+      "num_leaves": 621,
+      "max_depth": 14,
+      "learning_rate": 0.1196477818569307,
+      "min_child_samples": 14,
+      "lambda_l1": 1.341965963167509,
+      "lambda_l2": 14.01042890781434,
+      "subsample": 0.5699314551434089,
+      "colsample_bytree": 0.9702319995504853,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8128035467194479,
+      "min_sum_hessian_in_leaf": 15.938865083541012,
+      "path_smooth": 0.005088647296496829,
+      "min_split_gain": 0.2932640235553885,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1296.61,
+    "wall_elapsed_sec": 61331.47,
+    "wall_elapsed_min": 1022.19,
+    "internal": {
+      "f1": 0.703124,
+      "accuracy": 0.888986,
+      "auc": 0.0,
+      "best_iteration": 998,
+      "num_trees": 10978
+    },
+    "external": {
+      "accuracy": 0.9828,
+      "correct": 4914,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10978000,
+      "saved": true
+    },
+    "fitness": 0.797629,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 998
+  },
+  {
+    "phase": "P2",
+    "trial_number": 18,
+    "name": "P2_0018",
+    "timestamp": "2026-03-07T06:07:25.626587",
+    "params": {
+      "num_leaves": 593,
+      "max_depth": 16,
+      "learning_rate": 0.1860519663411526,
+      "min_child_samples": 98,
+      "lambda_l1": 2.431374319767693,
+      "lambda_l2": 14.78726773488876,
+      "subsample": 0.7525170017924429,
+      "colsample_bytree": 0.828732750528945,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7072654300202588,
+      "min_sum_hessian_in_leaf": 14.860031801054784,
+      "path_smooth": 0.014154867702078744,
+      "min_split_gain": 0.12801526630864546,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1123.27,
+    "wall_elapsed_sec": 62488.16,
+    "wall_elapsed_min": 1041.47,
+    "internal": {
+      "f1": 0.723032,
+      "accuracy": 0.890176,
+      "auc": 0.0,
+      "best_iteration": 632,
+      "num_trees": 6952
+    },
+    "external": {
+      "accuracy": 0.9828,
+      "correct": 4914,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 6952000,
+      "saved": true
+    },
+    "fitness": 0.797776,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 632
+  },
+  {
+    "phase": "P2",
+    "trial_number": 21,
+    "name": "P2_0021",
+    "timestamp": "2026-03-07T06:43:50.680614",
+    "params": {
+      "num_leaves": 749,
+      "max_depth": 11,
+      "learning_rate": 0.1498249265558749,
+      "min_child_samples": 18,
+      "lambda_l1": 0.8973517196617256,
+      "lambda_l2": 14.778801715302512,
+      "subsample": 0.7700913819149655,
+      "colsample_bytree": 0.8841928851519991,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.819821472597833,
+      "min_sum_hessian_in_leaf": 1.1527353390919362,
+      "path_smooth": 0.04092918409895879,
+      "min_split_gain": 0.15903317624485044,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1326.28,
+    "wall_elapsed_sec": 64673.21,
+    "wall_elapsed_min": 1077.89,
+    "internal": {
+      "f1": 0.664655,
+      "accuracy": 0.894413,
+      "auc": 0.0,
+      "best_iteration": 973,
+      "num_trees": 10703
+    },
+    "external": {
+      "accuracy": 0.9826,
+      "correct": 4913,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10703000,
+      "saved": true
+    },
+    "fitness": 0.781513,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 973
+  },
+  {
+    "phase": "P2",
+    "trial_number": 24,
+    "name": "P2_0024",
+    "timestamp": "2026-03-07T07:21:35.122452",
+    "params": {
+      "num_leaves": 749,
+      "max_depth": 15,
+      "learning_rate": 0.1379037885168347,
+      "min_child_samples": 46,
+      "lambda_l1": 1.0426147563524226,
+      "lambda_l2": 14.885940193864844,
+      "subsample": 0.5912931713953228,
+      "colsample_bytree": 0.9560125342314041,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8771742714937059,
+      "min_sum_hessian_in_leaf": 11.928902994417772,
+      "path_smooth": 0.3948809727456505,
+      "min_split_gain": 0.13911577693870963,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1288.47,
+    "wall_elapsed_sec": 66937.66,
+    "wall_elapsed_min": 1115.63,
+    "internal": {
+      "f1": 0.71204,
+      "accuracy": 0.889184,
+      "auc": 0.0,
+      "best_iteration": 667,
+      "num_trees": 7337
+    },
+    "external": {
+      "accuracy": 0.9826,
+      "correct": 4913,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 7337000,
+      "saved": true
+    },
+    "fitness": 0.801361,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 667
+  },
+  {
+    "phase": "P2",
+    "trial_number": 25,
+    "name": "P2_0025",
+    "timestamp": "2026-03-07T07:38:45.206600",
+    "params": {
+      "num_leaves": 775,
+      "max_depth": 16,
+      "learning_rate": 0.10942885342296531,
+      "min_child_samples": 21,
+      "lambda_l1": 0.8067870049739692,
+      "lambda_l2": 10.5711849572591,
+      "subsample": 0.4391181692491237,
+      "colsample_bytree": 0.7062191861732419,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6302718358962549,
+      "min_sum_hessian_in_leaf": 2.28487316885235,
+      "path_smooth": 0.7847208157968266,
+      "min_split_gain": 0.4822973999755541,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 975.99,
+    "wall_elapsed_sec": 67967.74,
+    "wall_elapsed_min": 1132.8,
+    "internal": {
+      "f1": 0.663489,
+      "accuracy": 0.884665,
+      "auc": 0.0,
+      "best_iteration": 979,
+      "num_trees": 10769
+    },
+    "external": {
+      "accuracy": 0.9786,
+      "correct": 4893,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10769000,
+      "saved": true
+    },
+    "fitness": 0.775459,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 979
+  },
+  {
+    "phase": "P2",
+    "trial_number": 27,
+    "name": "P2_0027",
+    "timestamp": "2026-03-07T08:32:11.254166",
+    "params": {
+      "num_leaves": 764,
+      "max_depth": 14,
+      "learning_rate": 0.05249102166717496,
+      "min_child_samples": 34,
+      "lambda_l1": 0.04353543186854303,
+      "lambda_l2": 11.050901270574032,
+      "subsample": 0.87727192463277,
+      "colsample_bytree": 0.6458951771475854,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7472547768492219,
+      "min_sum_hessian_in_leaf": 45.69503905837009,
+      "path_smooth": 0.2896035169102698,
+      "min_split_gain": 0.18548502817513945,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1542.79,
+    "wall_elapsed_sec": 71173.79,
+    "wall_elapsed_min": 1186.23,
+    "internal": {
+      "f1": 0.70545,
+      "accuracy": 0.884756,
+      "auc": 0.0,
+      "best_iteration": 1000,
+      "num_trees": 11000
+    },
+    "external": {
+      "accuracy": 0.968,
+      "correct": 4840,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 11000000,
+      "saved": true
+    },
+    "fitness": 0.794268,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1000
+  },
+  {
+    "phase": "P2",
+    "trial_number": 28,
+    "name": "P2_0028",
+    "timestamp": "2026-03-07T09:01:57.626375",
+    "params": {
+      "num_leaves": 649,
+      "max_depth": 16,
+      "learning_rate": 0.10500257090814968,
+      "min_child_samples": 31,
+      "lambda_l1": 0.9682382692430918,
+      "lambda_l2": 13.024852737682885,
+      "subsample": 0.7423768298747508,
+      "colsample_bytree": 0.7701597547584378,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7853164511906834,
+      "min_sum_hessian_in_leaf": 33.00918366279868,
+      "path_smooth": 0.6978944923323447,
+      "min_split_gain": 0.05253876838474891,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1713.7,
+    "wall_elapsed_sec": 72960.16,
+    "wall_elapsed_min": 1216.0,
+    "internal": {
+      "f1": 0.740267,
+      "accuracy": 0.891694,
+      "auc": 0.0,
+      "best_iteration": 950,
+      "num_trees": 10450
+    },
+    "external": {
+      "accuracy": 0.9836,
+      "correct": 4918,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10450000,
+      "saved": true
+    },
+    "fitness": 0.81332,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 950
+  },
+  {
+    "phase": "P2",
+    "trial_number": 31,
+    "name": "P2_0031",
+    "timestamp": "2026-03-07T09:42:29.806115",
+    "params": {
+      "num_leaves": 756,
+      "max_depth": 12,
+      "learning_rate": 0.021650674743920403,
+      "min_child_samples": 16,
+      "lambda_l1": 2.317633055642852,
+      "lambda_l2": 14.012209030593514,
+      "subsample": 0.5960291807972191,
+      "colsample_bytree": 0.8853868661265323,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8395210316409767,
+      "min_sum_hessian_in_leaf": 32.693089512320654,
+      "path_smooth": 0.29017059256850963,
+      "min_split_gain": 0.2308326959427191,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1475.13,
+    "wall_elapsed_sec": 75392.34,
+    "wall_elapsed_min": 1256.54,
+    "internal": {
+      "f1": 0.685392,
+      "accuracy": 0.862727,
+      "auc": 0.0,
+      "best_iteration": 1000,
+      "num_trees": 11000
+    },
+    "external": {
+      "accuracy": 0.9254,
+      "correct": 4627,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 11000000,
+      "saved": true
+    },
+    "fitness": 0.780836,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1000
+  },
+  {
+    "phase": "P2",
+    "trial_number": 32,
+    "name": "P2_0032",
+    "timestamp": "2026-03-07T10:09:55.062987",
+    "params": {
+      "num_leaves": 598,
+      "max_depth": 13,
+      "learning_rate": 0.020715289256722502,
+      "min_child_samples": 47,
+      "lambda_l1": 1.3239624702556818,
+      "lambda_l2": 13.326948947929225,
+      "subsample": 0.8264161736536764,
+      "colsample_bytree": 0.6624449560880731,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9306814197044817,
+      "min_sum_hessian_in_leaf": 29.166894318422848,
+      "path_smooth": 0.8698228080357472,
+      "min_split_gain": 0.22251513559479225,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1569.88,
+    "wall_elapsed_sec": 77037.6,
+    "wall_elapsed_min": 1283.96,
+    "internal": {
+      "f1": 0.695292,
+      "accuracy": 0.869629,
+      "auc": 0.0,
+      "best_iteration": 1000,
+      "num_trees": 11000
+    },
+    "external": {
+      "accuracy": 0.9316,
+      "correct": 4658,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 11000000,
+      "saved": true
+    },
+    "fitness": 0.783118,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1000
+  },
+  {
+    "phase": "P3",
+    "trial_number": 1,
+    "name": "P3_0001",
+    "timestamp": "2026-03-07T10:52:23.652088",
+    "params": {
+      "num_leaves": 503,
+      "max_depth": 16,
+      "learning_rate": 0.11733290001180598,
+      "min_child_samples": 30,
+      "lambda_l1": 0.6351823530131908,
+      "lambda_l2": 7.836441346252223,
+      "subsample": 0.4348501673009197,
+      "colsample_bytree": 0.9177090191503376,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7577404834487391,
+      "min_sum_hessian_in_leaf": 35.92868028345192,
+      "path_smooth": 0.36331305136265946,
+      "min_split_gain": 0.09952975360094835,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1817.56,
+    "wall_elapsed_sec": 79586.19,
+    "wall_elapsed_min": 1326.44,
+    "internal": {
+      "f1": 0.745418,
+      "accuracy": 0.880881,
+      "auc": 0.0,
+      "best_iteration": 897,
+      "num_trees": 9867
+    },
+    "external": {
+      "accuracy": 0.98,
+      "correct": 4900,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 9867000,
+      "saved": true
+    },
+    "fitness": 0.811931,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 897
+  },
+  {
+    "phase": "P3",
+    "trial_number": 2,
+    "name": "P3_0002",
+    "timestamp": "2026-03-07T11:23:11.630676",
+    "params": {
+      "num_leaves": 721,
+      "max_depth": 8,
+      "learning_rate": 0.06410951529808633,
+      "min_child_samples": 19,
+      "lambda_l1": 0.7786981173753249,
+      "lambda_l2": 10.966335220744082,
+      "subsample": 0.6591670111852694,
+      "colsample_bytree": 0.5641625359805434,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7642620483506583,
+      "min_sum_hessian_in_leaf": 19.238015674705945,
+      "path_smooth": 0.5528333873432697,
+      "min_split_gain": 0.03917495271411808,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1763.37,
+    "wall_elapsed_sec": 81434.16,
+    "wall_elapsed_min": 1357.24,
+    "internal": {
+      "f1": 0.700007,
+      "accuracy": 0.869292,
+      "auc": 0.0,
+      "best_iteration": 1500,
+      "num_trees": 16500
+    },
+    "external": {
+      "accuracy": 0.9376,
+      "correct": 4688,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 16500000,
+      "saved": true
+    },
+    "fitness": 0.779419,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1500
+  },
+  {
+    "phase": "P3",
+    "trial_number": 3,
+    "name": "P3_0003",
+    "timestamp": "2026-03-07T12:05:38.121543",
+    "params": {
+      "num_leaves": 542,
+      "max_depth": 14,
+      "learning_rate": 0.06537904046697085,
+      "min_child_samples": 27,
+      "lambda_l1": 1.0577175914509223,
+      "lambda_l2": 6.906677667000127,
+      "subsample": 0.764526911140863,
+      "colsample_bytree": 0.4899385924268094,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.432166775506871,
+      "min_sum_hessian_in_leaf": 46.80995747109006,
+      "path_smooth": 1.022856523668592,
+      "min_split_gain": 0.08337850319639503,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2431.98,
+    "wall_elapsed_sec": 83980.66,
+    "wall_elapsed_min": 1399.68,
+    "internal": {
+      "f1": 0.748872,
+      "accuracy": 0.884899,
+      "auc": 0.0,
+      "best_iteration": 1500,
+      "num_trees": 16500
+    },
+    "external": {
+      "accuracy": 0.9766,
+      "correct": 4883,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 16500000,
+      "saved": true
+    },
+    "fitness": 0.813413,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1500
+  },
+  {
+    "phase": "P3",
+    "trial_number": 4,
+    "name": "P3_0004",
+    "timestamp": "2026-03-07T12:28:43.255725",
+    "params": {
+      "num_leaves": 469,
+      "max_depth": 7,
+      "learning_rate": 0.11133508807935302,
+      "min_child_samples": 25,
+      "lambda_l1": 0.6022812239091365,
+      "lambda_l2": 10.71527685386043,
+      "subsample": 0.42063311266913106,
+      "colsample_bytree": 0.9442392905270816,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.5498261188007008,
+      "min_sum_hessian_in_leaf": 34.17497865772235,
+      "path_smooth": 0.5664886893679607,
+      "min_split_gain": 0.05454557050252999,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1322.17,
+    "wall_elapsed_sec": 85365.79,
+    "wall_elapsed_min": 1422.76,
+    "internal": {
+      "f1": 0.680746,
+      "accuracy": 0.861439,
+      "auc": 0.0,
+      "best_iteration": 1500,
+      "num_trees": 16500
+    },
+    "external": {
+      "accuracy": 0.9322,
+      "correct": 4661,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 16500000,
+      "saved": true
+    },
+    "fitness": 0.769181,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1500
+  },
+  {
+    "phase": "P3",
+    "trial_number": 5,
+    "name": "P3_0005",
+    "timestamp": "2026-03-07T13:05:54.629276",
+    "params": {
+      "num_leaves": 585,
+      "max_depth": 8,
+      "learning_rate": 0.15232787058689468,
+      "min_child_samples": 36,
+      "lambda_l1": 1.393777963757373,
+      "lambda_l2": 14.107339392770633,
+      "subsample": 0.7587399872866512,
+      "colsample_bytree": 0.9519588950205726,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.44640341881306234,
+      "min_sum_hessian_in_leaf": 20.46974241432935,
+      "path_smooth": 0.3805111219999606,
+      "min_split_gain": 0.035071801461075344,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2151.2,
+    "wall_elapsed_sec": 87597.16,
+    "wall_elapsed_min": 1459.95,
+    "internal": {
+      "f1": 0.754128,
+      "accuracy": 0.881693,
+      "auc": 0.0,
+      "best_iteration": 1500,
+      "num_trees": 16500
+    },
+    "external": {
+      "accuracy": 0.9724,
+      "correct": 4862,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 16500000,
+      "saved": true
+    },
+    "fitness": 0.806254,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1500
+  },
+  {
+    "phase": "P3",
+    "trial_number": 6,
+    "name": "P3_0006",
+    "timestamp": "2026-03-07T13:32:30.995239",
+    "params": {
+      "num_leaves": 510,
+      "max_depth": 8,
+      "learning_rate": 0.1304902962514837,
+      "min_child_samples": 23,
+      "lambda_l1": 0.756130678051912,
+      "lambda_l2": 11.118599333988424,
+      "subsample": 0.4845545349848576,
+      "colsample_bytree": 0.8783669431505133,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.4379359458108231,
+      "min_sum_hessian_in_leaf": 48.805584904625185,
+      "path_smooth": 0.8878926173907717,
+      "min_split_gain": 0.022410336538166153,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1528.52,
+    "wall_elapsed_sec": 89193.53,
+    "wall_elapsed_min": 1486.56,
+    "internal": {
+      "f1": 0.700736,
+      "accuracy": 0.869175,
+      "auc": 0.0,
+      "best_iteration": 1497,
+      "num_trees": 16467
+    },
+    "external": {
+      "accuracy": 0.9534,
+      "correct": 4767,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 16467000,
+      "saved": true
+    },
+    "fitness": 0.781513,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1497
+  },
+  {
+    "phase": "P3",
+    "trial_number": 7,
+    "name": "P3_0007",
+    "timestamp": "2026-03-07T14:07:27.235942",
+    "params": {
+      "num_leaves": 327,
+      "max_depth": 14,
+      "learning_rate": 0.11413703848380415,
+      "min_child_samples": 35,
+      "lambda_l1": 1.2308926002152654,
+      "lambda_l2": 7.140885802428026,
+      "subsample": 0.6150794371265635,
+      "colsample_bytree": 0.45633009367036625,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9168569917613641,
+      "min_sum_hessian_in_leaf": 32.73358505188698,
+      "path_smooth": 0.5798791552344875,
+      "min_split_gain": 0.008894603413351274,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2008.66,
+    "wall_elapsed_sec": 91289.77,
+    "wall_elapsed_min": 1521.5,
+    "internal": {
+      "f1": 0.740167,
+      "accuracy": 0.888273,
+      "auc": 0.0,
+      "best_iteration": 1319,
+      "num_trees": 14509
+    },
+    "external": {
+      "accuracy": 0.9826,
+      "correct": 4913,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 14509000,
+      "saved": true
+    },
+    "fitness": 0.80386,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1319
+  },
+  {
+    "phase": "P3",
+    "trial_number": 8,
+    "name": "P3_0008",
+    "timestamp": "2026-03-07T14:36:25.250128",
+    "params": {
+      "num_leaves": 473,
+      "max_depth": 9,
+      "learning_rate": 0.1170255126129377,
+      "min_child_samples": 31,
+      "lambda_l1": 1.343152464944065,
+      "lambda_l2": 10.520385315885516,
+      "subsample": 0.471756547562981,
+      "colsample_bytree": 0.8236684493970159,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8547147669628624,
+      "min_sum_hessian_in_leaf": 30.57750664210704,
+      "path_smooth": 0.8870009948254602,
+      "min_split_gain": 0.05191832802118799,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1654.36,
+    "wall_elapsed_sec": 93027.78,
+    "wall_elapsed_min": 1550.46,
+    "internal": {
+      "f1": 0.74901,
+      "accuracy": 0.879011,
+      "auc": 0.0,
+      "best_iteration": 1500,
+      "num_trees": 16500
+    },
+    "external": {
+      "accuracy": 0.9724,
+      "correct": 4862,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 16500000,
+      "saved": true
+    },
+    "fitness": 0.812297,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1500
+  },
+  {
+    "phase": "P3",
+    "trial_number": 9,
+    "name": "P3_0009",
+    "timestamp": "2026-03-07T15:13:51.172453",
+    "params": {
+      "num_leaves": 573,
+      "max_depth": 10,
+      "learning_rate": 0.05398808743356066,
+      "min_child_samples": 17,
+      "lambda_l1": 0.5145500749745892,
+      "lambda_l2": 11.914006594078678,
+      "subsample": 0.588613588645796,
+      "colsample_bytree": 0.6978102291515533,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.9438612582597941,
+      "min_sum_hessian_in_leaf": 21.704381257074534,
+      "path_smooth": 0.6353512278999869,
+      "min_split_gain": 0.07809388223905378,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2141.87,
+    "wall_elapsed_sec": 95273.71,
+    "wall_elapsed_min": 1587.9,
+    "internal": {
+      "f1": 0.733381,
+      "accuracy": 0.880541,
+      "auc": 0.0,
+      "best_iteration": 1500,
+      "num_trees": 16500
+    },
+    "external": {
+      "accuracy": 0.9612,
+      "correct": 4806,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 16500000,
+      "saved": true
+    },
+    "fitness": 0.803794,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1500
+  },
+  {
+    "phase": "P3",
+    "trial_number": 10,
+    "name": "P3_0010",
+    "timestamp": "2026-03-07T15:43:55.568936",
+    "params": {
+      "num_leaves": 433,
+      "max_depth": 6,
+      "learning_rate": 0.07217993949537221,
+      "min_child_samples": 19,
+      "lambda_l1": 1.3842879804450845,
+      "lambda_l2": 13.371407593234233,
+      "subsample": 0.7800422539062541,
+      "colsample_bytree": 0.9209585303566286,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8807618508187269,
+      "min_sum_hessian_in_leaf": 20.259155085898023,
+      "path_smooth": 0.9718592552940015,
+      "min_split_gain": 0.05647299257631398,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1748.26,
+    "wall_elapsed_sec": 97078.1,
+    "wall_elapsed_min": 1617.97,
+    "internal": {
+      "f1": 0.688948,
+      "accuracy": 0.850296,
+      "auc": 0.0,
+      "best_iteration": 1500,
+      "num_trees": 16500
+    },
+    "external": {
+      "accuracy": 0.9042,
+      "correct": 4521,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 16500000,
+      "saved": true
+    },
+    "fitness": 0.765313,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1500
+  },
+  {
+    "phase": "P3",
+    "trial_number": 11,
+    "name": "P3_0011",
+    "timestamp": "2026-03-07T16:43:11.009876",
+    "params": {
+      "num_leaves": 709,
+      "max_depth": 15,
+      "learning_rate": 0.07445539189778541,
+      "min_child_samples": 17,
+      "lambda_l1": 0.7048146819007983,
+      "lambda_l2": 10.137535173248098,
+      "subsample": 0.8908088595534959,
+      "colsample_bytree": 0.914360433178666,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.39688054488804786,
+      "min_sum_hessian_in_leaf": 28.926319731449816,
+      "path_smooth": 0.6402560863026242,
+      "min_split_gain": 0.024749549431821935,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 3443.02,
+    "wall_elapsed_sec": 100633.54,
+    "wall_elapsed_min": 1677.23,
+    "internal": {
+      "f1": 0.747676,
+      "accuracy": 0.89385,
+      "auc": 0.0,
+      "best_iteration": 1352,
+      "num_trees": 14872
+    },
+    "external": {
+      "accuracy": 0.9826,
+      "correct": 4913,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 14872000,
+      "saved": true
+    },
+    "fitness": 0.813539,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1352
+  },
+  {
+    "phase": "P3",
+    "trial_number": 12,
+    "name": "P3_0012",
+    "timestamp": "2026-03-07T17:21:24.738876",
+    "params": {
+      "num_leaves": 382,
+      "max_depth": 9,
+      "learning_rate": 0.14792861731302243,
+      "min_child_samples": 22,
+      "lambda_l1": 0.9864320683178901,
+      "lambda_l2": 12.479351546564697,
+      "subsample": 0.6181777614275764,
+      "colsample_bytree": 0.9826482348466701,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.977192673476447,
+      "min_sum_hessian_in_leaf": 21.763837437488494,
+      "path_smooth": 0.6959742397489557,
+      "min_split_gain": 0.03262659936642588,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2204.47,
+    "wall_elapsed_sec": 102927.27,
+    "wall_elapsed_min": 1715.45,
+    "internal": {
+      "f1": 0.725015,
+      "accuracy": 0.886311,
+      "auc": 0.0,
+      "best_iteration": 1475,
+      "num_trees": 16225
+    },
+    "external": {
+      "accuracy": 0.9788,
+      "correct": 4894,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 16225000,
+      "saved": true
+    },
+    "fitness": 0.795963,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1475
+  },
+  {
+    "phase": "P3",
+    "trial_number": 13,
+    "name": "P3_0013",
+    "timestamp": "2026-03-07T17:48:33.161339",
+    "params": {
+      "num_leaves": 460,
+      "max_depth": 6,
+      "learning_rate": 0.1025666183087071,
+      "min_child_samples": 27,
+      "lambda_l1": 0.5339628316346312,
+      "lambda_l2": 8.877458751111671,
+      "subsample": 0.9449595315799922,
+      "colsample_bytree": 0.5323913045634198,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.48065893431336115,
+      "min_sum_hessian_in_leaf": 28.25745883119962,
+      "path_smooth": 1.036827269454835,
+      "min_split_gain": 0.02674429553589895,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 1574.48,
+    "wall_elapsed_sec": 104555.7,
+    "wall_elapsed_min": 1742.59,
+    "internal": {
+      "f1": 0.686295,
+      "accuracy": 0.85285,
+      "auc": 0.0,
+      "best_iteration": 1500,
+      "num_trees": 16500
+    },
+    "external": {
+      "accuracy": 0.9078,
+      "correct": 4539,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 16500000,
+      "saved": true
+    },
+    "fitness": 0.761077,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1500
+  },
+  {
+    "phase": "P3",
+    "trial_number": 14,
+    "name": "P3_0014",
+    "timestamp": "2026-03-07T18:39:48.856597",
+    "params": {
+      "num_leaves": 644,
+      "max_depth": 14,
+      "learning_rate": 0.06816349654058962,
+      "min_child_samples": 34,
+      "lambda_l1": 0.8402208385024379,
+      "lambda_l2": 11.879168663415317,
+      "subsample": 0.7801178264565368,
+      "colsample_bytree": 0.7145385118075797,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.4474949747507746,
+      "min_sum_hessian_in_leaf": 41.31857767274785,
+      "path_smooth": 0.5728178867599585,
+      "min_split_gain": 0.021190619424734335,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2957.84,
+    "wall_elapsed_sec": 107631.39,
+    "wall_elapsed_min": 1793.86,
+    "internal": {
+      "f1": 0.73019,
+      "accuracy": 0.888302,
+      "auc": 0.0,
+      "best_iteration": 1500,
+      "num_trees": 16500
+    },
+    "external": {
+      "accuracy": 0.9798,
+      "correct": 4899,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 16500000,
+      "saved": true
+    },
+    "fitness": 0.802134,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1500
+  },
+  {
+    "phase": "P3",
+    "trial_number": 15,
+    "name": "P3_0015",
+    "timestamp": "2026-03-07T19:18:53.621030",
+    "params": {
+      "num_leaves": 344,
+      "max_depth": 12,
+      "learning_rate": 0.11052239702416325,
+      "min_child_samples": 16,
+      "lambda_l1": 0.9799472310806434,
+      "lambda_l2": 8.434825937980277,
+      "subsample": 0.7871036742456698,
+      "colsample_bytree": 0.49230130328391597,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8122935774576345,
+      "min_sum_hessian_in_leaf": 25.24203950562889,
+      "path_smooth": 1.0026859461080786,
+      "min_split_gain": 0.016290862799348237,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2246.08,
+    "wall_elapsed_sec": 109976.16,
+    "wall_elapsed_min": 1832.94,
+    "internal": {
+      "f1": 0.75019,
+      "accuracy": 0.891775,
+      "auc": 0.0,
+      "best_iteration": 1407,
+      "num_trees": 15477
+    },
+    "external": {
+      "accuracy": 0.9824,
+      "correct": 4912,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 15477000,
+      "saved": true
+    },
+    "fitness": 0.814014,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1407
+  },
+  {
+    "phase": "P3",
+    "trial_number": 16,
+    "name": "P3_0016",
+    "timestamp": "2026-03-07T19:55:16.366184",
+    "params": {
+      "num_leaves": 457,
+      "max_depth": 14,
+      "learning_rate": 0.11485571056938888,
+      "min_child_samples": 16,
+      "lambda_l1": 0.6783915308465077,
+      "lambda_l2": 9.639077204777504,
+      "subsample": 0.8318204016925929,
+      "colsample_bytree": 0.4113193278889305,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8995697677401594,
+      "min_sum_hessian_in_leaf": 24.492531936844593,
+      "path_smooth": 0.9172465933456848,
+      "min_split_gain": 0.017413863632042732,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2100.01,
+    "wall_elapsed_sec": 112158.9,
+    "wall_elapsed_min": 1869.32,
+    "internal": {
+      "f1": 0.741269,
+      "accuracy": 0.893337,
+      "auc": 0.0,
+      "best_iteration": 1092,
+      "num_trees": 12012
+    },
+    "external": {
+      "accuracy": 0.9822,
+      "correct": 4911,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 12012000,
+      "saved": true
+    },
+    "fitness": 0.811698,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1092
+  },
+  {
+    "phase": "P3",
+    "trial_number": 17,
+    "name": "P3_0017",
+    "timestamp": "2026-03-07T20:43:31.511816",
+    "params": {
+      "num_leaves": 712,
+      "max_depth": 16,
+      "learning_rate": 0.09550928733174151,
+      "min_child_samples": 18,
+      "lambda_l1": 0.7406784932172471,
+      "lambda_l2": 12.96354023698354,
+      "subsample": 0.9822910070575026,
+      "colsample_bytree": 0.8597416459539806,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.48780702570946133,
+      "min_sum_hessian_in_leaf": 26.738220297801366,
+      "path_smooth": 0.7042219792157467,
+      "min_split_gain": 0.02137018400471102,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2822.48,
+    "wall_elapsed_sec": 115054.05,
+    "wall_elapsed_min": 1917.57,
+    "internal": {
+      "f1": 0.745642,
+      "accuracy": 0.895185,
+      "auc": 0.0,
+      "best_iteration": 908,
+      "num_trees": 9988
+    },
+    "external": {
+      "accuracy": 0.9826,
+      "correct": 4913,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 9988000,
+      "saved": true
+    },
+    "fitness": 0.823728,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 908
+  },
+  {
+    "phase": "P3",
+    "trial_number": 18,
+    "name": "P3_0018",
+    "timestamp": "2026-03-07T21:28:25.973714",
+    "params": {
+      "num_leaves": 656,
+      "max_depth": 15,
+      "learning_rate": 0.12490973353518324,
+      "min_child_samples": 21,
+      "lambda_l1": 0.9221718314982228,
+      "lambda_l2": 13.038730204671442,
+      "subsample": 0.9281631821206677,
+      "colsample_bytree": 0.921887055214281,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6883346541073834,
+      "min_sum_hessian_in_leaf": 27.033741482090132,
+      "path_smooth": 0.7514905287357521,
+      "min_split_gain": 0.03507053033573099,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2622.39,
+    "wall_elapsed_sec": 117748.51,
+    "wall_elapsed_min": 1962.48,
+    "internal": {
+      "f1": 0.746912,
+      "accuracy": 0.895226,
+      "auc": 0.0,
+      "best_iteration": 794,
+      "num_trees": 8734
+    },
+    "external": {
+      "accuracy": 0.9826,
+      "correct": 4913,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 8734000,
+      "saved": true
+    },
+    "fitness": 0.819479,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 794
+  },
+  {
+    "phase": "P3",
+    "trial_number": 20,
+    "name": "P3_0020",
+    "timestamp": "2026-03-07T22:50:38.419544",
+    "params": {
+      "num_leaves": 755,
+      "max_depth": 12,
+      "learning_rate": 0.14202228407527112,
+      "min_child_samples": 18,
+      "lambda_l1": 0.6881279587489434,
+      "lambda_l2": 14.826200431847028,
+      "subsample": 0.9479167964234119,
+      "colsample_bytree": 0.8171348965034175,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.7013947990644622,
+      "min_sum_hessian_in_leaf": 35.817927593918654,
+      "path_smooth": 0.6103119756352324,
+      "min_split_gain": 0.018911547635603543,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2877.54,
+    "wall_elapsed_sec": 122680.95,
+    "wall_elapsed_min": 2044.68,
+    "internal": {
+      "f1": 0.746726,
+      "accuracy": 0.893224,
+      "auc": 0.0,
+      "best_iteration": 1148,
+      "num_trees": 12628
+    },
+    "external": {
+      "accuracy": 0.9822,
+      "correct": 4911,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 12628000,
+      "saved": true
+    },
+    "fitness": 0.813885,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 1148
+  },
+  {
+    "phase": "P3",
+    "trial_number": 21,
+    "name": "P3_0021",
+    "timestamp": "2026-03-07T23:37:29.952487",
+    "params": {
+      "num_leaves": 631,
+      "max_depth": 15,
+      "learning_rate": 0.1048631414965465,
+      "min_child_samples": 26,
+      "lambda_l1": 0.6126341236697017,
+      "lambda_l2": 9.813625570217479,
+      "subsample": 0.8883598919236125,
+      "colsample_bytree": 0.9094655143982014,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.8670430151197722,
+      "min_sum_hessian_in_leaf": 30.023035859440313,
+      "path_smooth": 0.7541122725721557,
+      "min_split_gain": 0.037118007938661046,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2737.71,
+    "wall_elapsed_sec": 125492.49,
+    "wall_elapsed_min": 2091.54,
+    "internal": {
+      "f1": 0.742514,
+      "accuracy": 0.895394,
+      "auc": 0.0,
+      "best_iteration": 940,
+      "num_trees": 10340
+    },
+    "external": {
+      "accuracy": 0.982,
+      "correct": 4910,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10340000,
+      "saved": true
+    },
+    "fitness": 0.815115,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 940
+  },
+  {
+    "phase": "P3",
+    "trial_number": 22,
+    "name": "P3_0022",
+    "timestamp": "2026-03-08T00:18:30.751376",
+    "params": {
+      "num_leaves": 689,
+      "max_depth": 16,
+      "learning_rate": 0.1204587966531047,
+      "min_child_samples": 23,
+      "lambda_l1": 0.6806257754037173,
+      "lambda_l2": 8.674660392152525,
+      "subsample": 0.8308045538521271,
+      "colsample_bytree": 0.9194288103606475,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.819600878004603,
+      "min_sum_hessian_in_leaf": 31.984688339800755,
+      "path_smooth": 0.7651136314882272,
+      "min_split_gain": 0.015596962226979535,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2407.95,
+    "wall_elapsed_sec": 127953.29,
+    "wall_elapsed_min": 2132.55,
+    "internal": {
+      "f1": 0.749854,
+      "accuracy": 0.893627,
+      "auc": 0.0,
+      "best_iteration": 708,
+      "num_trees": 7788
+    },
+    "external": {
+      "accuracy": 0.9836,
+      "correct": 4918,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 7788000,
+      "saved": true
+    },
+    "fitness": 0.817309,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 708
+  },
+  {
+    "phase": "P3",
+    "trial_number": 23,
+    "name": "P3_0023",
+    "timestamp": "2026-03-08T01:06:27.260285",
+    "params": {
+      "num_leaves": 601,
+      "max_depth": 16,
+      "learning_rate": 0.0953245236135988,
+      "min_child_samples": 19,
+      "lambda_l1": 0.6236625396237139,
+      "lambda_l2": 13.26854792602213,
+      "subsample": 0.9575166528320415,
+      "colsample_bytree": 0.7748415907011733,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.5390398495345146,
+      "min_sum_hessian_in_leaf": 22.39603640318198,
+      "path_smooth": 0.8917791346383845,
+      "min_split_gain": 0.021710691178611803,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2794.23,
+    "wall_elapsed_sec": 130829.79,
+    "wall_elapsed_min": 2180.5,
+    "internal": {
+      "f1": 0.7161,
+      "accuracy": 0.895321,
+      "auc": 0.0,
+      "best_iteration": 990,
+      "num_trees": 10890
+    },
+    "external": {
+      "accuracy": 0.9836,
+      "correct": 4918,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10890000,
+      "saved": true
+    },
+    "fitness": 0.802994,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 990
+  },
+  {
+    "phase": "P3",
+    "trial_number": 25,
+    "name": "P3_0025",
+    "timestamp": "2026-03-08T02:11:18.586220",
+    "params": {
+      "num_leaves": 583,
+      "max_depth": 15,
+      "learning_rate": 0.13619177594734969,
+      "min_child_samples": 19,
+      "lambda_l1": 1.0470676677601034,
+      "lambda_l2": 8.574201075455667,
+      "subsample": 0.6753384326556061,
+      "colsample_bytree": 0.8664143504871753,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6950287286860392,
+      "min_sum_hessian_in_leaf": 30.899298840090943,
+      "path_smooth": 0.7826515093550559,
+      "min_split_gain": 0.03574574084093421,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2224.11,
+    "wall_elapsed_sec": 134721.12,
+    "wall_elapsed_min": 2245.35,
+    "internal": {
+      "f1": 0.717398,
+      "accuracy": 0.888262,
+      "auc": 0.0,
+      "best_iteration": 725,
+      "num_trees": 7975
+    },
+    "external": {
+      "accuracy": 0.9812,
+      "correct": 4906,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 7975000,
+      "saved": true
+    },
+    "fitness": 0.801556,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 725
+  },
+  {
+    "phase": "P3",
+    "trial_number": 26,
+    "name": "P3_0026",
+    "timestamp": "2026-03-08T02:57:57.258896",
+    "params": {
+      "num_leaves": 639,
+      "max_depth": 14,
+      "learning_rate": 0.12600594493096368,
+      "min_child_samples": 21,
+      "lambda_l1": 1.357363358505626,
+      "lambda_l2": 13.616675430782944,
+      "subsample": 0.8001642242392502,
+      "colsample_bytree": 0.9324562443096291,
+      "subsample_freq": 1,
+      "feature_fraction_bynode": 0.6166983932032618,
+      "min_sum_hessian_in_leaf": 34.397279104787486,
+      "path_smooth": 1.0189147228462654,
+      "min_split_gain": 0.04320303345060544,
+      "is_unbalance": true,
+      "data_sample_strategy": "bagging"
+    },
+    "fitness_preset": "luscinia_universal_specialist",
+    "train_time_sec": 2715.03,
+    "wall_elapsed_sec": 137519.79,
+    "wall_elapsed_min": 2292.0,
+    "internal": {
+      "f1": 0.724232,
+      "accuracy": 0.892177,
+      "auc": 0.0,
+      "best_iteration": 971,
+      "num_trees": 10681
+    },
+    "external": {
+      "accuracy": 0.9832,
+      "correct": 4916,
+      "sample_size": 5000
+    },
+    "model": {
+      "size_bytes": 10681000,
+      "saved": true
+    },
+    "fitness": 0.807885,
+    "hand_penalty_applied": true,
+    "sanity_violated": false,
+    "boosting_rounds_at_convergence": 971
+  }
+]

@@ -1,0 +1,96 @@
+{
+  "language": "uk-UA",
+  "entity": "stress_patterns_v2",
+  "framework": "Universal Dependencies v2",
+  "description": "Науково-обґрунтована система акцентуаційних правил з використанням морфологічних тегів UD та акцентних парадигм.",
+  "rules": [
+    {
+      "id": "NOUN-01",
+      "upos": "NOUN",
+      "feats": { "Gender": "Masc", "Number": "Sing", "Animacy": "Anim" },
+      "sub_category": "Suffixal_Oxytone",
+      "tendency": "Іменники з суфіксами -ак/-як, -ар/-яр, -ач, -ун мають наголос на останньому складі (окситонеза).",
+      "accent_paradigm": "B (Mobile: наголос переходить на флексію в непрямих відмінках)",
+      "weight": 0.85,
+      "examples": ["дончак", "бджоляр", "головач", "коротун"],
+      "source_note": "Дослідження Шаболдова: перехід у флективне наголошення у 81.9% випадків."
+    },
+    {
+      "id": "NOUN-02",
+      "upos": "NOUN",
+      "feats": { "Gender": "Masc", "Foreign": "Yes" },
+      "sub_category": "Greek_Interfix",
+      "tendency": "Слова зі складними основами на -лог, -граф мають наголошений інтерфікс -о-.",
+      "accent_paradigm": "A (Fixed: наголос залишається на інтерфіксі)",
+      "weight": 0.95,
+      "examples": ["антрополог", "астрограф", "бактеріолог"],
+      "source_note": "Морфологічно детермінована норма для запозичень."
+    },
+    {
+      "id": "NOUN-03",
+      "upos": "NOUN",
+      "feats": { "Gender": "Masc", "Derivation": "V_Pref_Vy" },
+      "sub_category": "Prefixal_Stress",
+      "tendency": "Віддієслівні іменники з префіксом ви- мають наголос на префіксі.",
+      "accent_paradigm": "A (Fixed)",
+      "weight": 0.98,
+      "examples": ["випадок", "виняток", "виселок"],
+      "source_note": "За Войтюком: системна ознака віддієслівних дериватів."
+    },
+    {
+      "id": "ADJ-01",
+      "upos": "ADJ",
+      "feats": { "Degree": "Abs", "Derivation": "Diminutive" },
+      "sub_category": "Subjective_Evaluation",
+      "tendency": "Суфікси -еньк-, -есеньк-, -юсіньк- завжди наголошені.",
+      "accent_paradigm": "A (Fixed)",
+      "weight": 1.0,
+      "examples": ["маленький", "чорненький", "гарнесенький"],
+      "source_note": "Стабільна морфологічна ознака за Огієнком."
+    },
+    {
+      "id": "ADJ-02",
+      "upos": "ADJ",
+      "feats": { "Derivation": "Suffixal_Stability" },
+      "sub_category": "Root_Suffixal",
+      "tendency": "Похідні прикметники з суфіксами -лив-, -аст-, -ист-, -ав- утримують наголос на основі.",
+      "accent_paradigm": "A (Fixed)",
+      "weight": 1.0,
+      "examples": ["талановитий", "червонястий", "справедливий"],
+      "source_note": "Комарова: ніколи не виступають з акцентованою флексією."
+    },
+    {
+      "id": "VERB-01",
+      "upos": "VERB",
+      "feats": { "VerbForm": "Inf" },
+      "sub_category": "Infinitive_Oxytone",
+      "tendency": "Дієслова з основою на приголосний мають наголошений суфікс -ти.",
+      "accent_paradigm": "B (Mobile)",
+      "weight": 0.75,
+      "examples": ["нести", "везти", "плести"],
+      "source_note": "Скляренко: збереження праслов'янської окситонези."
+    },
+    {
+      "id": "NUM-01",
+      "upos": "NUM",
+      "feats": { "NumType": "Card", "Compound": "Yes" },
+      "sub_category": "Numeral_Fixed",
+      "tendency": "Числівники на -адцять мають наголос на передостанньому складі.",
+      "accent_paradigm": "A (Fixed)",
+      "weight": 1.0,
+      "examples": ["одинадцять", "чотирнадцять"],
+      "source_note": "Жорстко кодифікована літературна норма."
+    },
+    {
+      "id": "NUM-02",
+      "upos": "NUM",
+      "feats": { "NumType": "Card", "Case": "Nom" },
+      "sub_category": "Numeral_Oxytone",
+      "tendency": "Числівники на -десят мають наголос на останньому складі.",
+      "accent_paradigm": "A (Fixed)",
+      "weight": 0.9,
+      "examples": ["п'ятдесят", "сімдесят"],
+      "source_note": "Системне правило для складних числівників."
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import pymorphy3
 from typing import List, Dict, Optional
+from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 
 _stanza_available = False
@@ -8,6 +9,11 @@ try:
     _stanza_available = True
 except ImportError:
     stanza = None
+
+# Default stanza model directory — project-local copy avoids system-path permission issues.
+_PROJECT_STANZA_RESOURCES = (
+    Path(__file__).parent.parent / "data_management" / "export" / "stanza_resources"
+)
 
 class TokenLemma(BaseModel):
     word: str = Field(..., description="Original token text", examples=["слово", "імені"])
@@ -22,11 +28,13 @@ class Lemmatizer:
     All public methods use Pydantic models for type safety.
     """
     
-    def __init__(self, use_gpu: bool = True):
+    def __init__(self, use_gpu: bool = True, stanza_dir: Optional[str] = None):
         # 1. Initialize VESUM (via pymorphy3)
         self.morph = pymorphy3.MorphAnalyzer(lang='uk')
         self._nlp = None
         self._use_gpu = use_gpu
+        # Use project-local stanza resources by default so the system path is never touched.
+        self._stanza_dir = stanza_dir or str(_PROJECT_STANZA_RESOURCES)
         # Mapping: Stanza Universal POS -> pymorphy3 (VESUM) POS
         self._pos_map = {
             "NOUN": "NOUN", "VERB": "VERB", "ADJ": "ADJF",
@@ -60,9 +68,11 @@ class Lemmatizer:
                 raise ImportError("stanza is not installed but is required for analyze_sentence")
             self._nlp = stanza.Pipeline(
                 lang='uk',
+                dir=self._stanza_dir,
                 processors='tokenize,mwt,pos,lemma',
                 use_gpu=self._use_gpu,
-                logging_level='WARN'
+                logging_level='WARN',
+                download_method=stanza.pipeline.core.DownloadMethod.REUSE_RESOURCES,
             )
         clean_sent = sentence.strip()
         doc = self._nlp(clean_sent)

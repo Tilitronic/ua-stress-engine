@@ -15,6 +15,7 @@ from .pipeline import (
     process_text,
 )
 from .stress_resolver import StressResolver
+from .ml_stress_resolver import MLStressResolver
 
 __all__ = [
     'UkrainianPipeline',
@@ -23,4 +24,5 @@ __all__ = [
     'EnrichedDocumentData',
     'process_text',
     'StressResolver',
+    'MLStressResolver',
 ]

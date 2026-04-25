@@ -1,0 +1,14 @@
+# Files excluded from the published npm package
+
+# TypeScript sources (compiled to dist/)
+src/
+tsup.config.ts
+tsconfig.json
+vitest.config.ts
+
+# Tests
+tests/
+
+# Dev artifacts
+*.tsbuildinfo
+.DS_Store

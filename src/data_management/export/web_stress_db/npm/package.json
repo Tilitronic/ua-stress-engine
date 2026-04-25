@@ -1,0 +1,58 @@
+{
+  "name": "ua-stress-trie",
+  "version": "1.0.0",
+  "description": "Offline Ukrainian word stress lookup via a compact binary trie (~9 MB). Zero dependencies. Works in browsers and Node.js.",
+  "keywords": [
+    "ukrainian",
+    "nlp",
+    "stress",
+    "accent",
+    "trie",
+    "morphology",
+    "ua"
+  ],
+  "license": "AGPL-3.0",
+  "author": "Rostyslav Lukan <lkn.rostyslav@gmail.com>",
+  "packageManager": "pnpm@9.0.0",
+  "homepage": "https://github.com/your-org/versasense-backend#ua-stress-trie",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/versasense-backend.git",
+    "directory": "src/data_management/export/web_stress_db/npm"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./data/*": "./data/*"
+  },
+  "files": [
+    "dist",
+    "data",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm build && pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}

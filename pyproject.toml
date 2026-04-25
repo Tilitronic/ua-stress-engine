@@ -1,9 +1,9 @@
 [project]
 name = "versasense-backend"
-version = "0.1.0"
-description = "NLP backend for Kaikki.org/Wiktionary data processing and analysis."
+version = "1.0.0"
+description = "Ukrainian NLP backend for word stress prediction — Luscinia LightGBM model (99.44 % accuracy) with ONNX browser export."
 authors = [
-    { name = "Your Name", email = "your@email.com" }
+    { name = "Rostyslav Lukan", email = "lkn.rostyslav@gmail.com" }
 ]
 readme = "README.md"
 requires-python = ">=3.8"

@@ -1,4 +1,4 @@
-# Luscinia — LightGBM Ukrainian Stress Predictor
+﻿# Luscinia — lightgbm Ukrainian Stress Predictor
 
 **Model:** `luscinia-lgbm-str-ua-univ-v1`  
 **Accuracy:** 99.44 % (sanity) · 192 / 197 hand-checked · 100 % ONNX class agreement  
@@ -9,7 +9,7 @@
 ## Files
 
 ```
-lightGbm/
+lightgbm/
   services/
     feature_service_universal.py   ← build the 132-feature input vector
     feature_service_2syl.py        ← specialist helpers (internal use)
@@ -21,7 +21,7 @@ lightGbm/
   artifacts/
     luscinia-lgbm-str-ua-univ-v1/
       P3_0017_FINAL_FULLDATA/
-        P3_0017_full.lgb           ← LightGBM model (Git LFS, 259 MB)
+        P3_0017_full.lgb           ← lightgbm model (Git LFS, 259 MB)
         meta.json                  ← training metadata
         manifest.json              ← feature names / version
       web/
@@ -45,7 +45,7 @@ and nginx / Express serving instructions.
 ```python
 import lightgbm as lgb
 import numpy as np
-from src.stress_prediction.lightGbm.services.feature_service_universal import (
+from src.stress_prediction.lightgbm.services.feature_service_universal import (
     build_features_universal,
 )
 
@@ -64,6 +64,6 @@ vowel_idx = int(bst.predict(X).argmax(axis=1)[0])   # → 4
 | ----------------------------------------------------- | ------------------------------------------------------------------------------- |
 | Single universal model (not per-syllable specialists) | One model covers 2–10 + syllable words; simpler deployment                      |
 | Vowel-ordinal labels (0 = first vowel)                | Bounded label space (11 classes); compatible with DB schema                     |
-| 132 hash features                                     | DJB2 suffix/prefix hashes massively outperform categorical encoding in LightGBM |
+| 132 hash features                                     | DJB2 suffix/prefix hashes massively outperform categorical encoding in lightgbm |
 | `is_unbalance: True`                                  | Class 0/1 dominate; rare classes (5-10) need balancing                          |
 | ONNX opset 15                                         | Supported by `onnxruntime-web` 1.16 +                                           |

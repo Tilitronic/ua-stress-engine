@@ -16,7 +16,7 @@ sys.path.insert(
     0,
     os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, os.pardir,
-        "src", "stress_prediction", "lightGbm",
+        "src", "stress_prediction", "lightgbm",
     ),
 )
 

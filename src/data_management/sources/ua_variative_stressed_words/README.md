@@ -10,25 +10,25 @@ Curated list of Ukrainian lemmas that have two or more equally valid stress posi
 
 ## Version & integrity
 
-| Field        | Value                         |
-|--------------|-------------------------------|
-| Version      | 1.0.0                         |
-| Format       | Plain text, UTF-8, line-delimited |
-| Entry count  | ~150 lemmas (manual curation) |
-| Size on disk | < 5 KB                        |
+| Field        | Value                                    |
+| ------------ | ---------------------------------------- |
+| Version      | 1.0.0                                    |
+| Format       | Plain text, UTF-8, line-delimited        |
+| Entry count  | ~150 lemmas (manual curation)            |
+| Size on disk | < 5 KB                                   |
 | License      | Curated manually; no third-party licence |
 
 ## How it works
 
-Each non-blank, non-comment line is a Ukrainian lemma whose stress is *freely variable* — i.e. both stress positions are accepted by the orthographic norm.  Examples: `алфавіт`, `договір`, `завжди`.
+Each non-blank, non-comment line is a Ukrainian lemma whose stress is _freely variable_ — i.e. both stress positions are accepted by the orthographic norm. Examples: `алфавіт`, `договір`, `завжди`.
 
 During the master-DB build (`parsing_merging_service.py`), the merger can query this set to annotate entries with a "variative" flag so the stress service can report ambiguity even when only one stress index was recorded in the raw source data.
 
-The parser does **not** assign specific stress indices; it only identifies *which* lemmas are variative. The actual stress index data comes from the trie, txt, and kaikki sources.
+The parser does **not** assign specific stress indices; it only identifies _which_ lemmas are variative. The actual stress index data comes from the trie, txt, and kaikki sources.
 
 ## How to build / rebuild
 
-No build step required — this is a static curated text file.  To add new variative words, append lemmas to `ua_variative_stressed_words.txt` one per line.
+No build step required — this is a static curated text file. To add new variative words, append lemmas to `ua_variative_stressed_words.txt` one per line.
 
 ```bash
 conda activate verseSense-py312

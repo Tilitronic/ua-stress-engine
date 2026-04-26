@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Luscinia 3S v1.0 — 3-Syllable Specialist
 ==========================================
@@ -190,7 +190,7 @@ EXTERNAL_SAMPLE_SEED = 42
 PHASE1_FRACTION = 0.30
 PHASE2_FRACTION = 0.25
 
-# ── LightGBM base params ─────────────────────────────────────────────────────
+# ── lightgbm base params ─────────────────────────────────────────────────────
 BASE_LGBM = {
     "boosting_type":      "gbdt",
     "objective":          "multiclass",
@@ -550,14 +550,14 @@ def train_and_evaluate(
     fitness_preset: str,
     save_model: bool = False,
 ) -> Optional[dict]:
-    """Train one LightGBM config and return a result dict.
+    """Train one lightgbm config and return a result dict.
 
     Uses checkpoint-based incremental training: the model is trained in
     segments and evaluated at each checkpoint.  Intermediate macro-F1 is
     reported to the Optuna ``trial`` so the Hyperband pruner can kill
     clearly hopeless configurations early, saving significant wall-time.
 
-    Multiclass note: LightGBM with objective=multiclass auto-builds
+    Multiclass note: lightgbm with objective=multiclass auto-builds
     ``num_class`` trees per boosting round, so the effective number of
     trees = ``best_iteration * num_class``.
 

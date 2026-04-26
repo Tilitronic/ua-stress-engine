@@ -11,20 +11,21 @@ Ukrainian word-stress dictionary from `lang-uk/ukrainian-word-stress-dictionary`
 
 ## Version & integrity
 
-| Field           | Value                                                              |
-|-----------------|--------------------------------------------------------------------|
-| Source          | https://github.com/lang-uk/ukrainian-word-stress-dictionary        |
-| Based on        | "Словники України", ULIF, National Academy of Sciences of Ukraine  |
-| License         | See upstream repo (data from public dictionary corpus)             |
-| Format          | Plain text, UTF-8, one form per line                               |
-| Approx. entries | ~2.9 M word forms                                                  |
-| Size (raw)      | ~69 MB (Git LFS)                                                   |
+| Field           | Value                                                             |
+| --------------- | ----------------------------------------------------------------- |
+| Source          | https://github.com/lang-uk/ukrainian-word-stress-dictionary       |
+| Based on        | "Словники України", ULIF, National Academy of Sciences of Ukraine |
+| License         | See upstream repo (data from public dictionary corpus)            |
+| Format          | Plain text, UTF-8, one form per line                              |
+| Approx. entries | ~2.9 M word forms                                                 |
+| Size (raw)      | ~69 MB (Git LFS)                                                  |
 
 ## How it works
 
 Each non-blank, non-comment line contains a Ukrainian word form with the stressed vowel marked by a combining acute accent (U+0301) immediately after the vowel character.
 
 Examples:
+
 ```
 замо́к    →  form="замок", stress_vowel_index=2   (3rd char counting from 0)
 за́мок    →  form="замок", stress_vowel_index=0   (1st vowel)
@@ -32,6 +33,7 @@ Examples:
 ```
 
 The parser:
+
 1. Reads each line and calls `extract_stress_indices(form)` to find which vowel is stressed.
 2. Strips the acute mark to get the base form.
 3. Lemmatises via `Lemmatizer.get_lemma()`.

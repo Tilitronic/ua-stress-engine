@@ -1,6 +1,6 @@
-"""Tests for evaluation_service — unified binary + multiclass evaluation.
+﻿"""Tests for evaluation_service — unified binary + multiclass evaluation.
 
-Uses mock boosters (fake .predict()) to avoid needing a real LightGBM model.
+Uses mock boosters (fake .predict()) to avoid needing a real lightgbm model.
 Covers:
   * compute_fitness — v1.4 backward-compat (positional), preset="specialist_binary",
     custom weights, penalty_mode, bounds
@@ -18,7 +18,7 @@ sys.path.insert(
     0,
     os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, os.pardir,
-        "src", "stress_prediction", "lightGbm",
+        "src", "stress_prediction", "lightgbm",
     ),
 )
 

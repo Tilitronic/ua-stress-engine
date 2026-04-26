@@ -1,4 +1,4 @@
-### Phase 1: The "Expert-Guided" Feature Engineering
+﻿### Phase 1: The "Expert-Guided" Feature Engineering
 
 Instead of letting the model guess the rules, we will "hard-code" the logic from your `rules.json` into the input data.
 
@@ -49,7 +49,7 @@ We will use your `rules.json` not just for features, but to **punish the model**
 Since you are learning ML on a **Ryzen 7 / RTX 4060 Ti** setup:
 
 - **Framework:** Use **PyTorch**. It is better than TensorFlow for this kind of "custom feature glueing."
-- **Batching:** Set your batch size to **512 or 1024**. Your 16GB of VRAM can handle this easily, and it will make the training much more stable than the LightGBM trials.
+- **Batching:** Set your batch size to **512 or 1024**. Your 16GB of VRAM can handle this easily, and it will make the training much more stable than the lightgbm trials.
 - **Validation:** Use the `split` column from your `stress_training.db`. Ensure you test the model _only_ on the `test` split to see if it actually learned the "Logic of new words" (Morphology) or just memorized the dictionary.
 
 ---

@@ -1,4 +1,4 @@
-"""Tests for luscinia-lgbm-str-ua-2s-v1 — pure-function unit tests.
+﻿"""Tests for luscinia-lgbm-str-ua-2s-v1 — pure-function unit tests.
 
 Covers:
   * compute_fitness — default luscinia_specialist preset
@@ -7,7 +7,7 @@ Covers:
     accept and reject paths
   * Phase fitness presets: P1/P2 use specialist_binary, P3 uses luscinia_specialist
 
-All tests are pure: no DB, no real LightGBM training, no real disk writes
+All tests are pure: no DB, no real lightgbm training, no real disk writes
 (except the ensemble-report tests which use tmp_path fixtures).
 """
 import importlib.util
@@ -28,7 +28,7 @@ import pytest
 # ---------------------------------------------------------------------------
 _SCRIPT_DIR = os.path.join(
     os.path.dirname(__file__), os.pardir, os.pardir, os.pardir,
-    "src", "stress_prediction", "lightGbm",
+    "src", "stress_prediction", "lightgbm",
 )
 sys.path.insert(0, _SCRIPT_DIR)
 

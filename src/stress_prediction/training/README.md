@@ -1,4 +1,4 @@
-# Stress Prediction Model Training
+﻿# Stress Prediction Model Training
 
 Training scripts and utilities for stress prediction models.
 
@@ -7,7 +7,7 @@ Training scripts and utilities for stress prediction models.
 ```
 training/
 ├── __init__.py
-├── train_lightgbm.py       # Future: LightGBM training script
+├── train_lightgbm.py       # Future: lightgbm training script
 ├── evaluate_model.py       # Future: Model evaluation
 └── README.md               # This file
 ```
@@ -124,7 +124,7 @@ def extract_features(row):
     return char_features + morph_features + [has_definition]
 ```
 
-### Example Training Loop (LightGBM)
+### Example Training Loop (lightgbm)
 
 ```python
 import lightgbm as lgb
@@ -162,7 +162,7 @@ with open('../models/stress_model_v1.pkl', 'wb') as f:
 
 Trained models go to: `../models/`
 
-Format: Pickle or LightGBM native format
+Format: Pickle or lightgbm native format
 
 ## Evaluation Metrics
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Stress Prediction Model Training Module
 
 This module contains training scripts and utilities for building stress prediction models.
@@ -10,7 +10,7 @@ Output:
     Trained models in src/stress_prediction/models/
 
 Usage:
-    # Future: Train LightGBM model
+    # Future: Train lightgbm model
     python -m src.stress_prediction.training.train_lightgbm
     
     # Future: Evaluate model

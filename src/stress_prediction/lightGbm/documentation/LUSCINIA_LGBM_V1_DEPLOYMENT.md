@@ -1,4 +1,4 @@
-# Luscinia v1.0 — Deployment Guide
+﻿# Luscinia v1.0 — Deployment Guide
 
 **Model:** `luscinia-lgbm-str-ua-univ-v1`  
 **Accuracy:** 99.44% sanity · 192/197 hand-checked · 100% ONNX class agreement  
@@ -60,13 +60,13 @@ import numpy as np
 import sys
 
 sys.path.insert(0, "/path/to/VersaSenseBackend")  # project root
-from src.stress_prediction.lightGbm.services.feature_service_universal import (
+from src.stress_prediction.lightgbm.services.feature_service_universal import (
     build_features_universal,
 )
 
 # ── Load once at service startup (takes ~2 s, model is 259 MB) ────────────────
 MODEL_PATH = (
-    "src/stress_prediction/lightGbm/artifacts/"
+    "src/stress_prediction/lightgbm/artifacts/"
     "luscinia-lgbm-str-ua-univ-v1/P3_0017_FINAL_FULLDATA/P3_0017_full.lgb"
 )
 bst = lgb.Booster(model_file=MODEL_PATH)
@@ -255,7 +255,7 @@ const manifest = await fetch("/models/manifest.json").then((r) => r.json());
 | Topic                | Detail                                                                                                                                                                                                                                   |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **ONNX opset**       | 9 (onnxmltools fixed value). Supported by onnxruntime-web 1.16+.                                                                                                                                                                         |
-| **Accuracy**         | 100% class agreement with the LightGBM model on 2 000 random inputs (verified by `test_onnx_identical_argmax`).                                                                                                                          |
+| **Accuracy**         | 100% class agreement with the lightgbm model on 2 000 random inputs (verified by `test_onnx_identical_argmax`).                                                                                                                          |
 | **Feature building** | The bottleneck for browser deployment. The safest approach is a thin API endpoint that accepts `(word, pos)` and returns the 132-element feature array as JSON. This keeps the feature logic in Python and the inference in the browser. |
 | **WASM threads**     | Enable `ort.env.wasm.numThreads` for better performance on multi-core devices.                                                                                                                                                           |
 | **Bundle size**      | onnxruntime-web WASM backend: ~6 MB. Model: 30 MB download. Total cold start: ~36 MB.                                                                                                                                                    |
@@ -265,10 +265,10 @@ const manifest = await fetch("/models/manifest.json").then((r) => r.json());
 ## 4. Artifacts reference
 
 ```
-src/stress_prediction/lightGbm/artifacts/luscinia-lgbm-str-ua-univ-v1/
+src/stress_prediction/lightgbm/artifacts/luscinia-lgbm-str-ua-univ-v1/
 │
 ├── P3_0017_FINAL_FULLDATA/
-│   ├── P3_0017_full.lgb       259 MB  LightGBM text format — Python service model
+│   ├── P3_0017_full.lgb       259 MB  lightgbm text format — Python service model
 │   ├── meta.json                       Training metadata (accuracy, params, etc.)
 │   └── manifest.json                   Export manifest (feature names, version)
 │

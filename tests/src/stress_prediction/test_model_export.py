@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Tests for model_export.py — Luscinia v1.0 production export
@@ -7,7 +7,7 @@ Tests for model_export.py — Luscinia v1.0 production export
 Covers:
   1. Feature pipeline  — build_features_universal() produces exactly 132 features
                          for a variety of real Ukrainian words
-  2. LightGBM inference — the .lgb model loads, predicts correct stress for
+  2. lightgbm inference — the .lgb model loads, predicts correct stress for
                           known words, and output shape is consistent
   3. Stress index → character position  — utility that maps model output back
                                            to the stressed character in the word
@@ -38,7 +38,7 @@ import pytest
 # Path setup
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-LGBM_DIR     = PROJECT_ROOT / "src" / "stress_prediction" / "lightGbm"
+LGBM_DIR     = PROJECT_ROOT / "src" / "stress_prediction" / "lightgbm"
 SERVICES_DIR = LGBM_DIR / "services"
 ARTIFACTS_DIR = LGBM_DIR / "artifacts" / "luscinia-lgbm-str-ua-univ-v1"
 FINAL_DIR    = ARTIFACTS_DIR / "P3_0017_FINAL_FULLDATA"
@@ -54,7 +54,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 @pytest.fixture(scope="session")
 def booster():
-    """Load the LightGBM model once for the whole test session."""
+    """Load the lightgbm model once for the whole test session."""
     lgb = pytest.importorskip("lightgbm", reason="lightgbm not installed")
     if not MODEL_PATH.exists():
         pytest.skip(f"Model not found (LFS asset): {MODEL_PATH}")
@@ -73,7 +73,7 @@ def meta():
 # ---------------------------------------------------------------------------
 
 def features_for(form: str, pos: str = "NOUN") -> dict:
-    from src.stress_prediction.lightGbm.services.feature_service_universal import (
+    from src.stress_prediction.lightgbm.services.feature_service_universal import (
         build_features_universal,
     )
     return build_features_universal(form, pos)
@@ -184,7 +184,7 @@ class TestFeaturePipeline:
 
 
 # ---------------------------------------------------------------------------
-# 2. LightGBM model: shape and output
+# 2. lightgbm model: shape and output
 # ---------------------------------------------------------------------------
 
 class TestLGBMModel:
@@ -289,7 +289,7 @@ class TestPythonServiceContract:
         """
         PYTHON SERVICE PATTERN
         ----------------------
-        from src.stress_prediction.lightGbm.services.feature_service_universal import (
+        from src.stress_prediction.lightgbm.services.feature_service_universal import (
             build_features_universal,
         )
         import lightgbm as lgb
@@ -311,7 +311,7 @@ class TestPythonServiceContract:
         vowel_positions = [i for i, c in enumerate(word.lower()) if c in VOWELS]
         stressed_char_pos = vowel_positions[vowel_idx]
         """
-        from src.stress_prediction.lightGbm.services.feature_service_universal import (
+        from src.stress_prediction.lightgbm.services.feature_service_universal import (
             build_features_universal,
         )
 
@@ -350,7 +350,7 @@ class TestPythonServiceContract:
         all_probs   = bst.predict(feat_matrix)    # shape (N, 11)
         all_indices = all_probs.argmax(axis=1)    # shape (N,)
         """
-        from src.stress_prediction.lightGbm.services.feature_service_universal import (
+        from src.stress_prediction.lightgbm.services.feature_service_universal import (
             build_features_universal,
         )
 
@@ -378,7 +378,7 @@ class TestPythonServiceContract:
         Feature dict is an ordered dict (Python 3.7+).
         Calling values() twice in the same Python process gives the same order.
         """
-        from src.stress_prediction.lightGbm.services.feature_service_universal import (
+        from src.stress_prediction.lightgbm.services.feature_service_universal import (
             build_features_universal,
         )
         feat = build_features_universal("навчання", "NOUN")
@@ -391,7 +391,7 @@ class TestPythonServiceContract:
         The order of features in the dict must match the order the model was
         trained with. Verify using the model's own feature_name() list.
         """
-        from src.stress_prediction.lightGbm.services.feature_service_universal import (
+        from src.stress_prediction.lightgbm.services.feature_service_universal import (
             build_features_universal,
         )
         feat = build_features_universal("навчання", "NOUN")
@@ -433,7 +433,7 @@ _RUN_ONNX_EXPORT = _os.environ.get("PYTEST_RUN_ONNX_EXPORT", "").strip() == "1"
     reason="ONNX export skipped — set PYTEST_RUN_ONNX_EXPORT=1 to enable (slow, one-time task)",
 )
 class TestONNXExport:
-    """Verify ONNX conversion and accuracy against the LightGBM model."""
+    """Verify ONNX conversion and accuracy against the lightgbm model."""
 
     @pytest.fixture(scope="class")
     def onnx_path(self, tmp_path_factory, booster):
@@ -478,7 +478,7 @@ class TestONNXExport:
     @pytest.mark.skipif(not _ORT_AVAILABLE, reason="onnxruntime not installed")
     def test_onnx_identical_argmax(self, onnx_path, booster):
         """
-        ONNX must give exactly the same predicted class as LightGBM on every input.
+        ONNX must give exactly the same predicted class as lightgbm on every input.
         This is the critical accuracy check before deploying to web.
         """
         import onnxruntime as ort

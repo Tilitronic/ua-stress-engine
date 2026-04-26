@@ -1,4 +1,4 @@
-# Bulbul Training History — Lessons Learned & Archive
+﻿# Bulbul Training History — Lessons Learned & Archive
 
 > **Date:** 2026-03-02  
 > **Purpose:** Historical documentation before cleanup of 26 deprecated training scripts and ~15 GB of old artifacts.  
@@ -12,7 +12,7 @@
 
 | Script        | Lines | Key Idea                                                    | Outcome                                             |
 | ------------- | ----- | ----------------------------------------------------------- | --------------------------------------------------- |
-| `train.py`    | 233   | First LightGBM. Form-level, pos+morph features              | Baseline established                                |
+| `train.py`    | 233   | First lightgbm. Form-level, pos+morph features              | Baseline established                                |
 | `train_v2.py` | 280   | Positions 0-5 only, syllable boundary features              | Marginal improvement                                |
 | `train_v3.py` | 422   | spaCy/Stanza morph as categoricals, rhyme features          | **Mistake:** noisy categoricals hurt more than help |
 | `train_v4.py` | 438   | Noise reduction: drop variants, filter ambiguous            | **Key lesson:** data cleaning > feature engineering |
@@ -22,7 +22,7 @@
 
 **Lessons from Phase 1:**
 
-- ❌ Categorical features (suffix as string category) = LightGBM creates too many bins → model bloat
+- ❌ Categorical features (suffix as string category) = lightgbm creates too many bins → model bloat
 - ❌ DART boosting: 10× slower, negligible accuracy gain
 - ❌ More features ≠ better: v7 (20 linguistic features, 416 MB) LOST to web_v2 (hash features, 2.9 MB)
 - ✅ Vowel-index labels (v5) was the correct encoding all along
@@ -36,7 +36,7 @@
 | `train_web_v2.py` | 647   | Better hash features, no categoricals        | **96.29%, 2.9 MB** — beat v7's 416 MB! |
 | `train_web_v3.py` | 731   | Synthesis of v7 linguistics + web_v2 hashing | 96.5%                                  |
 
-**Key insight:** Hash features (djb2 of suffix/prefix into 512-2048 buckets) massively outperform categorical encoding for LightGBM. This became the foundation for all future versions.
+**Key insight:** Hash features (djb2 of suffix/prefix into 512-2048 buckets) massively outperform categorical encoding for lightgbm. This became the foundation for all future versions.
 
 ### Phase 3: Bulbul series (`train_stress_bulbul_v0.1.py` → `v1.0.py`)
 
@@ -177,7 +177,7 @@ Fixes all v1.3 bugs, uses TPE + Hyperband, warm-starts from v1.3 results.
 | --------------------------------- | ----- | --------------------------------------------------- | ------------ |
 | `luscinia-lgbm-str-ua-univ-v1.py` | 1711  | Universal 11-class model, all syllable counts 2–10+ | **Complete** |
 
-**Architecture:** single LightGBM multiclass model replacing per-syllable-count specialists.  
+**Architecture:** single lightgbm multiclass model replacing per-syllable-count specialists.  
 **Feature set:** `build_features_universal` — 132 features (97 base v13 + 35 universal extensions).  
 **Label encoding:** vowel-index 0..10 (class = position of stressed vowel in word, 0-indexed).  
 **Classes:** 11 (vowel indices 0–10). Class distribution severely skewed: class 1 = 35%, class 10 = 0.001%.  
@@ -357,7 +357,7 @@ The universal model has drastically fewer false positives for class 0 (193 vs 79
 
 ## Top Insights (for future reference)
 
-1. **Hash features > categorical features** for LightGBM. djb2 hash of suffix/prefix into 512-2048 buckets preserves enough information while avoiding categorical explosion.
+1. **Hash features > categorical features** for lightgbm. djb2 hash of suffix/prefix into 512-2048 buckets preserves enough information while avoiding categorical explosion.
 
 2. **Group split by lemma** is mandatory. Without it, "наприклад" in train and "наприклад" in val = data leakage. All metrics are inflated by ~3-5%.
 

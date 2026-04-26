@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 model_export.py — Luscinia v1.0 production export utility
@@ -37,7 +37,7 @@ argmax (= stress position prediction) is identical in 100% of cases.
 
 Usage
 -----
-  # From the lightGbm/ directory:
+  # From the lightgbm/ directory:
   python services/model_export.py
 
   # Override paths:
@@ -209,7 +209,7 @@ def _verify_onnx(bst, onnx_path: Path, n_samples: int = 2000) -> None:
         raise RuntimeError(
             f"ONNX class agreement is {agreement:.6f} — conversion produced wrong predictions!"
         )
-    print("  ✓ ONNX predictions verified — identical to LightGBM")
+    print("  ✓ ONNX predictions verified — identical to lightgbm")
 
 
 def export_web(bst, model_path: Path, out_dir: Path, opset: int = 15) -> None:
@@ -264,7 +264,7 @@ def export_web(bst, model_path: Path, out_dir: Path, opset: int = 15) -> None:
 
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Export Luscinia v1.0 LightGBM model for Python service and web browser."
+        description="Export Luscinia v1.0 lightgbm model for Python service and web browser."
     )
     p.add_argument(
         "--model",

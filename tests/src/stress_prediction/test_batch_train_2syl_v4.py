@@ -1,7 +1,7 @@
-"""Tests for batch_train_2syl_v4 — compute_fitness, _handcrafted_to_training_rows,
+﻿"""Tests for batch_train_2syl_v4 — compute_fitness, _handcrafted_to_training_rows,
 and the refit helper.
 
-All tests are pure (no DB, no real LightGBM model, no disk I/O).
+All tests are pure (no DB, no real lightgbm model, no disk I/O).
 """
 import os
 import sys
@@ -14,7 +14,7 @@ import pytest
 # Make the script importable as a module
 _SCRIPT_DIR = os.path.join(
     os.path.dirname(__file__), os.pardir, os.pardir, os.pardir,
-    "src", "stress_prediction", "lightGbm",
+    "src", "stress_prediction", "lightgbm",
 )
 sys.path.insert(0, _SCRIPT_DIR)
 

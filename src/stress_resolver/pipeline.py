@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Ukrainian Text Processing Pipeline
 
@@ -8,7 +8,7 @@ Comprehensive NLP pipeline for Ukrainian text:
 3. Phonetic Transcription - IPA transcription (draft)
 
 Usage:
-    from src.nlp.pipeline import UkrainianPipeline
+    from src.stress_resolver import UkrainianPipeline
     
     pipeline = UkrainianPipeline()
     result = pipeline.process("Привіт, світ!")
@@ -30,8 +30,8 @@ from src.nlp.tokenization_service import (
 )
 from src.nlp.stress_service import UkrainianStressService
 from src.nlp.phonetic import UkrainianPhoneticTranscriber
-from src.nlp.pipeline.stress_resolver import StressResolver
-from src.nlp.pipeline.ml_stress_resolver import MLStressResolver
+from src.stress_resolver.stress_resolver import StressResolver
+from src.stress_resolver.ml_stress_resolver import MLStressResolver  # noqa: F401
 from pydantic import BaseModel, Field
 
 logger = getLogger(__name__)
@@ -160,7 +160,7 @@ class UkrainianPipeline:
             tokenizer_model: spaCy model name (default: uk_core_news_lg)
             stress_db_path: Path to stress LMDB database
             stress_mode: Stress engine mode: "db", "ml", or "hybrid"
-            ml_model_path: Path to trained LightGBM model (required for "ml")
+            ml_model_path: Path to trained lightgbm model (required for "ml")
             ml_confidence_threshold: Hybrid cutoff for accepting ML prediction
             ml_resolver: Pre-built MLStressResolver (from resolver_factory);
                 when provided, skips internal construction and uses it directly.

@@ -6,8 +6,8 @@ from types import SimpleNamespace
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[4]
-ml_module_path = ROOT / "src" / "nlp" / "pipeline" / "ml_stress_resolver.py"
+ROOT = Path(__file__).resolve().parents[3]
+ml_module_path = ROOT / "src" / "stress_resolver" / "ml_stress_resolver.py"
 spec = importlib.util.spec_from_file_location("ml_stress_resolver", ml_module_path)
 ml_module = importlib.util.module_from_spec(spec)
 assert spec is not None and spec.loader is not None

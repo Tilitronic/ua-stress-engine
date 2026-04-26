@@ -106,13 +106,13 @@ for the full deployment guide (nginx / Express serving, batch inference, feature
 
 ## Modules
 
-| Module | Path | What it does |
-|---|---|---|
-| **Dictionary resolver** (LMDB) | `src/nlp/stress_service/` | Sub-millisecond stress lookup across 2.86 M word forms |
-| **ML resolver** (LightGBM) | `src/stress_prediction/lightgbm/` | Luscinia model — 99.44 % accuracy, 132 features, ONNX export |
-| **NLP pipeline** | `src/stress_resolver/` | spaCy tokenization → LMDB lookup → ML fallback → IPA transcription |
-| **JS trie package** | `packages/ua-stress-web/` | `ua-stress-trie` — zero-dependency browser/Node trie (~9 MB) |
-| **Data management** | `src/data_management/` | Source parsers, master SQLite DB builder, trie exporter |
+| Module                         | Path                              | What it does                                                       |
+| ------------------------------ | --------------------------------- | ------------------------------------------------------------------ |
+| **Dictionary resolver** (LMDB) | `src/nlp/stress_service/`         | Sub-millisecond stress lookup across 2.86 M word forms             |
+| **ML resolver** (LightGBM)     | `src/stress_prediction/lightgbm/` | Luscinia model — 99.44 % accuracy, 132 features, ONNX export       |
+| **NLP pipeline**               | `src/stress_resolver/`            | spaCy tokenization → LMDB lookup → ML fallback → IPA transcription |
+| **JS trie package**            | `packages/ua-stress-web/`         | `ua-stress-trie` — zero-dependency browser/Node trie (~9 MB)       |
+| **Data management**            | `src/data_management/`            | Source parsers, master SQLite DB builder, trie exporter            |
 
 ## Project structure
 
@@ -163,19 +163,22 @@ python -m pytest tests/ -q
 # JS/TS trie package
 cd packages/ua-stress-web && pnpm test
 ```
+
     sources/               # Kaikki, trie, txt, UA variative stressed words
     transform/             # merger, data unifier, cache utils
     export/                # training DB export (SQL schema)
-  lemmatizer/              # Ukrainian lemmatizer
-  utils/                   # shared utilities (apostrophe normalization, …)
-tests/                     # pytest test suite mirroring src/
-```
+
+lemmatizer/ # Ukrainian lemmatizer
+utils/ # shared utilities (apostrophe normalization, …)
+tests/ # pytest test suite mirroring src/
+
+````
 
 ## Running tests
 
 ```bash
 pytest
-```
+````
 
 ## Large files (Git LFS)
 

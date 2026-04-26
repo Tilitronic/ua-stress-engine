@@ -1,4 +1,4 @@
-"""Tests for luscinia-lgbm-str-ua-univ-v1.1 — pure-function unit tests.
+﻿"""Tests for luscinia-lgbm-str-ua-univ-v1.1 — pure-function unit tests.
 
 Covers:
   * compute_sample_weights — class imbalance correction
@@ -11,7 +11,7 @@ Covers:
   * refit_on_full_data — weights passed for final training dataset
   * Structural checks — preset names, study names, sigma value
 
-All tests are pure: no DB, no real LightGBM training, no disk writes
+All tests are pure: no DB, no real lightgbm training, no disk writes
 (except where tmp_path fixtures are used for files explicitly under test).
 """
 import importlib.util
@@ -32,7 +32,7 @@ import pytest
 # ---------------------------------------------------------------------------
 _SCRIPT_DIR = os.path.join(
     os.path.dirname(__file__), os.pardir, os.pardir, os.pardir,
-    "src", "stress_prediction", "lightGbm",
+    "src", "stress_prediction", "lightgbm",
 )
 sys.path.insert(0, _SCRIPT_DIR)
 

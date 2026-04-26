@@ -1,1 +1,1 @@
-"""Ukrainian NLP modules — tokenization, stress service, phonetic, pipeline."""
+"""Ukrainian NLP modules — tokenization, stress service, phonetic."""

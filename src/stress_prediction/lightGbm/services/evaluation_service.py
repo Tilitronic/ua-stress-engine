@@ -1,4 +1,4 @@
-"""Evaluation service — external, handcrafted, and composite fitness.
+﻿"""Evaluation service — external, handcrafted, and composite fitness.
 
 Unified service reusable across all specialist models (2-syllable, 3-syllable,
 …) and the global multiclass model (Luscinia v1.0+).
@@ -81,7 +81,7 @@ def _predict_one(booster, fvec: np.ndarray, mode: str,
     Parameters
     ----------
     booster:
-        Trained LightGBM booster.
+        Trained lightgbm booster.
     fvec:
         Shape ``(1, n_features)`` float32 array.
     mode:
@@ -124,7 +124,7 @@ def evaluate_external(
     Parameters
     ----------
     booster:
-        Trained LightGBM booster.
+        Trained lightgbm booster.
     feature_columns:
         Ordered list of feature names the booster was trained on.
     external_sample:
@@ -212,7 +212,7 @@ def evaluate_handcrafted(
     Parameters
     ----------
     booster:
-        Trained LightGBM booster.
+        Trained lightgbm booster.
     feature_columns:
         Ordered list of feature names.
     handcrafted_tests:

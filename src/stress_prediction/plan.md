@@ -1,6 +1,6 @@
-Given the high quality of your training data (2.8 million forms with morphological enrichment via spaCy/Stanza) and the specific linguistic rules identified in the research papers, a **Hybrid Transformer-based Sequence Labeling** approach is significantly more effective than LightGBM for Ukrainian.
+﻿Given the high quality of your training data (2.8 million forms with morphological enrichment via spaCy/Stanza) and the specific linguistic rules identified in the research papers, a **Hybrid Transformer-based Sequence Labeling** approach is significantly more effective than lightgbm for Ukrainian.
 
-LightGBM fails (76%) because it struggles with **long-range character dependencies** (like suffixes interacting with prefixes) and treating words as atomic strings rather than sequences of phonemes/syllables.
+lightgbm fails (76%) because it struggles with **long-range character dependencies** (like suffixes interacting with prefixes) and treating words as atomic strings rather than sequences of phonemes/syllables.
 
 ### Recommended Approach: Multi-Task Transformer with Rule-Based Feature Injection
 
@@ -63,7 +63,7 @@ class UkrainianStressModel(nn.Module):
 
 ```
 
-### Why this beats LightGBM:
+### Why this beats lightgbm:
 
 1. **Suffix Awareness:** Transformers/LSTMs naturally "see" the `-ар`, `-ач`, `-ак` endings that the statistical research (Shaboldov) highlights as high-probability stress carriers.
 2. **Morphological Disambiguation:** By passing spaCy features as embeddings, the model can distinguish between _зáмок_ (Noun, Masc) and _замóк_ (Noun, Masc) if you include the `Definition_ID` or `Sense_Cluster` from your DB.

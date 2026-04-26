@@ -1,4 +1,4 @@
-"""Tests for feature_service — hashing helpers and the 97-feature builder.
+﻿"""Tests for feature_service — hashing helpers and the 97-feature builder.
 
 Every test is pure (no DB, no I/O) and deterministic.
 """
@@ -11,7 +11,7 @@ sys.path.insert(
     0,
     os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, os.pardir,
-        "src", "stress_prediction", "lightGbm",
+        "src", "stress_prediction", "lightgbm",
     ),
 )
 

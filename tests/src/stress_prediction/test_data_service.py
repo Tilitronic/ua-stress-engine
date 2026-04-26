@@ -1,4 +1,4 @@
-"""Tests for data_service — label encoding, CSV loader, and DB helpers.
+﻿"""Tests for data_service — label encoding, CSV loader, and DB helpers.
 
 Uses temporary files / in-memory DBs to avoid depending on the real 1.4 GB
 training database.
@@ -20,7 +20,7 @@ sys.path.insert(
     0,
     os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, os.pardir,
-        "src", "stress_prediction", "lightGbm",
+        "src", "stress_prediction", "lightgbm",
     ),
 )
 

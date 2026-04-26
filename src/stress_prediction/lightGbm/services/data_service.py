@@ -1,4 +1,4 @@
-"""Data loading, label encoding, dataset building, and train/val splitting.
+﻿"""Data loading, label encoding, dataset building, and train/val splitting.
 
 Handles I/O for the training DB, external validation sample, and
 handcrafted test CSV.  Depends only on *feature_service* and *constants*.
@@ -22,7 +22,7 @@ except ImportError:
     import sys
     from pathlib import Path
     # Add project root to path for training scripts run from subdirectories
-    root = Path(__file__).resolve().parents[4]  # lightGbm/services -> lightGbm -> lightGbm -> stress_prediction -> src -> root
+    root = Path(__file__).resolve().parents[4]  # lightgbm/services -> lightgbm -> lightgbm -> stress_prediction -> src -> root
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
     from src.utils.normalize_apostrophe import normalize_apostrophe

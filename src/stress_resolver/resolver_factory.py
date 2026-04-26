@@ -1,11 +1,11 @@
-"""Stress resolver factory — auto-configure DB + optional ML resolver.
+﻿"""Stress resolver factory — auto-configure DB + optional ML resolver.
 
 Usage
 -----
-    from src.nlp.pipeline.resolver_factory import create_pipeline_kwargs
-    from src.nlp.pipeline import UkrainianPipeline
+    from src.stress_resolver.resolver_factory import create_pipeline_kwargs
+    from src.stress_resolver import UkrainianPipeline
 
-    # Auto mode: hybrid (DB + ML) if LightGBM + model available,
+    # Auto mode: hybrid (DB + ML) if lightgbm + model available,
     # falls back to db-only silently.
     pipeline = UkrainianPipeline(**create_pipeline_kwargs())
 
@@ -32,11 +32,11 @@ from typing import Optional
 logger = getLogger(__name__)
 
 # ── Default model path (universal, 132-feature, luscinia-lgbm-str-ua-univ-v1) ─
-_PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
+_PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
 
 DEFAULT_MODEL_PATH: Path = (
     _PROJECT_ROOT
-    / "src/stress_prediction/lightGbm/artifacts"
+    / "src/stress_prediction/lightgbm/artifacts"
     / "luscinia-lgbm-str-ua-univ-v1"
     / "P3_0017_FINAL_FULLDATA"
     / "P3_0017_full.lgb"
@@ -86,14 +86,14 @@ def create_ml_resolver(
             "conda install -c conda-forge lightgbm"
         )
 
-    from src.stress_prediction.lightGbm.services.feature_service_universal import (
+    from src.stress_prediction.lightgbm.services.feature_service_universal import (
         build_features_universal,
     )
-    from src.nlp.pipeline.ml_stress_resolver import MLStressResolver
+    from src.stress_resolver.ml_stress_resolver import MLStressResolver  # noqa: F401
 
     path = Path(model_path) if model_path else DEFAULT_MODEL_PATH
     if not path.is_file():
-        raise FileNotFoundError(f"LightGBM model not found: {path}")
+        raise FileNotFoundError(f"lightgbm model not found: {path}")
 
     resolver = MLStressResolver(
         model_path=path,

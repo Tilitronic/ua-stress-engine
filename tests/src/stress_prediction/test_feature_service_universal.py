@@ -1,4 +1,4 @@
-"""Tests for feature_service_universal — 130-feature universal builder.
+﻿"""Tests for feature_service_universal — 130-feature universal builder.
 
 Every test is pure (no DB, no I/O) and deterministic.
 Validates the 33 universal features on top of the 97-base set.
@@ -13,7 +13,7 @@ sys.path.insert(
     0,
     os.path.join(
         os.path.dirname(__file__), os.pardir, os.pardir, os.pardir,
-        "src", "stress_prediction", "lightGbm",
+        "src", "stress_prediction", "lightgbm",
     ),
 )
 

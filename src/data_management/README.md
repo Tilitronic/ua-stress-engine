@@ -24,12 +24,12 @@ src/data_management/
 
 ## Version & integrity
 
-| Field         | Value                                           |
-|---------------|-------------------------------------------------|
-| Version       | 1.0.0                                           |
-| Master DB rows| ~4,078,014 (±0.1%)                              |
-| Sources       | kaikki, trie_ua_stresses, txt_ua_stresses, ua_variative_stressed_words |
-| Schema        | See `transform/linguistic_data_schema.sql`      |
+| Field          | Value                                                                  |
+| -------------- | ---------------------------------------------------------------------- |
+| Version        | 1.0.0                                                                  |
+| Master DB rows | ~4,078,014 (±0.1%)                                                     |
+| Sources        | kaikki, trie_ua_stresses, txt_ua_stresses, ua_variative_stressed_words |
+| Schema         | See `transform/linguistic_data_schema.sql`                             |
 
 ## How it works
 
@@ -68,12 +68,12 @@ Full schema: [transform/linguistic_data_schema.sql](transform/linguistic_data_sc
 
 ### Source provenance
 
-| Source                        | ~Records    | License       |
-|-------------------------------|-------------|---------------|
-| kaikki (Wiktionary extract)   | ~2 M forms  | CC BY-SA 4.0  |
-| trie_ua_stresses (lang-uk)    | ~2.9 M forms| MIT           |
-| txt_ua_stresses (lang-uk)     | ~2.9 M forms| MIT / ULIF    |
-| ua_variative_stressed_words   | ~150 lemmas | Manual curation |
+| Source                      | ~Records     | License         |
+| --------------------------- | ------------ | --------------- |
+| kaikki (Wiktionary extract) | ~2 M forms   | CC BY-SA 4.0    |
+| trie_ua_stresses (lang-uk)  | ~2.9 M forms | MIT             |
+| txt_ua_stresses (lang-uk)   | ~2.9 M forms | MIT / ULIF      |
+| ua_variative_stressed_words | ~150 lemmas  | Manual curation |
 
 ## How to build / rebuild
 
@@ -83,6 +83,7 @@ python -m src.data_management.transform.parsing_merging_service
 ```
 
 This will:
+
 1. Run all four source parsers (takes ~30–60 min depending on hardware)
 2. Merge intermediate LMDB caches
 3. Export the master SQLite DB (681 MB)

@@ -12,17 +12,17 @@ Kaikki.org Ukrainian dictionary (Wiktionary extract): structured JSONL with infl
 
 ## Version & integrity
 
-| Field           | Value                                      |
-|-----------------|--------------------------------------------|
-| Source          | https://kaikki.org/dictionary/Ukrainian/   |
-| License         | CC BY-SA 4.0                               |
-| Format          | JSONL, UTF-8                               |
-| Approx. entries | ~200,000 lemmas, ~2 M inflected forms      |
-| Size (raw)      | ~100 MB (Git LFS)                          |
+| Field           | Value                                    |
+| --------------- | ---------------------------------------- |
+| Source          | https://kaikki.org/dictionary/Ukrainian/ |
+| License         | CC BY-SA 4.0                             |
+| Format          | JSONL, UTF-8                             |
+| Approx. entries | ~200,000 lemmas, ~2 M inflected forms    |
+| Size (raw)      | ~100 MB (Git LFS)                        |
 
 ## How it works
 
-Each line is a JSON object for one lemma+POS combination.  The parser:
+Each line is a JSON object for one lemma+POS combination. The parser:
 
 1. Reads `.forms[]` entries and strips combining-acute stress marks (U+0301) to get the base form.
 2. Calls `extract_stress_indices(form)` to recover the 0-based vowel index of the stress mark.
@@ -34,7 +34,7 @@ Stress mark detection recognises both the combining acute (U+0301) and the preco
 
 ## How to build / rebuild
 
-The source JSONL is downloaded from kaikki.org.  Place it at:
+The source JSONL is downloaded from kaikki.org. Place it at:
 
 ```
 src/data_management/sources/kaikki/kaikki.org-dictionary-Ukrainian.jsonl

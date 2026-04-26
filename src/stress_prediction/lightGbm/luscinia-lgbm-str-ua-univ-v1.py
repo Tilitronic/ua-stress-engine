@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Luscinia Universal v1.0 — Multisyllable Stress Predictor
 ==========================================================
@@ -38,7 +38,7 @@ KEY DESIGN DECISIONS (informed by ``recommendations.md``)
    • 11 linguistic rule flags (ви- prefix, gerund, -ати/-ити/-увати,
      oxytone mobile, -ський, -адцять, foreign, Greek, penult-stable)
 
-4. **LightGBM parameters (expert recommendations)**:
+4. **lightgbm parameters (expert recommendations)**:
    • ``objective: multiclass`` with ``num_class: 11``
    • ``is_unbalance: True`` — handles severe class imbalance
      (class 0 and class 1 dominate; classes 5-10 are very rare)
@@ -175,7 +175,7 @@ PHASE1_FRACTION = 0.30
 PHASE2_FRACTION = 0.25
 # Phase 3 uses the remaining 45%
 
-# ── LightGBM base params ─────────────────────────────────────────────────────
+# ── lightgbm base params ─────────────────────────────────────────────────────
 # Expert recommendations (recommendations.md):
 # • objective: multiclass — positions are 0..10
 # • is_unbalance: True — class distribution is severely skewed
@@ -493,10 +493,10 @@ def train_and_evaluate(
     save_model: bool = False,
     train_frac: float = 1.0,
 ) -> Optional[dict]:
-    """Train one LightGBM config and return a result dict.
+    """Train one lightgbm config and return a result dict.
 
     Checkpoint-based incremental training with Hyperband pruning support.
-    Multiclass: LightGBM builds num_class trees per round,
+    Multiclass: lightgbm builds num_class trees per round,
     so effective trees = best_iteration * num_class.
 
     Args:

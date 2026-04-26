@@ -1,4 +1,4 @@
-"""Feature engineering service — 3-syllable specialist extension.
+﻿"""Feature engineering service — 3-syllable specialist extension.
 
 Extends ``build_features_v13()`` (97 base features) with ~22 features
 that are specifically informative for 3-syllable Ukrainian words.
@@ -167,7 +167,7 @@ def build_features_3syl(
     #   iv_ratio_12 = (vowels[1] - vowels[0]) / wl  — density of syllable 1
     #   iv_ratio_23 = (vowels[2] - vowels[1]) / wl  — density of syllable 2
     # (These are the same as iv_dist_0 and iv_dist_1 from the base, but the
-    #  explicit 3-syl names give LightGBM a dedicated signal path for trees
+    #  explicit 3-syl names give lightgbm a dedicated signal path for trees
     #  that specialise on 3-syl words — preventing "pollution" of the base
     #  iv_dist features that cover all syllable counts.)
 

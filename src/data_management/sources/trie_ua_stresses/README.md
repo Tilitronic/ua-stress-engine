@@ -11,28 +11,31 @@ Ukrainian word-stress data from the `lang-uk/ukrainian-word-stress` project: a c
 
 ## Version & integrity
 
-| Field           | Value                                                        |
-|-----------------|--------------------------------------------------------------|
-| Source          | https://github.com/lang-uk/ukrainian-word-stress             |
-| License         | MIT License, Copyright (c) 2022 lang-uk                      |
-| Format          | `marisa_trie.BytesTrie`                                      |
-| Approx. entries | ~2.9 M word forms                                            |
-| Size (raw)      | ~12 MB                                                       |
+| Field           | Value                                            |
+| --------------- | ------------------------------------------------ |
+| Source          | https://github.com/lang-uk/ukrainian-word-stress |
+| License         | MIT License, Copyright (c) 2022 lang-uk          |
+| Format          | `marisa_trie.BytesTrie`                          |
+| Approx. entries | ~2.9 M word forms                                |
+| Size (raw)      | ~12 MB                                           |
 
 ## How it works
 
 The trie maps word forms (no stress marks) to a compact byte value:
 
 **Format 1 — single stress position:**
+
 ```
 b'\x02'   →  stress at character index 2
 ```
 
 **Format 2 — multiple stress positions (ambiguity):**
+
 ```
 b'\x02\xFE\x10\x11\xFF\x04\xFE\x12\xFF'
   pos=2, tags=[0x10,0x11] | pos=4, tag=[0x12]
 ```
+
 - `\xFE` separates position from tags
 - `\xFF` separates records
 - Each tag byte maps to a `(UDFeatKey, value)` pair via `TAG_BY_BYTE`
@@ -41,7 +44,7 @@ The parser converts trie character positions to 0-based vowel indices using `cha
 
 ## How to build / rebuild
 
-`stress.trie` is included in the repo.  If the upstream is updated, refresh it:
+`stress.trie` is included in the repo. If the upstream is updated, refresh it:
 
 ```bash
 conda activate verseSense-py312

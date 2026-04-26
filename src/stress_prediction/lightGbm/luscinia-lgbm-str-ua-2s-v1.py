@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Luscinia 2S v1.0 — 2-Syllable Specialist
 ==========================================
@@ -185,7 +185,7 @@ PHASE1_FRACTION = 0.30   # 30%: broad random exploration
 PHASE2_FRACTION = 0.25   # 25%: CMA-ES continuous push
 # Phase 3 uses the remaining 45%: multivariate TPE fine-tune
 
-# ── LightGBM base params ─────────────────────────────────────────────────────
+# ── lightgbm base params ─────────────────────────────────────────────────────
 BASE_LGBM = {
     "boosting_type":      "gbdt",
     "objective":          "binary",
@@ -435,12 +435,12 @@ def train_and_evaluate(
     wall_start: float,
     fitness_preset: str = "luscinia_specialist",
 ) -> Optional[dict]:
-    """Train one LightGBM model, evaluate fully, persist results.
+    """Train one lightgbm model, evaluate fully, persist results.
 
     Parameters
     ----------
     params:
-        LightGBM hyperparameters for this trial.
+        lightgbm hyperparameters for this trial.
     X_train, y_train, X_val, y_val:
         Pre-split feature matrices and label vectors.
     feature_cols:
@@ -452,7 +452,7 @@ def train_and_evaluate(
     max_rounds:
         Hard ceiling on boosting rounds (per-phase constant).
     early_stopping_rounds:
-        Patience for LightGBM's built-in early stopping.
+        Patience for lightgbm's built-in early stopping.
     trial:
         Live Optuna trial (used for pruning + intermediate reporting).
     phase:

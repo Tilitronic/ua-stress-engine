@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Stress Resolution for Ukrainian Pipeline
 
@@ -13,7 +13,7 @@ Key Features:
 - Stress mark insertion in Unicode (combining acute accent U+0301)
 
 Usage:
-    from src.nlp.pipeline.stress_resolver import StressResolver
+    from src.stress_resolver.stress_resolver import StressResolver
     
     resolver = StressResolver(stress_service)
     stress_info = resolver.resolve(token)

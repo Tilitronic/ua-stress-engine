@@ -1,4 +1,4 @@
-"""
+﻿"""
 Ukrainian NLP Pipeline Package
 
 Complete text processing pipeline:

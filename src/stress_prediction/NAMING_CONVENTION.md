@@ -1,6 +1,6 @@
-# Luscinia Model Naming Convention
+﻿# Luscinia Model Naming Convention
 
-> **Scope:** All models under `src/stress_prediction/` — LightGBM, XGBoost,
+> **Scope:** All models under `src/stress_prediction/` — lightgbm, XGBoost,
 > neural, transformer, and any future architectures.
 >
 > **Date established:** 2026-03-05
@@ -36,7 +36,7 @@ Luscinia-LGBM-STR-UA-v1
 
 | Technology         | Code     |
 | ------------------ | -------- |
-| LightGBM           | `LGBM`   |
+| lightgbm           | `LGBM`   |
 | XGBoost            | `XGB`    |
 | CatBoost           | `CAT`    |
 | Random Forest      | `RF`     |
@@ -132,7 +132,7 @@ is intentionally scope-limited.
 
 ```
 luscinia-core          — shared dataset + preprocessing pipeline
-luscinia-lgbm          — LightGBM stress models
+luscinia-lgbm          — lightgbm stress models
 luscinia-transformer   — transformer / neural models
 ```
 

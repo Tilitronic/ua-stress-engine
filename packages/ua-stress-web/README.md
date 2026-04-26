@@ -9,14 +9,16 @@ Offline Ukrainian word stress lookup via a compact binary trie.
 
 <!-- AUTO-GENERATED — do not edit this block manually -->
 <!-- STATS_START -->
-| Metric | Value |
-|--------|-------|
-| Word forms | 2,874,507 |
-| Heteronyms (context-dependent stress) | 114,583 |
-| Trie nodes | 4,463,020 |
-| Compressed size (`ua_stress.ctrie.gz`) | 9.37 MB |
-| Format | ctrie-v1 |
-| Last built | 2026-04-25T13:49:36Z |
+
+| Metric                                 | Value                |
+| -------------------------------------- | -------------------- |
+| Word forms                             | 2,874,507            |
+| Heteronyms (context-dependent stress)  | 114,583              |
+| Trie nodes                             | 4,463,020            |
+| Compressed size (`ua_stress.ctrie.gz`) | 9.37 MB              |
+| Format                                 | ctrie-v1             |
+| Last built                             | 2026-04-25T13:49:36Z |
+
 <!-- STATS_END -->
 
 ---

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """ML-based stress resolver for Ukrainian pipeline tokens.
 
 This resolver reuses the same runtime token objects as the existing DB resolver
@@ -21,8 +21,8 @@ from typing import Callable, Dict, List, Optional
 import numpy as np
 
 from src.nlp.tokenization_service.types import TokenData
-from src.stress_prediction.lightGbm.services.constants import MAX_VOWEL_CLASS
-from src.stress_prediction.lightGbm.services.feature_service import (
+from src.stress_prediction.lightgbm.services.constants import MAX_VOWEL_CLASS
+from src.stress_prediction.lightgbm.services.feature_service import (
     build_features_v13,
     find_vowels,
 )
@@ -31,7 +31,7 @@ logger = getLogger(__name__)
 
 
 class MLStressResolver:
-    """Resolve stress with a trained LightGBM multiclass model.
+    """Resolve stress with a trained lightgbm multiclass model.
 
     Expected model objective: multiclass over vowel index classes
     ``0..MAX_VOWEL_CLASS``.
@@ -50,7 +50,7 @@ class MLStressResolver:
         """Initialize ML resolver.
 
         Args:
-            model_path: Path to serialized LightGBM model file.
+            model_path: Path to serialized lightgbm model file.
             booster: Pre-initialized booster-like object (useful for tests).
             high_confidence_threshold: Probability threshold for ``exact``.
             low_confidence_threshold: Probability threshold for ``partial``.

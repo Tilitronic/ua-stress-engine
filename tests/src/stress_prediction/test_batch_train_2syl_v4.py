@@ -23,6 +23,13 @@ sys.path.insert(0, _SCRIPT_DIR)
 import importlib.util
 
 _script_path = os.path.join(_SCRIPT_DIR, "batch_train_2syl_v4.py")
+if not os.path.exists(_script_path):
+    pytest.skip(
+        f"Training script not found: {_script_path}",
+        allow_module_level=True,
+    )
+pytest.importorskip("lightgbm", reason="lightgbm not installed — skip training-script tests")
+
 _spec = importlib.util.spec_from_file_location("batch_train_2syl_v4", _script_path)
 _mod = importlib.util.module_from_spec(_spec)
 # __file__ must be set before exec so Path(__file__) works inside the module

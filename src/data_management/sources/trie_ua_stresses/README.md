@@ -1,11 +1,95 @@
-`ua_word_stress_dictionary.txt`
+# trie_ua_stresses — lang-uk TRIE Stress Source
 
-- **Source:** https://github.com/lang-uk/ukrainian-word-stress
-- **License:** MIT License
-- **Copyright:** (c) 2022 lang-uk
-- **Format:** marisa_trie.BytesTrie
-- **Size:** ~12 MB
-- **Contains:** ~2.9M word forms with stress positions and morphological tags
+Ukrainian word-stress data from the `lang-uk/ukrainian-word-stress` project: a compact `marisa_trie.BytesTrie` encoding ~2.9 M word forms with stress positions and morphological tags.
+
+## What it contains
+
+- `stress.trie` — compiled `marisa_trie.BytesTrie` file (~12 MB). Keys are word forms; values encode stress positions and morphological tags in a compact byte format.
+- `trie_stress_parser.py` — parser: `char_positions_to_vowel_indices`, `stream_trie_to_lmdb`, tag decompression via `TAG_BY_BYTE`.
+- `stress_db_file_manager.py` — optional auto-download/update of `stress.trie` from the upstream GitHub repo.
+- `__init__.py` — package init.
+
+## Version & integrity
+
+| Field           | Value                                                        |
+|-----------------|--------------------------------------------------------------|
+| Source          | https://github.com/lang-uk/ukrainian-word-stress             |
+| License         | MIT License, Copyright (c) 2022 lang-uk                      |
+| Format          | `marisa_trie.BytesTrie`                                      |
+| Approx. entries | ~2.9 M word forms                                            |
+| Size (raw)      | ~12 MB                                                       |
+
+## How it works
+
+The trie maps word forms (no stress marks) to a compact byte value:
+
+**Format 1 — single stress position:**
+```
+b'\x02'   →  stress at character index 2
+```
+
+**Format 2 — multiple stress positions (ambiguity):**
+```
+b'\x02\xFE\x10\x11\xFF\x04\xFE\x12\xFF'
+  pos=2, tags=[0x10,0x11] | pos=4, tag=[0x12]
+```
+- `\xFE` separates position from tags
+- `\xFF` separates records
+- Each tag byte maps to a `(UDFeatKey, value)` pair via `TAG_BY_BYTE`
+
+The parser converts trie character positions to 0-based vowel indices using `char_positions_to_vowel_indices()`, then yields `(lemma, LinguisticEntry)` pairs.
+
+## How to build / rebuild
+
+`stress.trie` is included in the repo.  If the upstream is updated, refresh it:
+
+```bash
+conda activate verseSense-py312
+python -c "
+from src.data_management.sources.trie_ua_stresses.stress_db_file_manager import ensure_latest_db_file
+ensure_latest_db_file()
+"
+```
+
+Then re-run the full pipeline:
+
+```bash
+python -m src.data_management.transform.parsing_merging_service
+```
+
+## How to use
+
+```python
+import marisa_trie
+from src.data_management.sources.trie_ua_stresses.trie_stress_parser import (
+    char_positions_to_vowel_indices,
+    TAG_BY_BYTE,
+)
+
+trie = marisa_trie.BytesTrie()
+trie.load("src/data_management/sources/trie_ua_stresses/stress.trie")
+
+# Raw lookup
+results = trie["замок"]   # list of byte values
+print(results[0])          # e.g. b'\x03\xFE\x61\x20\x11\xFF\x05\xFE\x61\x20\x12\xFF'
+```
+
+## Tests
+
+```bash
+conda activate verseSense-py312
+pytest tests/src/data_management/sources/test_trie_parser.py -v
+```
+
+Expected: all tests pass; trie file loads; smoke words return correct vowel indices.
+
+## Dependencies
+
+- `marisa-trie` — trie access (`pip install marisa-trie`)
+- `src/data_management/transform/data_unifier.py`
+- `src/data_management/transform/merger.py`
+- `src/utils/normalize_apostrophe.py`
+- `src/lemmatizer/lemmatizer.py` — lemmatisation during parsing
 
 ## Dictionary Format
 

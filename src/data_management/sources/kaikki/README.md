@@ -1,9 +1,89 @@
-# Kaikki.org Ukrainian Dictionary Data
+# kaikki — Ukrainian Dictionary Source
 
-- **Source:** https://kaikki.org/dictionary/Ukrainian/index.html
-- **License:** CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
-- **Format:** JSON (one object per word/part-of-speech)
-- **Contains:** Structured, multilingual dictionary data extracted from Wiktionary and other sources
+Kaikki.org Ukrainian dictionary (Wiktionary extract): structured JSONL with inflected forms, stress marks, POS, morphology, etymology, and translations.
+
+## What it contains
+
+- `kaikki.org-dictionary-Ukrainian.jsonl` (Git LFS) — full Wiktionary-derived JSONL; ~100 MB, one JSON object per word/POS entry.
+- `kaikki.test.jsonl` — 5-entry fixture file used for offline unit tests.
+- `kaikki_parser.py` — parser: `extract_stress_indices`, `strip_stress`, `normalize_pos`, `stream_kaikki_to_lmdb`.
+- `__init__.py` — package init.
+- `pretty.jsonl` — human-readable sample (pretty-printed first entries).
+
+## Version & integrity
+
+| Field           | Value                                      |
+|-----------------|--------------------------------------------|
+| Source          | https://kaikki.org/dictionary/Ukrainian/   |
+| License         | CC BY-SA 4.0                               |
+| Format          | JSONL, UTF-8                               |
+| Approx. entries | ~200,000 lemmas, ~2 M inflected forms      |
+| Size (raw)      | ~100 MB (Git LFS)                          |
+
+## How it works
+
+Each line is a JSON object for one lemma+POS combination.  The parser:
+
+1. Reads `.forms[]` entries and strips combining-acute stress marks (U+0301) to get the base form.
+2. Calls `extract_stress_indices(form)` to recover the 0-based vowel index of the stress mark.
+3. Maps Wiktionary `tags` (e.g. `["nominative", "singular"]`) to UD feature keys (`Case=Nom`, `Number=Sing`).
+4. Maps Wiktionary `pos` string to a `UPOS` enum value.
+5. Yields `(lemma, LinguisticEntry)` pairs for disk-backed aggregation by the merger.
+
+Stress mark detection recognises both the combining acute (U+0301) and the precomposed acute variants.
+
+## How to build / rebuild
+
+The source JSONL is downloaded from kaikki.org.  Place it at:
+
+```
+src/data_management/sources/kaikki/kaikki.org-dictionary-Ukrainian.jsonl
+```
+
+Then run the full pipeline:
+
+```bash
+conda activate verseSense-py312
+python -m src.data_management.transform.parsing_merging_service
+```
+
+## How to use
+
+```python
+from src.data_management.sources.kaikki.kaikki_parser import (
+    strip_stress,
+    extract_stress_indices,
+    normalize_pos,
+)
+
+# Stress extraction from a Wiktionary form string
+form = "за́мок"  # castle (stress mark U+0301 after з)
+base = strip_stress(form)              # "замок"
+indices = extract_stress_indices(form) # [0]  — first vowel stressed
+
+# Stream to LMDB (used by parsing_merging_service)
+from src.data_management.sources.kaikki.kaikki_parser import stream_kaikki_to_lmdb
+stream_kaikki_to_lmdb(
+    input_path="src/data_management/sources/kaikki/kaikki.org-dictionary-Ukrainian.jsonl",
+    lmdb_path="/tmp/kaikki_cache.lmdb",
+)
+```
+
+## Tests
+
+```bash
+conda activate verseSense-py312
+pytest tests/src/data_management/sources/test_kaikki_parser.py -v
+```
+
+Expected: all tests pass using `kaikki.test.jsonl` (no network access required).
+
+## Dependencies
+
+- `src/data_management/transform/data_unifier.py` — `LinguisticEntry`, `WordForm`, `UPOS`, `UDFeatKey`
+- `src/data_management/transform/merger.py` — `LMDBExporter`
+- `src/utils/normalize_apostrophe.py`
+- `tqdm`, `lmdb`, `msgpack` (conda env)
 
 ---
 

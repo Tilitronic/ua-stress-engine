@@ -1,6 +1,6 @@
-# VersaSense Backend
+﻿# ua-stress-engine
 
-Ukrainian NLP backend for word stress prediction, phonetic analysis, and text processing.
+Ukrainian word stress engine — dictionary lookup, ML prediction, and a zero-dependency JS/TS trie package.
 
 The centrepiece is **Luscinia** — a LightGBM model that predicts the stressed vowel in
 any Ukrainian word with **99.44 % accuracy** across all syllable counts.
@@ -15,7 +15,7 @@ The model is also exported to ONNX for browser-side inference via `onnxruntime-w
 | Accuracy          | 99.44 % (sanity sample) · 192 / 197 hand-checked             |
 | Syllable coverage | 2 – 10 + syllable words, single universal model              |
 | Features          | 132 linguistic / hash features                               |
-| Runtimes          | LightGBM (Python) · ONNX (browser via `onnxruntime-web`)     |
+| Runtimes          | lightgbm (Python) · ONNX (browser via `onnxruntime-web`)     |
 | Training data     | 2.7 M word forms                                             |
 | License           | AGPL-3.0                                                     |
 
@@ -29,15 +29,17 @@ pip install -e .
 
 ## Quick start — Python
 
+### Low-level: raw model prediction
+
 ```python
 import lightgbm as lgb
 import numpy as np
-from src.stress_prediction.lightGbm.services.feature_service_universal import (
+from src.stress_prediction.lightgbm.services.feature_service_universal import (
     build_features_universal,
 )
 
 MODEL_PATH = (
-    "src/stress_prediction/lightGbm/artifacts/"
+    "src/stress_prediction/lightgbm/artifacts/"
     "luscinia-lgbm-str-ua-univ-v1/P3_0017_FINAL_FULLDATA/P3_0017_full.lgb"
 )
 bst = lgb.Booster(model_file=MODEL_PATH)
@@ -55,6 +57,22 @@ def predict_stress(word: str, pos: str = "NOUN") -> str:
 
 print(predict_stress("університет", "NOUN"))  # → університе́т
 print(predict_stress("читати",      "VERB"))  # → чита́ти
+```
+
+### Full pipeline (LMDB + ML fallback)
+
+```python
+from src.stress_resolver.resolver_factory import create_pipeline_kwargs
+from src.stress_resolver.pipeline import UkrainianPipeline
+
+# Auto mode: uses LMDB lookup + LightGBM fallback if model is available,
+# silently falls back to LMDB-only if lightgbm is not installed.
+pipeline = UkrainianPipeline(**create_pipeline_kwargs())
+
+doc = pipeline.process("Мама варила борщ на кухні.")
+for sentence in doc.sentences:
+    for token in sentence.tokens:
+        print(f"{token.text:15} {token.stress_pattern}")
 ```
 
 > **POS tags** — use Universal Dependencies tags:
@@ -83,24 +101,68 @@ const results = await session.run({ float_input: tensor });
 const vowelIndex = Number(results["label"].data[0]);
 ```
 
-See [src/stress_prediction/lightGbm/documentation/LUSCINIA_LGBM_V1_DEPLOYMENT.md](src/stress_prediction/lightGbm/documentation/LUSCINIA_LGBM_V1_DEPLOYMENT.md)
+See [src/stress_prediction/lightgbm/documentation/LUSCINIA_LGBM_V1_DEPLOYMENT.md](src/stress_prediction/lightgbm/documentation/LUSCINIA_LGBM_V1_DEPLOYMENT.md)
 for the full deployment guide (nginx / Express serving, batch inference, feature order).
+
+## Modules
+
+| Module | Path | What it does |
+|---|---|---|
+| **Dictionary resolver** (LMDB) | `src/nlp/stress_service/` | Sub-millisecond stress lookup across 2.86 M word forms |
+| **ML resolver** (LightGBM) | `src/stress_prediction/lightgbm/` | Luscinia model — 99.44 % accuracy, 132 features, ONNX export |
+| **NLP pipeline** | `src/stress_resolver/` | spaCy tokenization → LMDB lookup → ML fallback → IPA transcription |
+| **JS trie package** | `packages/ua-stress-web/` | `ua-stress-trie` — zero-dependency browser/Node trie (~9 MB) |
+| **Data management** | `src/data_management/` | Source parsers, master SQLite DB builder, trie exporter |
 
 ## Project structure
 
 ```
-src/
-  stress_prediction/
-    lightGbm/              # Luscinia model — training scripts, services, artifacts
-      services/            # feature_service_universal.py and helpers
-      artifacts/           # trained .lgb + .onnx files (Git LFS)
-      documentation/       # LUSCINIA_LGBM_V1_DEPLOYMENT.md
-  nlp/
-    stress_service/        # dictionary-based stress lookup (LMDB trie)
-    pipeline/              # NLP pipeline (stress resolver, ML stress resolver)
-    phonetic/              # IPA transcription for Ukrainian
-    tokenization_service/  # tokenizer
-  data_management/         # data ingestion, parsing, merging pipeline
+ua-stress-engine/
+├── packages/
+│   └── ua-stress-web/             # ua-stress-trie npm package (TypeScript, zero deps)
+│       ├── src/                   # UaStressTrie.ts, types.ts, utils.ts
+│       ├── tests/
+│       └── package.json
+├── src/
+│   ├── stress_resolver/           # Python NLP pipeline + resolver chain
+│   │   ├── pipeline.py            # UkrainianPipeline
+│   │   ├── stress_resolver.py     # LMDB-based resolver (morphology matching)
+│   │   ├── ml_stress_resolver.py  # LightGBM-based resolver
+│   │   └── resolver_factory.py    # Auto-configure DB + optional ML resolver
+│   ├── nlp/
+│   │   ├── stress_service/        # LMDB stress lookup (2.86 M entries)
+│   │   ├── phonetic/              # IPA transcription
+│   │   └── tokenization_service/  # spaCy tokenizer wrapper
+│   ├── stress_prediction/
+│   │   └── lightgbm/              # Luscinia model, training scripts, services, artifacts
+│   └── data_management/
+│       ├── sources/               # Source parsers (kaikki, trie, txt, variative)
+│       ├── transform/             # Master DB builder (SQLite, 681 MB)
+│       └── export/
+│           └── web_stress_db/     # Binary trie builder (Python → ua-stress-trie data)
+├── build_master_db.py             # Build master SQLite from all sources
+├── build_web_stress_db.py         # Build + export binary trie → packages/ua-stress-web/data/
+├── analyze_master_db.py           # Inspect master DB
+├── analyze_stress_service.py      # Inspect LMDB
+├── analyze_luscinia.py            # Inspect LightGBM model
+└── tests/
+    └── src/
+        ├── stress_resolver/       # Pipeline + resolver tests (30 tests)
+        ├── stress_prediction/     # LightGBM model tests (44+ tests)
+        ├── data_management/       # Source parser + DB tests (21 tests)
+        └── nlp/                   # Stress service tests (24 tests)
+```
+
+## Running tests
+
+```bash
+# All tests (requires verseSense-py312 for LightGBM and spaCy)
+conda activate verseSense-py312
+python -m pytest tests/ -q
+
+# JS/TS trie package
+cd packages/ua-stress-web && pnpm test
+```
     sources/               # Kaikki, trie, txt, UA variative stressed words
     transform/             # merger, data unifier, cache utils
     export/                # training DB export (SQL schema)

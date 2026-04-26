@@ -43,22 +43,38 @@ class ExportConfig:
     def __init__(self, format: ExportFormat = ExportFormat.SQL, query_words: Optional[List[str]] = None, sources_configs: Optional[Dict[str, 'ParserConfig']] = None):
         self.format = format
         self.query_words = query_words or []
+        # Default source paths — overridable via environment variables:
+        #   UA_TXT_DICT   : path to ua_word_stress_dictionary.txt
+        #   UA_TRIE_DICT  : path to stress.trie
+        #   UA_KAIKKI_JSONL: path to kaikki.org-dictionary-Ukrainian.jsonl
+        txt_path = os.environ.get(
+            "UA_TXT_DICT",
+            "src/data_management/sources/txt_ua_stresses/ua_word_stress_dictionary.txt",
+        )
+        trie_path = os.environ.get(
+            "UA_TRIE_DICT",
+            "src/data_management/sources/trie_ua_stresses/stress.trie",
+        )
+        kaikki_path = os.environ.get(
+            "UA_KAIKKI_JSONL",
+            "src/data_management/sources/kaikki/kaikki.org-dictionary-Ukrainian.jsonl",
+        )
         # Default sources_configs if not provided
         self.sources_configs: Dict[str, ParserConfig] = sources_configs or {
             "TXT": {
                 "parser_func": "run_txt_parser",
                 "parser_path": "src/data_management/sources/txt_ua_stresses/txt_stress_parser.py",
-                "db_path": "src/data_management/sources/txt_ua_stresses/ua_word_stress_dictionary.txt",
+                "db_path": txt_path,
             },
             "TRIE": {
                 "parser_func": "run_trie_parser",
                 "parser_path": "src/data_management/sources/trie_ua_stresses/trie_stress_parser.py",
-                "db_path": "src/data_management/sources/trie_ua_stresses/stress.trie", 
+                "db_path": trie_path,
             },
             "KAIKKI": {
                 "parser_func": "run_kaikki_parser",
                 "parser_path": "src/data_management/sources/kaikki/kaikki_parser.py",
-                "db_path": "src/data_management/sources/kaikki/kaikki.org-dictionary-Ukrainian.jsonl",
+                "db_path": kaikki_path,
             },
         }
         # Informative log for sources_configs

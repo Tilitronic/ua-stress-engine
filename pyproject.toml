@@ -1,7 +1,7 @@
-[project]
-name = "versasense-backend"
+﻿[project]
+name = "ua-stress-engine"
 version = "1.0.0"
-description = "Ukrainian NLP backend for word stress prediction — Luscinia LightGBM model (99.44 % accuracy) with ONNX browser export."
+description = "Ukrainian NLP backend for word stress prediction — Luscinia lightgbm model (99.44 % accuracy) with ONNX browser export."
 authors = [
     { name = "Rostyslav Lukan", email = "lkn.rostyslav@gmail.com" }
 ]

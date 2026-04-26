@@ -10,10 +10,7 @@ from pathlib import Path
 from typing import Optional, List
 from logging import getLogger
 
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-
-from src.stress_db_generator.lmdb_exporter import LMDBQuery
+from src.nlp.stress_service.lmdb_query import LMDBQuery
 from src.nlp.stress_service.types import WordLookupResult, WordFormDict, format_stress_display
 try:
     from src.utils.normalize_apostrophe import normalize_apostrophe

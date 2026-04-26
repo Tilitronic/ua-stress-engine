@@ -10,7 +10,7 @@ database and write the output to:
         ua_stress.ctrie.gz       — gzip-compressed (serve this to browsers)
         manifest.json            — metadata for the JS loader
 
-    src/data_management/export/web_stress_db/npm/data/
+    packages/ua-stress-web/data/
         ua_stress.ctrie.gz       — copy for the npm package
 
 Tests are run automatically after every successful build and abort with a
@@ -44,10 +44,18 @@ from src.data_management.export.web_stress_db.loader import load_from_master_db
 from src.data_management.export.web_stress_db.tests import run_tests
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
-_DEFAULT_MASTER_DB = (
-    _PROJECT_ROOT
-    / "src/data_management/transform/cache"
-    / "MERGEDSQL_33734b4d5785370f0db8c93c657d5f1d244e9e559f3a9f4e6bcaa914959db665.sqlite3"
+_MASTER_DB_NAME = (
+    "MERGEDSQL_33734b4d5785370f0db8c93c657d5f1d244e9e559f3a9f4e6bcaa914959db665.sqlite3"
+)
+_CANDIDATE_MASTER_DBS = [
+    _PROJECT_ROOT / "src/data_management/transform/cache" / _MASTER_DB_NAME,
+    _PROJECT_ROOT.parent
+    / "VersaSenseEngine/VersaSenseBackend/src/data_management/transform/cache"
+    / _MASTER_DB_NAME,
+]
+_DEFAULT_MASTER_DB = next(
+    (p for p in _CANDIDATE_MASTER_DBS if p.exists()),
+    _CANDIDATE_MASTER_DBS[0],  # fall back to first (will fail with helpful error)
 )
 _DEFAULT_OUT = (
     _PROJECT_ROOT
@@ -55,11 +63,11 @@ _DEFAULT_OUT = (
 )
 _NPM_DATA_DIR = (
     _PROJECT_ROOT
-    / "src/data_management/export/web_stress_db/npm/data"
+    / "packages/ua-stress-web/data"
 )
 _NPM_README = (
     _PROJECT_ROOT
-    / "src/data_management/export/web_stress_db/npm/README.md"
+    / "packages/ua-stress-web/README.md"
 )
 
 # ── README auto-stats updater ─────────────────────────────────────────────────

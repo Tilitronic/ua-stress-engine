@@ -1,4 +1,4 @@
-# Large data files - downloaded automatically to raw_data folder
+﻿# Large data files - downloaded automatically to raw_data folder
 raw_data/
 
 # Python
@@ -72,20 +72,20 @@ src/data_management/sources/kaikki/*.jsonl
 
 # Training artifacts: keep only the FINAL model dir and its leaderboard/results.
 # Intermediate HPO checkpoints, Optuna study DBs, batch logs are excluded.
-src/stress_prediction/lightGbm/artifacts/*/optuna_study.db
-src/stress_prediction/lightGbm/artifacts/*/optuna_study.db-*
-src/stress_prediction/lightGbm/artifacts/*/*_log.txt
-src/stress_prediction/lightGbm/artifacts/*/trials/
-src/stress_prediction/lightGbm/artifacts/*/P*/
+src/stress_prediction/lightgbm/artifacts/*/optuna_study.db
+src/stress_prediction/lightgbm/artifacts/*/optuna_study.db-*
+src/stress_prediction/lightgbm/artifacts/*/*_log.txt
+src/stress_prediction/lightgbm/artifacts/*/trials/
+src/stress_prediction/lightgbm/artifacts/*/P*/
 
 # Specifically UN-ignore the single final model directory so LFS can track it
-!src/stress_prediction/lightGbm/artifacts/luscinia-lgbm-str-ua-univ-v1/P3_0017_FINAL_FULLDATA/
+!src/stress_prediction/lightgbm/artifacts/luscinia-lgbm-str-ua-univ-v1/P3_0017_FINAL_FULLDATA/
 
 # Stripped/compact/infer model variants (generated from final, not source of truth)
-src/stress_prediction/lightGbm/artifacts/**/*_compact.lgb
-src/stress_prediction/lightGbm/artifacts/**/*_infer.lgb
-src/stress_prediction/lightGbm/artifacts/**/*_stripped.lgb
+src/stress_prediction/lightgbm/artifacts/**/*_compact.lgb
+src/stress_prediction/lightgbm/artifacts/**/*_infer.lgb
+src/stress_prediction/lightgbm/artifacts/**/*_stripped.lgb
 
 # Web ONNX — keep only the gzipped version (the raw .onnx is 185 MB and reproducible)
-src/stress_prediction/lightGbm/artifacts/**/web/*.onnx
-!src/stress_prediction/lightGbm/artifacts/**/web/*.onnx.gz
+src/stress_prediction/lightgbm/artifacts/**/web/*.onnx
+!src/stress_prediction/lightgbm/artifacts/**/web/*.onnx.gz

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Compare 2-syllable specialist (luscinia-lgbm-str-ua-2s-v1) vs
 universal model (luscinia-lgbm-str-ua-univ-v1) on ALL 2-syllable words
@@ -23,7 +23,7 @@ import pandas as pd
 
 # ── Path setup ────────────────────────────────────────────────────────────────
 _HERE  = Path(__file__).resolve().parent
-_LGBM  = _HERE / "src" / "stress_prediction" / "lightGbm"
+_LGBM  = _HERE / "src" / "stress_prediction" / "lightgbm"
 _SVC   = _LGBM / "services"
 
 for p in [str(_HERE), str(_LGBM), str(_SVC)]:

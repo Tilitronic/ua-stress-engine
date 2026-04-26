@@ -37,6 +37,12 @@ _SCRIPT_DIR = os.path.join(
 sys.path.insert(0, _SCRIPT_DIR)
 
 _script_path = os.path.join(_SCRIPT_DIR, "luscinia-lgbm-str-ua-univ-v1.1.py")
+if not os.path.exists(_script_path):
+    pytest.skip(
+        f"Training script not yet created: {_script_path}",
+        allow_module_level=True,
+    )
+pytest.importorskip("lightgbm", reason="lightgbm not installed — skip training-script tests")
 _spec = importlib.util.spec_from_file_location("luscinia_lgbm_str_ua_univ_v1_1", _script_path)
 _mod = importlib.util.module_from_spec(_spec)
 _mod.__file__ = _script_path

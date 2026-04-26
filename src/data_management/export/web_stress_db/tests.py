@@ -97,6 +97,7 @@ def run_tests(ctrie_bytes: bytes, *, verbose: bool = True) -> None:
 
 def _load_fixture() -> bytes:
     """Load the default built .ctrie file for pytest runs."""
+    import pytest
     # Try gzipped first, then raw
     candidates = [
         Path("src/data_management/export/web_stress_db/dist/ua_stress.ctrie.gz"),
@@ -108,9 +109,7 @@ def _load_fixture() -> bytes:
             if p.suffix == ".gz":
                 return gzip.decompress(data)
             return data
-    raise FileNotFoundError(
-        "No built .ctrie found. Run build_web_stress_db.py first."
-    )
+    pytest.skip("No built .ctrie found. Run `python build_web_stress_db.py` first.")
 
 
 def test_magic():

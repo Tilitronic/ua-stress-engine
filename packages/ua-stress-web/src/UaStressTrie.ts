@@ -10,12 +10,12 @@ const NODE_SIZE = 8; // char_id(u8) + stress(u8) + flags(u8) + stress2(u8) + fir
 
 const NO_STRESS = 0xff;
 // v1 flag (bit 0 was "heteronym"): kept for backward-compat when reading v1 files
-const FLAG_V1_UNCERTAIN   = 0x01;
+const FLAG_V1_UNCERTAIN = 0x01;
 // v2 flags
-const FLAG_VARIATIVE      = 0x01; // both stresses orthographically valid
-const FLAG_HAS_CHILDREN   = 0x02;
-const FLAG_HETERONYM      = 0x04; // different meanings / forms
-const FLAG_HAS_SECONDARY  = 0x08; // stress2 byte (byte[3]) is valid
+const FLAG_VARIATIVE = 0x01; // both stresses orthographically valid
+const FLAG_HAS_CHILDREN = 0x02;
+const FLAG_HETERONYM = 0x04; // different meanings / forms
+const FLAG_HAS_SECONDARY = 0x08; // stress2 byte (byte[3]) is valid
 
 // ── Gzip decompression ────────────────────────────────────────────────────────
 

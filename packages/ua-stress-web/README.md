@@ -9,15 +9,17 @@ Offline Ukrainian word stress lookup via a compact binary trie.
 
 <!-- AUTO-GENERATED — do not edit this block manually -->
 <!-- STATS_START -->
-| Metric | Value |
-|--------|-------|
-| Word forms | 2,874,507 |
-| Variative stress (both valid) | 221 |
-| Heteronyms (context-dependent stress) | 114,362 |
-| Trie nodes | 4,463,020 |
-| Compressed size (`ua_stress.ctrie.gz`) | 9.4 MB |
-| Format | ctrie-v2 |
-| Last built | 2026-04-27T16:28:35Z |
+
+| Metric                                 | Value                |
+| -------------------------------------- | -------------------- |
+| Word forms                             | 2,874,507            |
+| Variative stress (both valid)          | 221                  |
+| Heteronyms (context-dependent stress)  | 114,362              |
+| Trie nodes                             | 4,463,020            |
+| Compressed size (`ua_stress.ctrie.gz`) | 9.4 MB               |
+| Format                                 | ctrie-v2             |
+| Last built                             | 2026-04-27T16:28:35Z |
+
 <!-- STATS_END -->
 
 ---
@@ -43,12 +45,12 @@ yarn add ua-word-stress
 // vite.config.ts (or quasar.config.js > build.extendViteConf)
 // Required only if Vite doesn't recognise .ctrie.gz as an asset:
 export default defineConfig({
-  assetsInclude: ['**/*.ctrie.gz'],
+  assetsInclude: ["**/*.ctrie.gz"],
 });
 ```
 
 ```ts
-import trieUrl from 'ua-word-stress/data/ua_stress.ctrie.gz?url';
+import trieUrl from "ua-word-stress/data/ua_stress.ctrie.gz?url";
 const trie = await UaStressTrie.fromUrl(trieUrl);
 ```
 
@@ -328,9 +330,9 @@ The compiled `data/ua_stress.ctrie.gz` trie is built from three open sources:
 
 This package uses **dual licensing**:
 
-| Component | License |
-| --------- | ------- |
-| TypeScript source code (`src/`, `dist/`) | [AGPL-3.0](LICENSE) |
+| Component                                      | License                                                         |
+| ---------------------------------------------- | --------------------------------------------------------------- |
+| TypeScript source code (`src/`, `dist/`)       | [AGPL-3.0](LICENSE)                                             |
 | Compiled data file (`data/ua_stress.ctrie.gz`) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 
 The data file carries CC BY-SA 4.0 because it is a derived database of Wiktionary content. Any derivative database you build from `ua_stress.ctrie.gz` must also be released under CC BY-SA 4.0 or a compatible license.

@@ -85,8 +85,8 @@ describe("input normalisation", () => {
   it("normalises apostrophe variants to U+02BC", () => {
     // U+2019 right single quotation mark  →  U+02BC modifier letter apostrophe
     // м'яч (ball) — stress index 0, confirmed present in the trie
-    const withWrong = "\u043c\u2019\u044f\u0447";   // м + U+2019 + яч
-    const withCorrect = "\u043c\u02bc\u044f\u0447";  // м + U+02BC + яч
+    const withWrong = "\u043c\u2019\u044f\u0447"; // м + U+2019 + яч
+    const withCorrect = "\u043c\u02bc\u044f\u0447"; // м + U+02BC + яч
     const r1 = trie.lookup(withWrong);
     const r2 = trie.lookup(withCorrect);
     expect(r1).not.toBeNull();

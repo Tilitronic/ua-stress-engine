@@ -73,7 +73,9 @@ const trie = await UaStressTrie.fromUrl("/ua_stress.ctrie.gz");
 
 trie.lookup("університет"); // → 4
 trie.mark("університет"); // → 'університе́т'
-trie.lookupFull("замок"); // → { stress: 0, uncertain: true }
+trie.lookupFull("замок"); // → { stress: 0, stresses: [0, 1], type: 'heteronym', uncertain: true }
+trie.lookupFull("помилка"); // → { stress: 0, stresses: [0, 1], type: 'variative', uncertain: true }
+trie.lookupFull("мама"); // → { stress: 0, stresses: [0], type: 'unique', uncertain: false }
 ```
 
 ### Node.js
@@ -126,11 +128,11 @@ export function useStressTrie() {
 
 #### Instance methods
 
-| Method                  | Return type            | Description                                                     |
-| ----------------------- | ---------------------- | --------------------------------------------------------------- |
-| `trie.lookup(word)`     | `number \| null`       | Stressed vowel index (0-based), or `null` if not in trie.       |
-| `trie.lookupFull(word)` | `LookupResult \| null` | Stress index + heteronym flag, or `null`.                       |
-| `trie.mark(word)`       | `string \| null`       | Word with U+0301 combining accent on stressed vowel, or `null`. |
+| Method                  | Return type            | Description                                                               |
+| ----------------------- | ---------------------- | ------------------------------------------------------------------------- |
+| `trie.lookup(word)`     | `number \| null`       | Stressed vowel index (0-based), or `null` if not in trie.                 |
+| `trie.lookupFull(word)` | `LookupResult \| null` | Full result with all stress positions and type classification, or `null`. |
+| `trie.mark(word)`       | `string \| null`       | Word with U+0301 combining accent on stressed vowel, or `null`.           |
 
 #### Properties
 
@@ -153,8 +155,22 @@ normaliseApostrophe("п'ять"); // → 'п\u02bcять'
 
 ```ts
 interface LookupResult {
-  stress: number; // 0-based vowel index
-  uncertain: boolean; // true = heteronym, context needed
+  /** Primary stress position — 0-based vowel index. */
+  stress: number;
+  /** All valid stress positions for this word form. */
+  stresses: number[];
+  /**
+   * How to interpret multiple stress positions:
+   * - `"unique"`    — one stress, no ambiguity.
+   * - `"variative"` — both positions are always valid simultaneously
+   *                    (e.g. по́милка / поми́лка). Display both or pick either.
+   * - `"heteronym"` — positions correspond to different meanings or forms
+   *                    (e.g. за́мок "lock" vs замо́к "castle").
+   *                    Context is required to pick the right one.
+   */
+  type: "unique" | "variative" | "heteronym";
+  /** @deprecated Use `type !== "unique"` instead. */
+  uncertain: boolean;
 }
 
 interface TrieStats {
@@ -197,61 +213,92 @@ gzip magic bytes and decompresses client-side using the
 
 ---
 
-## Heteronyms and ONNX fallback
+## Variative stress and heteronyms
 
-Words with `uncertain: true` have **multiple valid stress positions** depending
-on grammatical context (e.g. _за́мок_ "lock" vs _замо́к_ "castle"). For those
-words — and for out-of-vocabulary words (`lookup()` returns `null`) — use the
-**Luscinia ONNX model** for context-aware prediction:
+`lookupFull()` classifies every word into one of three types:
+
+### `type: "unique"` — no ambiguity
+
+The vast majority of words. Use `result.stress` directly.
 
 ```ts
-import { UaStressTrie } from "ua-word-stress";
-import { InferenceSession, Tensor } from "onnxruntime-web";
+const r = trie.lookupFull("університет");
+// { stress: 4, stresses: [4], type: 'unique', uncertain: false }
+```
 
+### `type: "variative"` — both stresses are always correct
+
+These are words where both stress positions are accepted as standard in contemporary Ukrainian (e.g. _по́милка_ / _поми́лка_, _до́говір_ / _догові́р_). Both positions in `stresses[]` are valid — you can display both or pick either freely.
+
+```ts
+const r = trie.lookupFull("помилка");
+// { stress: 0, stresses: [0, 1], type: 'variative', uncertain: true }
+// → 'по́милка' or 'поми́лка' — both correct
+```
+
+### `type: "heteronym"` — different meanings or grammatical forms
+
+These are words where stress distinguishes meaning or grammatical form (e.g. _за́мок_ "lock" vs _замо́к_ "castle"; _бло́хи_ gen.sg vs _блохи́_ nom.pl). Both positions are returned in `stresses[]`, but they are **not interchangeable** — the correct one depends on context.
+
+```ts
+const r = trie.lookupFull("замок");
+// { stress: 0, stresses: [0, 1], type: 'heteronym', uncertain: true }
+// stress 0 → 'за́мок' (lock)
+// stress 1 → 'замо́к' (castle) — consumer must choose
+```
+
+Context-aware heteronym disambiguation requires sentence-level analysis and is outside the scope of this library. For poetry and annotation use cases, displaying both stress options is often the right choice.
+
+### Out-of-vocabulary words
+
+`lookup()` returns `null` for words not in the database (rare proper nouns, neologisms, typos). The **Luscinia** LightGBM model covers this case — it predicts stress from character-level features for any unknown Ukrainian word:
+
+```ts
 const trie = await UaStressTrie.fromUrl("/ua_stress.ctrie.gz");
-const onnx = await InferenceSession.create("/luscinia.onnx");
 
-async function resolveStress(word: string): Promise<number> {
+function getStress(word: string): number | null {
   const result = trie.lookupFull(word);
-
-  if (result && !result.uncertain) {
-    return result.stress; // fast trie hit
-  }
-
-  return await lusciniaPredict(onnx, word); // ONNX fallback
+  if (result) return result.stress; // trie hit — use primary stress
+  return null; // OOV: hand off to Luscinia or skip
 }
 ```
 
+> **Note:** Luscinia is a character-n-gram model — it predicts stress from the letter pattern of an isolated word, **not** from sentence context. It resolves OOV words reliably but **cannot disambiguate heteronyms** (which are known words with context-dependent stress).
+
 ---
 
-## Binary format (`.ctrie v1`)
+## Binary format (`.ctrie v2`)
 
 The format is designed for minimal parse overhead — the JS constructor is O(alphabet_size) and each `lookup()` call is O(word_length).
 
 ```
 Header         20 bytes
-  [0..3]   magic        b'UKST' (0x55 0x4B 0x53 0x54)
-  [4]      version      0x01
-  [5]      reserved     0x00
-  [6..9]   node_count   uint32 LE
-  [10..13] word_count   uint32 LE
+  [0..3]   magic         b'UKST' (0x55 0x4B 0x53 0x54)
+  [4]      version       0x02
+  [5]      reserved      0x00
+  [6..9]   node_count    uint32 LE
+  [10..13] word_count    uint32 LE
   [14..17] alphabet_size uint32 LE
 
 Alphabet table   alphabet_size × 3 bytes
-  [0]    char_byte   uint8  (codepoint if < 256, else 0xFF)
+  [0]    char_byte   uint8   (codepoint if < 256, else 0xFF)
   [1..2] codepoint   uint16 LE
 
 Node array   node_count × 8 bytes
   [0]    char_id     uint8   index into alphabet table
-  [1]    stress      uint8   0xFF = not a word end; 0–10 = stressed vowel index
-  [2]    flags       uint8   bit 0 = heteronym; bit 1 = has_children
-  [3]    reserved    uint8
+  [1]    stress      uint8   0xFF = not a word end; 0–10 = primary stressed vowel index
+  [2]    flags       uint8   0x01 = FLAG_VARIATIVE (both stresses always valid)
+                             0x02 = FLAG_HAS_CHILDREN
+                             0x04 = FLAG_HETERONYM (meaning/form-dependent stress)
+                             0x08 = FLAG_HAS_SECONDARY (stress2 byte is valid)
+  [3]    stress2     uint8   secondary stress index (valid only if FLAG_HAS_SECONDARY set)
   [4..7] first_child uint32 LE  index of first child node (0 = no children)
 ```
 
 Children of each node are **contiguous and sorted by char_id** in BFS order,
-enabling O(1) child access with a simple linear scan over at most 35 nodes
-(Ukrainian alphabet size).
+enabling a simple linear scan over at most 35 nodes (Ukrainian alphabet size).
+
+The parser accepts both `0x01` (v1, backward compat) and `0x02` (current). v1 files have no secondary stress byte and only a single generic "uncertain" flag.
 
 ---
 

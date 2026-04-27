@@ -1,0 +1,68 @@
+{
+  "name": "ua-stress-ml",
+  "version": "1.0.0",
+  "description": "Luscinia LightGBM/ONNX Ukrainian stress predictor for out-of-vocabulary words. Companion to ua-word-stress.",
+  "keywords": [
+    "ukrainian",
+    "nlp",
+    "stress",
+    "accent",
+    "onnx",
+    "lightgbm",
+    "ua"
+  ],
+  "license": "AGPL-3.0",
+  "author": "Rostyslav Lukan <lkn.rostyslav@gmail.com>",
+  "packageManager": "pnpm@9.0.0",
+  "homepage": "https://github.com/Tilitronic/ua-stress-engine#ua-stress-ml",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tilitronic/ua-stress-engine.git",
+    "directory": "packages/ua-stress-ml"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./data/*": "./data/*"
+  },
+  "files": [
+    "dist",
+    "data",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm build && pnpm typecheck && pnpm test"
+  },
+  "peerDependencies": {
+    "onnxruntime-web": ">=1.18.0"
+  },
+  "peerDependenciesMeta": {
+    "onnxruntime-web": {
+      "optional": false
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "onnxruntime-web": "^1.21.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}

@@ -8,6 +8,31 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.8"
 
+# Core deps — needed for the DB-only stress resolver (lmdb lookup)
+dependencies = [
+    "lmdb>=1.4",
+    "msgpack>=1.0",
+]
+
+[project.optional-dependencies]
+# pip install ua-stress-engine[ml]
+# Adds the LightGBM-based context-aware resolver (Luscinia model)
+ml = [
+    "lightgbm>=4.0",
+    "numpy>=1.24",
+]
+# pip install ua-stress-engine[nlp]
+# Adds spaCy tokenization pipeline
+nlp = [
+    "spacy>=3.7",
+]
+# pip install ua-stress-engine[full]
+# Everything: DB resolver + ML resolver + NLP pipeline
+full = [
+    "ua-stress-engine[ml]",
+    "ua-stress-engine[nlp]",
+]
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"

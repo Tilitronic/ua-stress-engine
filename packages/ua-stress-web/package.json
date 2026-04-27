@@ -1,23 +1,22 @@
 {
-  "name": "ua-stress-trie",
+  "name": "ua-word-stress",
   "version": "1.0.0",
-  "description": "Offline Ukrainian word stress lookup via a compact binary trie (~9 MB). Zero dependencies. Works in browsers and Node.js.",
+  "description": "Offline Ukrainian word stress lookup (~9 MB database). Zero dependencies. Works in browsers and Node.js.",
   "keywords": [
     "ukrainian",
     "nlp",
     "stress",
     "accent",
-    "trie",
     "morphology",
     "ua"
   ],
   "license": "AGPL-3.0",
   "author": "Rostyslav Lukan <lkn.rostyslav@gmail.com>",
   "packageManager": "pnpm@9.0.0",
-  "homepage": "https://github.com/your-org/versasense-backend#ua-stress-trie",
+  "homepage": "https://github.com/Tilitronic/ua-stress-engine#ua-word-stress",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/versasense-backend.git",
+    "url": "https://github.com/Tilitronic/ua-stress-engine.git",
     "directory": "packages/ua-stress-web"
   },
   "type": "module",
@@ -51,6 +50,7 @@
     "prepublishOnly": "pnpm build && pnpm typecheck && pnpm test"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"

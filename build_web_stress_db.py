@@ -80,6 +80,7 @@ def _update_npm_readme(manifest: dict, log: logging.Logger) -> None:
         return
 
     built_iso = manifest["built"].split(".")[0] + "Z"
+    variative_count = manifest.get("variative_count", "n/a")
     heteronym_count = manifest.get("heteronym_count", "n/a")
 
     new_block = (
@@ -87,6 +88,7 @@ def _update_npm_readme(manifest: dict, log: logging.Logger) -> None:
         "| Metric | Value |\n"
         "|--------|-------|\n"
         f"| Word forms | {manifest['word_count']:,} |\n"
+        f"| Variative stress (both valid) | {variative_count:,} |\n"
         f"| Heteronyms (context-dependent stress) | {heteronym_count:,} |\n"
         f"| Trie nodes | {manifest['node_count']:,} |\n"
         f"| Compressed size (`ua_stress.ctrie.gz`) | {manifest['gz_size_mb']} MB |\n"
@@ -178,8 +180,13 @@ def build(
     inserted = skipped = 0
     bar = _Bar(total_entries, "Words inserted")
 
-    for i, (norm_form, stress, heteronym) in enumerate(all_entries):
-        ok = builder.insert(norm_form, stress, heteronym)
+    for i, (norm_form, stress, stress2, is_variative, is_heteronym) in enumerate(all_entries):
+        ok = builder.insert(
+            norm_form, stress,
+            stress2=stress2 if stress2 is not None else 0xFF,
+            variative=is_variative,
+            heteronym=is_heteronym,
+        )
         if ok:
             inserted += 1
         else:
@@ -223,13 +230,15 @@ def build(
     log.info(f"  Written: {raw_path}")
     log.info(f"  Written: {gz_path}")
 
-    heteronym_count = sum(1 for _, _, h in all_entries if h)
+    variative_count = sum(1 for _, _, _, v, _ in all_entries if v)
+    heteronym_count = sum(1 for _, _, _, _, h in all_entries if h)
     manifest = {
         "version": "1.0.0",
         "built": datetime.now(timezone.utc).isoformat(),
-        "format": "ctrie-v1",
+        "format": "ctrie-v2",
         "word_count": builder.word_count,
         "node_count": builder.node_count,
+        "variative_count": variative_count,
         "heteronym_count": heteronym_count,
         "raw_size_bytes": len(ctrie_bytes),
         "gz_size_bytes": len(gz_bytes),

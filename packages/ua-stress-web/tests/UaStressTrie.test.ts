@@ -1,5 +1,5 @@
 /**
- * ua-stress-trie — Vitest test suite
+ * ua-word-stress — Vitest test suite
  *
  * Requires the data file built by `python build_web_stress_db.py`:
  *   data/ua_stress.ctrie.gz

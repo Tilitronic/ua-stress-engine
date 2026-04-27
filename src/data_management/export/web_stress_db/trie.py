@@ -1,11 +1,11 @@
 """
 trie.py — Compact binary trie encoder / decoder for Ukrainian stress data.
 
-Binary format (.ctrie)
-======================
+Binary format (.ctrie v2)
+=========================
 Header — 20 bytes
   [0..3]  magic      b'UKST'
-  [4]     version    0x01
+  [4]     version    0x02
   [5]     reserved   0x00
   [6..9]  node_count uint32 LE  — total number of nodes
   [10..13] word_count uint32 LE — total number of terminal words
@@ -20,22 +20,23 @@ Alphabet table — alphabet_size × 3 bytes each
 Node array — node_count × NODE_SIZE bytes each
   NODE_SIZE = 8 bytes per node:
   [0]    char_id    uint8  — index into alphabet table (0xFF = root sentinel)
-  [1]    stress     uint8  — 0xFF = not a word end; 0..10 = stressed vowel index
-  [2]    flags      uint8  — bit 0: heteronym (uncertain stress); bit 1: has_children
-  [3]    reserved   uint8
+  [1]    stress     uint8  — 0xFF = not a word end; 0..10 = primary stressed vowel index
+  [2]    flags      uint8  — bit 0: variative; bit 1: has_children;
+                             bit 2: heteronym; bit 3: has_secondary_stress
+  [3]    stress2    uint8  — secondary stress vowel index (0xFF = absent)
   [4..7] first_child_idx  uint32 LE — index of first child node (0 = no children)
 
-Children of each node are contiguous in the array and can be scanned linearly.
-A child's range is [first_child_idx, next_sibling.first_child_idx).
-The sibling count is recovered by scanning nodes with the same parent.
+Stress classification:
+  flags & 0x0F == 0x00               → unique   (one unambiguous stress)
+  flags & FLAG_HAS_SECONDARY set,
+    flags & FLAG_VARIATIVE set        → variative (both stresses equally valid;
+                                        e.g. по́милка / поми́лка)
+  flags & FLAG_HAS_SECONDARY set,
+    flags & FLAG_HETERONYM  set        → heteronym (different meanings / forms;
+                                        e.g. за́мок / замо́к, бло́хи / блохи́)
 
-Lookup algorithm (O(word_length)):
-  node = 0  (root)
-  for each char in normalised word:
-      find child of node where child.char_id == alphabet[char]
-      if not found: return MISS
-  if node.stress == 0xFF: return MISS  (prefix only, not a word)
-  return (node.stress, node.flags & 0x01)
+Children of each node are contiguous in the array and can be scanned linearly.
+Lookup is O(word_length).
 """
 
 from __future__ import annotations
@@ -64,8 +65,15 @@ ALPHABET_ENTRY_SIZE = 3
 NO_CHILD = 0        # sentinel: node has no children
 NO_STRESS = 0xFF    # sentinel: node is not a word terminal
 
-FLAG_HETERONYM = 0x01
-FLAG_HAS_CHILDREN = 0x02
+FLAG_VARIATIVE      = 0x01  # both stresses equally valid (по́милка / поми́лка)
+FLAG_HAS_CHILDREN   = 0x02
+FLAG_HETERONYM      = 0x04  # different meanings / forms (за́мок / замо́к)
+FLAG_HAS_SECONDARY  = 0x08  # stress2 byte is valid
+
+# Backward-compat alias (v1 consumers checked this bit for "uncertain")
+_FLAG_UNCERTAIN_LEGACY = FLAG_VARIATIVE | FLAG_HETERONYM
+
+VERSION = 0x02
 
 
 # ── In-memory trie ────────────────────────────────────────────────────────────
@@ -73,7 +81,8 @@ FLAG_HAS_CHILDREN = 0x02
 @dataclass
 class TrieNode:
     char_id: int = 0xFF          # 0xFF for root
-    stress: int = NO_STRESS      # 0xFF or 0..10
+    stress: int = NO_STRESS      # 0xFF or 0..10 (primary)
+    stress2: int = NO_STRESS     # secondary stress (0xFF = absent)
     flags: int = 0
     children: Dict[int, "TrieNode"] = field(default_factory=dict)
 
@@ -85,18 +94,39 @@ class TrieNode:
     def is_heteronym(self) -> bool:
         return bool(self.flags & FLAG_HETERONYM)
 
+    @property
+    def is_variative(self) -> bool:
+        return bool(self.flags & FLAG_VARIATIVE)
+
 
 class TrieBuilder:
-    """Insert (word, stress_index, is_heteronym) triples and produce a TrieNode tree."""
+    """Insert (word, stress_index, stress2, is_variative, is_heteronym) tuples and produce a TrieNode tree."""
 
     def __init__(self) -> None:
         self.root = TrieNode()
         self.word_count = 0
         self._node_count = 1  # root
 
-    def insert(self, word: str, stress: int, heteronym: bool = False) -> bool:
+    def insert(
+        self,
+        word: str,
+        stress: int,
+        stress2: int = NO_STRESS,
+        variative: bool = False,
+        heteronym: bool = False,
+    ) -> bool:
         """
         Insert a normalised lowercase word.
+
+        Args:
+            word:      Normalised lowercase Ukrainian word.
+            stress:    Primary (most common) stressed vowel index.
+            stress2:   Secondary stressed vowel index, or NO_STRESS.
+            variative: True when both stress positions are orthographically
+                       valid simultaneously (e.g. по́милка / поми́лка).
+            heteronym: True when different stress positions correspond to
+                       different meanings or grammatical forms
+                       (e.g. за́мок/замо́к, бло́хи/блохи́).
 
         Returns True if word was inserted, False if any character is outside
         the Ukrainian alphabet and the word was skipped.
@@ -115,6 +145,11 @@ class TrieBuilder:
             self.word_count += 1
 
         node.stress = stress
+        if stress2 != NO_STRESS:
+            node.stress2 = stress2
+            node.flags |= FLAG_HAS_SECONDARY
+        if variative:
+            node.flags |= FLAG_VARIATIVE
         if heteronym:
             node.flags |= FLAG_HETERONYM
         return True
@@ -171,7 +206,7 @@ def serialize(
     header = struct.pack(
         "<4sBBIII",
         b"UKST",         # magic
-        0x01,            # version
+        VERSION,         # version 0x02
         0x00,            # reserved
         node_count,
         word_count,
@@ -198,10 +233,11 @@ def serialize(
             first_child = NO_CHILD
 
         node_bytes += struct.pack(
-            "<BBBxI",
+            "<BBBBI",
             node.char_id,
             node.stress,
             flags,
+            node.stress2,   # 0xFF when absent
             first_child,
         )
 
@@ -215,6 +251,7 @@ class FlatNode:
     char_id: int
     stress: int
     flags: int
+    stress2: int
     first_child: int
 
 
@@ -227,6 +264,8 @@ def deserialize(data: bytes) -> Tuple[List[FlatNode], List[str]]:
     # Header
     magic = data[0:4]
     assert magic == b"UKST", f"Bad magic: {magic!r}"
+    version = data[4]
+    assert version in (0x01, 0x02), f"Unsupported .ctrie version: {version}"
     node_count, word_count, alpha_size = struct.unpack_from("<III", data, 6)
 
     # Alphabet
@@ -240,8 +279,8 @@ def deserialize(data: bytes) -> Tuple[List[FlatNode], List[str]]:
     # Nodes
     flat: List[FlatNode] = []
     for _ in range(node_count):
-        char_id, stress, flags, _res, first_child = struct.unpack_from("<BBBbI", data, offset)
-        flat.append(FlatNode(char_id=char_id, stress=stress, flags=flags, first_child=first_child))
+        char_id, stress, flags, stress2, first_child = struct.unpack_from("<BBBBI", data, offset)
+        flat.append(FlatNode(char_id=char_id, stress=stress, flags=flags, stress2=stress2, first_child=first_child))
         offset += NODE_SIZE
 
     return flat, alphabet
@@ -251,8 +290,10 @@ def lookup(data: bytes, word: str) -> Optional[Tuple[int, bool]]:
     """
     Look up a word in a serialised .ctrie blob.
 
-    Returns (stress_index, is_heteronym) or None if not found.
+    Returns (stress_index, is_uncertain) or None if not found.
+    is_uncertain is True for both variative and heteronym words.
     Used by the Python test suite — the browser uses the JS version.
+    For richer results (stresses list + type) use lookup_full().
     """
     flat, alphabet = deserialize(data)
     alpha_map = {ch: i for i, ch in enumerate(alphabet)}
@@ -298,4 +339,59 @@ def lookup(data: bytes, word: str) -> Optional[Tuple[int, bool]]:
     node = flat[node_idx]
     if node.stress == NO_STRESS:
         return None
-    return (node.stress, bool(node.flags & FLAG_HETERONYM))
+    is_uncertain = bool(node.flags & (FLAG_VARIATIVE | FLAG_HETERONYM))
+    return (node.stress, is_uncertain)
+
+
+def lookup_full(
+    data: bytes, word: str
+) -> Optional[Tuple[List[int], str]]:
+    """
+    Look up a word and return (stresses, type) or None.
+
+    type is one of:
+      "unique"    — single unambiguous stress
+      "variative" — multiple orthographically valid stress positions
+      "heteronym" — multiple positions corresponding to different meanings/forms
+    """
+    flat, alphabet = deserialize(data)
+    alpha_map = {ch: i for i, ch in enumerate(alphabet)}
+
+    node_idx = 0
+    for ch in word.lower():
+        cid = alpha_map.get(ch)
+        if cid is None:
+            return None
+        fc = flat[node_idx].first_child
+        if fc == NO_CHILD or not (flat[node_idx].flags & FLAG_HAS_CHILDREN):
+            return None
+        found = False
+        i = fc
+        while i < len(flat):
+            child = flat[i]
+            if child.char_id == cid:
+                node_idx = i
+                found = True
+                break
+            if i - fc >= ALPHABET_SIZE:
+                break
+            i += 1
+        if not found:
+            return None
+
+    node = flat[node_idx]
+    if node.stress == NO_STRESS:
+        return None
+
+    stresses: List[int] = [node.stress]
+    if (node.flags & FLAG_HAS_SECONDARY) and node.stress2 != NO_STRESS:
+        stresses.append(node.stress2)
+
+    if node.flags & FLAG_VARIATIVE:
+        kind = "variative"
+    elif node.flags & FLAG_HETERONYM:
+        kind = "heteronym"
+    else:
+        kind = "unique"
+
+    return stresses, kind

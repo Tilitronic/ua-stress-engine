@@ -1,5 +1,5 @@
 /**
- * ua-stress-trie — public API surface
+ * ua-word-stress — public API surface
  *
  * @packageDocumentation
  */

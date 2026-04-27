@@ -1,16 +1,21 @@
 import type { LookupResult, TrieStats } from "./types.js";
 import { normWord, applyStressMark, normaliseApostrophe } from "./utils.js";
 
-// ── Binary format constants ───────────────────────────────────────────────────
+// ── Binary format constants — v1 (0x01) + v2 (0x02) ———————————————————————————————
 const MAGIC = 0x54534b55; // 'UKST' as LE uint32
-const VERSION = 0x01;
+const SUPPORTED_VERSIONS = new Set([0x01, 0x02]);
 const HEADER_SIZE = 20;
 const ALPHABET_ENTRY_SIZE = 3; // char_byte(u8) + codepoint(u16 LE)
-const NODE_SIZE = 8; // char_id(u8) + stress(u8) + flags(u8) + reserved(u8) + first_child(u32 LE)
+const NODE_SIZE = 8; // char_id(u8) + stress(u8) + flags(u8) + stress2(u8) + first_child(u32 LE)
 
 const NO_STRESS = 0xff;
-const FLAG_HETERONYM = 0x01;
-const FLAG_HAS_CHILDREN = 0x02;
+// v1 flag (bit 0 was "heteronym"): kept for backward-compat when reading v1 files
+const FLAG_V1_UNCERTAIN   = 0x01;
+// v2 flags
+const FLAG_VARIATIVE      = 0x01; // both stresses orthographically valid
+const FLAG_HAS_CHILDREN   = 0x02;
+const FLAG_HETERONYM      = 0x04; // different meanings / forms
+const FLAG_HAS_SECONDARY  = 0x08; // stress2 byte (byte[3]) is valid
 
 // ── Gzip decompression ────────────────────────────────────────────────────────
 
@@ -66,7 +71,8 @@ async function decompressGzip(compressed: ArrayBuffer): Promise<ArrayBuffer> {
  *
  * trie.lookup('університет')   // → 4
  * trie.mark('університет')     // → 'університе\u0301т'
- * trie.lookupFull('замок')     // → { stress: 0, uncertain: true }
+ * trie.lookupFull('замок')     // → { stress: 0, stresses: [0, 1], type: 'heteronym', uncertain: true }
+ * trie.lookupFull('помилка')   // → { stress: 0, stresses: [0, 1], type: 'variative', uncertain: true }
  * ```
  */
 export class UaStressTrie {
@@ -77,6 +83,7 @@ export class UaStressTrie {
   private readonly _wordCount: number;
   private readonly _alphaSize: number;
   private readonly _gzSizeBytes: number;
+  private readonly _version: number;
 
   /**
    * Construct from a raw (already-decompressed) `.ctrie` `ArrayBuffer`.
@@ -95,9 +102,9 @@ export class UaStressTrie {
     }
 
     const version = view.getUint8(4);
-    if (version !== VERSION) {
+    if (!SUPPORTED_VERSIONS.has(version)) {
       throw new Error(
-        `Unsupported .ctrie version: ${version} (supported: ${VERSION})`,
+        `Unsupported .ctrie version: ${version} (supported: ${[...SUPPORTED_VERSIONS].join(", ")})`,
       );
     }
 
@@ -105,6 +112,7 @@ export class UaStressTrie {
     this._wordCount = view.getUint32(10, true);
     this._alphaSize = view.getUint32(14, true);
     this._gzSizeBytes = gzSizeBytes;
+    this._version = version;
 
     // Parse alphabet table → Map<Unicode codepoint, char_id>
     this._charToId = new Map();
@@ -233,18 +241,33 @@ export class UaStressTrie {
   }
 
   /**
-   * Full lookup including the heteronym flag.
+   * Full lookup returning all stress positions and type classification.
    *
-   * @returns `{ stress, uncertain }` or `null` if not found.
+   * @returns `LookupResult` or `null` if the word is not in the database.
    *
-   * - `stress` — 0-based vowel index
-   * - `uncertain` — `true` for words with context-dependent stress
-   *   (e.g. за́мок "lock" vs замо́к "castle")
+   * The `type` field tells you how to interpret multiple stress positions:
+   *
+   * - `"unique"`    — one stress, no ambiguity.
+   * - `"variative"` — both positions in `stresses[]` are orthographically
+   *                    valid simultaneously (e.g. _по́милка_ / _поми́лка_).
+   *                    Present both to the user, or pick either — both are correct.
+   * - `"heteronym"` — different positions correspond to different meanings
+   *                    or grammatical forms (e.g. _за́мок_ "lock" vs _замо́к_ "castle";
+   *                    _бло́хи_ gen.sg vs _блохи́_ nom.pl).
+   *                    Context-aware disambiguation is needed to pick the right one.
    *
    * @example
-   * trie.lookupFull('університет') // → { stress: 4, uncertain: false }
-   * trie.lookupFull('замок')       // → { stress: 0, uncertain: true }
-   * trie.lookupFull('xyz123')      // → null
+   * trie.lookupFull('університет')
+   * // → { stress: 4, stresses: [4], type: 'unique', uncertain: false }
+   *
+   * trie.lookupFull('помилка')
+   * // → { stress: 0, stresses: [0, 1], type: 'variative', uncertain: true }
+   *
+   * trie.lookupFull('замок')
+   * // → { stress: 0, stresses: [0, 1], type: 'heteronym', uncertain: true }
+   *
+   * trie.lookupFull('xyz123')
+   * // → null
    */
   lookupFull(word: string): LookupResult | null {
     const norm = normWord(word);
@@ -263,7 +286,27 @@ export class UaStressTrie {
     if (stress === NO_STRESS) return null;
 
     const flags = this._nodeByte(nodeIdx, 2);
-    return { stress, uncertain: (flags & FLAG_HETERONYM) !== 0 };
+
+    let stresses: number[];
+    let type: "unique" | "variative" | "heteronym";
+
+    if (this._version >= 2) {
+      // v2: explicit flag bits + stress2 byte
+      const stress2 = this._nodeByte(nodeIdx, 3);
+      stresses =
+        (flags & FLAG_HAS_SECONDARY) !== 0 && stress2 !== NO_STRESS
+          ? [stress, stress2]
+          : [stress];
+      if (flags & FLAG_VARIATIVE) type = "variative";
+      else if (flags & FLAG_HETERONYM) type = "heteronym";
+      else type = "unique";
+    } else {
+      // v1 backward compat: bit 0 was generic "uncertain" (heteronym-only)
+      stresses = [stress];
+      type = (flags & FLAG_V1_UNCERTAIN) !== 0 ? "heteronym" : "unique";
+    }
+
+    return { stress, stresses, type, uncertain: type !== "unique" };
   }
 
   /**

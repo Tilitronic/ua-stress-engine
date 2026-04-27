@@ -1,4 +1,4 @@
-# ua-stress-trie
+# ua-word-stress
 
 Offline Ukrainian word stress lookup via a compact binary trie.  
 **Zero dependencies.** Works in browsers (ESM) and Node.js.
@@ -9,16 +9,15 @@ Offline Ukrainian word stress lookup via a compact binary trie.
 
 <!-- AUTO-GENERATED — do not edit this block manually -->
 <!-- STATS_START -->
-
-| Metric                                 | Value                |
-| -------------------------------------- | -------------------- |
-| Word forms                             | 2,874,507            |
-| Heteronyms (context-dependent stress)  | 114,583              |
-| Trie nodes                             | 4,463,020            |
-| Compressed size (`ua_stress.ctrie.gz`) | 9.37 MB              |
-| Format                                 | ctrie-v1             |
-| Last built                             | 2026-04-25T13:49:36Z |
-
+| Metric | Value |
+|--------|-------|
+| Word forms | 2,874,507 |
+| Variative stress (both valid) | 221 |
+| Heteronyms (context-dependent stress) | 114,362 |
+| Trie nodes | 4,463,020 |
+| Compressed size (`ua_stress.ctrie.gz`) | 9.4 MB |
+| Format | ctrie-v2 |
+| Last built | 2026-04-27T16:28:35Z |
 <!-- STATS_END -->
 
 ---
@@ -27,19 +26,36 @@ Offline Ukrainian word stress lookup via a compact binary trie.
 
 ```bash
 # pnpm (recommended)
-pnpm add ua-stress-trie
+pnpm add ua-word-stress
 
 # npm
-npm install ua-stress-trie
+npm install ua-word-stress
 
 # yarn
-yarn add ua-stress-trie
+yarn add ua-word-stress
 ```
 
-Copy the data file to your project's public directory:
+### Serving the data file
+
+**Vite / Quasar / Nuxt (recommended):** import the data file as a URL — Vite resolves it to a content-hashed asset with no manual copy step:
+
+```ts
+// vite.config.ts (or quasar.config.js > build.extendViteConf)
+// Required only if Vite doesn't recognise .ctrie.gz as an asset:
+export default defineConfig({
+  assetsInclude: ['**/*.ctrie.gz'],
+});
+```
+
+```ts
+import trieUrl from 'ua-word-stress/data/ua_stress.ctrie.gz?url';
+const trie = await UaStressTrie.fromUrl(trieUrl);
+```
+
+**Webpack / plain HTML:** copy the file to your public directory:
 
 ```bash
-cp node_modules/ua-stress-trie/data/ua_stress.ctrie.gz public/
+cp node_modules/ua-word-stress/data/ua_stress.ctrie.gz public/
 ```
 
 ---
@@ -49,7 +65,7 @@ cp node_modules/ua-stress-trie/data/ua_stress.ctrie.gz public/
 ### Browser (Vite / Webpack / plain ESM)
 
 ```ts
-import { UaStressTrie } from "ua-stress-trie";
+import { UaStressTrie } from "ua-word-stress";
 
 const trie = await UaStressTrie.fromUrl("/ua_stress.ctrie.gz");
 
@@ -61,7 +77,7 @@ trie.lookupFull("замок"); // → { stress: 0, uncertain: true }
 ### Node.js
 
 ```ts
-import { UaStressTrie } from "ua-stress-trie";
+import { UaStressTrie } from "ua-word-stress";
 
 const trie = await UaStressTrie.fromFile("./data/ua_stress.ctrie.gz");
 console.log(trie.lookup("читати")); // → 1
@@ -72,7 +88,7 @@ console.log(trie.lookup("читати")); // → 1
 ```ts
 // composables/useStressTrie.ts
 import { ref, shallowRef } from "vue";
-import { UaStressTrie } from "ua-stress-trie";
+import { UaStressTrie } from "ua-word-stress";
 
 const trie = shallowRef<UaStressTrie | null>(null);
 const loading = ref(false);
@@ -125,7 +141,7 @@ export function useStressTrie() {
 ### Utility functions
 
 ```ts
-import { applyStressMark, normaliseApostrophe } from "ua-stress-trie";
+import { applyStressMark, normaliseApostrophe } from "ua-word-stress";
 
 applyStressMark("університет", 4); // → 'університе́т'
 normaliseApostrophe("п'ять"); // → 'п\u02bcять'
@@ -187,7 +203,7 @@ words — and for out-of-vocabulary words (`lookup()` returns `null`) — use th
 **Luscinia ONNX model** for context-aware prediction:
 
 ```ts
-import { UaStressTrie } from "ua-stress-trie";
+import { UaStressTrie } from "ua-word-stress";
 import { InferenceSession, Tensor } from "onnxruntime-web";
 
 const trie = await UaStressTrie.fromUrl("/ua_stress.ctrie.gz");
@@ -258,7 +274,7 @@ pnpm publish --access public
 To publish as a scoped package, update `"name"` in `package.json`:
 
 ```json
-"name": "@your-org/ua-stress-trie"
+"name": "@your-org/ua-word-stress"
 ```
 
 ---
@@ -277,6 +293,48 @@ This writes `data/ua_stress.ctrie.gz` into this directory automatically.
 
 ---
 
+## Data sources & attribution
+
+The compiled `data/ua_stress.ctrie.gz` trie is built from three open sources:
+
+### 1. lang-uk/ukrainian-word-stress
+
+- **Repository:** https://github.com/lang-uk/ukrainian-word-stress
+- **License:** [MIT](https://github.com/lang-uk/ukrainian-word-stress/blob/main/LICENSE) — Copyright (c) 2022 lang-uk
+- **What we use:** The pre-built binary stress trie (`uk.stress.trie`) packaged with the library, covering ~400 k word forms with heteronym annotations.
+
+### 2. lang-uk/ukrainian-word-stress-dictionary
+
+- **Repository:** https://github.com/lang-uk/ukrainian-word-stress-dictionary
+- **License:** No explicit open-source license. The data is derived from the ["Dictionaries of Ukraine"](https://lcorp.ulif.org.ua/dictua/) corpus published by the Ukrainian Language and Information Fund (ULIF), National Academy of Sciences of Ukraine — a public state institution. It is used here in accordance with the established convention in the Ukrainian open-source NLP community.
+- **What we use:** `stress.txt` — ~2.9 M word forms with stress marks (U+0301).
+
+### 3. kaikki.org — Wiktionary Ukrainian extract
+
+- **Source:** https://kaikki.org/dictionary/Ukrainian/
+- **Upstream:** [Wiktionary](https://en.wiktionary.org) contributors
+- **License:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+- **What we use:** Parsed Ukrainian headword entries with stress annotations.
+
+### 4. ua_variative_stressed_words (original)
+
+- **Source:** Original curation — included in this repository.
+- **License:** AGPL-3.0 (same as code).
+- **What we use:** ~150 Ukrainian lemmas with freely variable stress (e.g. _алфавіт_, _договір_) for ambiguity annotation.
+
+---
+
 ## License
 
-AGPL-3.0 — see [LICENSE](LICENSE).
+This package uses **dual licensing**:
+
+| Component | License |
+| --------- | ------- |
+| TypeScript source code (`src/`, `dist/`) | [AGPL-3.0](LICENSE) |
+| Compiled data file (`data/ua_stress.ctrie.gz`) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+
+The data file carries CC BY-SA 4.0 because it is a derived database of Wiktionary content. Any derivative database you build from `ua_stress.ctrie.gz` must also be released under CC BY-SA 4.0 or a compatible license.
+
+The AGPL-3.0 code license is compatible with the CC BY-SA 4.0 data: the code and data are separately licensed works.
+
+See [LICENSE](LICENSE) for the full AGPL-3.0 text.

@@ -1,24 +1,47 @@
 /**
- * Public types exported by ua-stress-trie.
+ * Public types exported by ua-word-stress.
  */
 
 /** Result of a full stress lookup. */
 export interface LookupResult {
   /**
-   * 0-based index of the stressed vowel among Ukrainian vowels in the word.
+   * All stressed vowel indices (0-based among Ukrainian vowels in the word),
+   * in order from most common to least common.
+   *
+   * - Length 1 → unambiguous stress.
+   * - Length 2 → two valid positions; see `type` for interpretation.
    *
    * @example
-   * // 'університет' has vowels: у(0) і(1) е(2) и(3) е(4) → stress=4
-   * // 'мама'        has vowels: а(0) а(1)               → stress=0
+   * // 'університет': vowels у(0) і(1) е(2) и(3) е(4) → stresses=[4]
+   * // 'замок':       vowels а(0) о(1)               → stresses=[0, 1]
+   * // 'помилка':     vowels о(0) и(1) а(2)           → stresses=[0, 1]
+   */
+  stresses: number[];
+
+  /**
+   * Convenience alias for `stresses[0]` — the primary (most common) stress.
    */
   stress: number;
 
   /**
-   * `true` when the word is a **heteronym** — it has multiple valid stress
-   * positions depending on context (e.g. за́мок vs замо́к).
+   * Stress classification:
    *
-   * When `uncertain` is `true`, consider using the Luscinia ONNX model for
-   * context-aware resolution.
+   * - `"unique"`    — one unambiguous stress position.
+   * - `"variative"` — multiple positions, all orthographically valid
+   *                   simultaneously (e.g. _по́милка_ / _поми́лка_).
+   *                   Any position is correct; present both or pick either.
+   * - `"heteronym"` — multiple positions corresponding to different
+   *                   meanings or grammatical forms
+   *                   (e.g. _за́мок_ "lock" / _замо́к_ "castle";
+   *                    _бло́хи_ gen.sg / _блохи́_ nom.pl).
+   *                   The correct stress depends on the intended meaning/form;
+   *                   context-aware disambiguation is required.
+   */
+  type: "unique" | "variative" | "heteronym";
+
+  /**
+   * @deprecated Use `type !== "unique"` instead.
+   * Kept for backward compatibility with v1 consumers.
    */
   uncertain: boolean;
 }

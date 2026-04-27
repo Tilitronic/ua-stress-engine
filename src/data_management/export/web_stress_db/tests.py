@@ -152,7 +152,7 @@ def test_coverage():
 
 def _test_magic(data: bytes) -> None:
     assert data[:4] == b"UKST", f"Bad magic bytes: {data[:4]!r}"
-    assert data[4] == 0x01, f"Unexpected version: {data[4]}"
+    assert data[4] in (0x01, 0x02), f"Unexpected version: {data[4]}"
 
 
 def _test_header_counts(data: bytes) -> None:

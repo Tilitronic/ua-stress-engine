@@ -89,3 +89,9 @@ src/stress_prediction/lightgbm/artifacts/**/*_stripped.lgb
 # Web ONNX — keep only the gzipped version (the raw .onnx is 185 MB and reproducible)
 src/stress_prediction/lightgbm/artifacts/**/web/*.onnx
 !src/stress_prediction/lightgbm/artifacts/**/web/*.onnx.gz
+
+# ── npm packages ──────────────────────────────────────────────────────────────
+node_modules/
+packages/*/node_modules/
+packages/*/dist/
+packages/*/pnpm-lock.yaml

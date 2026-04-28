@@ -17,30 +17,100 @@ const FLAG_HAS_CHILDREN = 0x02;
 const FLAG_HETERONYM = 0x04; // different meanings / forms
 const FLAG_HAS_SECONDARY = 0x08; // stress2 byte (byte[3]) is valid
 
+// ── Streaming helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Read the first two bytes from a ReadableStream<Uint8Array> without
+ * consuming the rest. Returns [byte0, byte1, remainingStream].
+ * Used by fromUrl() to detect gzip magic without buffering the whole response.
+ */
+async function _peekTwo(
+  body: ReadableStream<Uint8Array>,
+): Promise<[number, number, ReadableStream<Uint8Array>]> {
+  const reader = body.getReader();
+  let first = 0;
+  let second = 0;
+  const leftover: Uint8Array[] = [];
+
+  // Read until we have at least 2 bytes
+  let collected = 0;
+  while (collected < 2) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    leftover.push(value);
+    collected += value.length;
+  }
+
+  // Extract the two magic bytes from the collected chunks
+  const merged = new Uint8Array(collected);
+  let off = 0;
+  for (const chunk of leftover) {
+    merged.set(chunk, off);
+    off += chunk.length;
+  }
+  first = merged[0] ?? 0;
+  second = merged[1] ?? 0;
+
+  // Release the reader lock so we can re-wrap the stream
+  reader.releaseLock();
+
+  // Reconstruct a stream: already-read bytes + remaining body
+  const already = merged;
+  const remaining = body;
+  const combined = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      controller.enqueue(already);
+      const r = remaining.getReader();
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const { done, value } = await r.read();
+        if (done) break;
+        controller.enqueue(value);
+      }
+      controller.close();
+    },
+  });
+
+  return [first, second, combined];
+}
+
+/**
+ * Prepend a small Uint8Array chunk onto a ReadableStream.
+ */
+function _prependChunk(
+  prefix: Uint8Array,
+  rest: ReadableStream<Uint8Array>,
+): ReadableStream<Uint8Array> {
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      controller.enqueue(prefix);
+      const reader = rest.getReader();
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        controller.enqueue(value);
+      }
+      controller.close();
+    },
+  });
+}
+
 // ── Gzip decompression ────────────────────────────────────────────────────────
 
 async function decompressGzip(compressed: ArrayBuffer): Promise<ArrayBuffer> {
-  // Modern browsers (2022+): DecompressionStream API
+  // Modern browsers (2022+): DecompressionStream API.
+  // IMPORTANT: do NOT write all bytes then await writer.close() before reading.
+  // That pattern deadlocks when the decompressed output (~80 MB) fills the
+  // stream's internal buffer — writer.close() blocks on backpressure, but the
+  // reader loop that would relieve the backpressure hasn't started yet.
+  // pipeThrough connects readable ↔ writable concurrently, so backpressure
+  // flows correctly regardless of output size.
   if (typeof DecompressionStream !== "undefined") {
-    const ds = new DecompressionStream("gzip");
-    const writer = ds.writable.getWriter();
-    const reader = ds.readable.getReader();
-    writer.write(new Uint8Array(compressed));
-    await writer.close();
-    const chunks: Uint8Array[] = [];
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-    }
-    const total = chunks.reduce((acc, c) => acc + c.length, 0);
-    const out = new Uint8Array(total);
-    let off = 0;
-    for (const chunk of chunks) {
-      out.set(chunk, off);
-      off += chunk.length;
-    }
-    return out.buffer as ArrayBuffer;
+    const stream = new Blob([compressed])
+      .stream()
+      .pipeThrough(new DecompressionStream("gzip"));
+    return new Response(stream).arrayBuffer();
   }
 
   // Node.js fallback (dynamic import — keeps browser bundle clean)
@@ -146,16 +216,48 @@ export class UaStressTrie {
   static async fromUrl(url: string): Promise<UaStressTrie> {
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching ${url}`);
-    const rawBuf = await resp.arrayBuffer();
-    const bytes = new Uint8Array(rawBuf);
 
-    // gzip magic bytes: 0x1F 0x8B
-    if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
-      const decompressed = await decompressGzip(rawBuf);
-      return new UaStressTrie(decompressed, rawBuf.byteLength);
+    // If the server set Content-Encoding: gzip the browser has already
+    // decompressed transparently — arrayBuffer() gives us raw ctrie bytes.
+    const contentEncoding = resp.headers.get("content-encoding");
+    if (contentEncoding?.toLowerCase().includes("gzip")) {
+      const buf = await resp.arrayBuffer();
+      return new UaStressTrie(buf);
     }
 
-    return new UaStressTrie(rawBuf);
+    // No Content-Encoding — stream through DecompressionStream if the bytes
+    // look like gzip (magic 0x1F 0x8B), otherwise parse directly.
+    // Streaming avoids buffering the whole compressed file before decompression
+    // starts, and sidesteps the DecompressionStream backpressure deadlock that
+    // occurs when the decompressed output fills the internal buffer before the
+    // reader loop has been entered.
+    if (!resp.body) {
+      // Fallback for environments without a streaming body
+      const rawBuf = await resp.arrayBuffer();
+      const bytes = new Uint8Array(rawBuf);
+      if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
+        const decompressed = await decompressGzip(rawBuf);
+        return new UaStressTrie(decompressed, rawBuf.byteLength);
+      }
+      return new UaStressTrie(rawBuf);
+    }
+
+    // Peek at the first two bytes to detect gzip magic without buffering all.
+    const [first, second, rest] = await _peekTwo(resp.body);
+    if (first === 0x1f && second === 0x8b) {
+      // Re-assemble the stream and pipe through DecompressionStream.
+      const prefix = new Uint8Array([first, second]);
+      const reassembled = _prependChunk(prefix, rest);
+      const buf = await new Response(
+        reassembled.pipeThrough(new DecompressionStream("gzip")),
+      ).arrayBuffer();
+      return new UaStressTrie(buf);
+    }
+
+    // Not gzip — consume remaining stream as-is.
+    const prefix = new Uint8Array([first, second]);
+    const buf = await new Response(_prependChunk(prefix, rest)).arrayBuffer();
+    return new UaStressTrie(buf);
   }
 
   /**

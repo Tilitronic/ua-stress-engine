@@ -68,7 +68,7 @@ const predictor = await LusciniaPredictor.fromUrl(modelUrl, ort);
 
 Running inference inside a Web Worker is the recommended approach for browser apps — it keeps the main thread free while the model loads and predicts.
 
-Two pitfalls specific to this setup:
+Three pitfalls specific to this setup:
 
 **1. Exclude `ua-stress-ml` from Vite's dep pre-bundler.**
 Vite pre-bundles dependencies into hashed chunks. If you update the package, Vite will keep serving the old cached bundle until you manually clear `.vite` / `.q-cache`. Excluding the package forces Vite to always serve `node_modules/ua-stress-ml/dist/index.js` directly.
@@ -77,12 +77,33 @@ Vite pre-bundles dependencies into hashed chunks. If you update the package, Vit
 // vite.config.ts (or inside extendViteConf in quasar.config.ts)
 export default defineConfig({
   optimizeDeps: {
-    exclude: ["ua-stress-ml"],
+    exclude: ["ua-stress-ml", "ua-word-stress", "onnxruntime-web"],
   },
 });
 ```
 
-**2. Set `ort.env.wasm.wasmPaths` before the first `fromUrl()` call.**
+**2. Force the WASM execution provider — JSEP hangs in Vite dev mode.**
+By default onnxruntime-web tries backends in order: WebGPU (JSEP) → threaded WASM → single-threaded WASM. The JSEP backend works by dynamically importing `ort-wasm-simd-threaded.jsep.mjs`. When `onnxruntime-web` is excluded from Vite's pre-bundler (required — see above), this dynamic import is served from `/@fs/node_modules/…` and Vite queues a transform for it that never completes. `InferenceSession.create()` hangs indefinitely and the model never loads.
+
+Fix: pass `executionProviders: ['wasm']` to skip JSEP entirely. Also set `numThreads: 1` to prevent ort from spawning sub-workers from inside a worker (can deadlock in some browsers):
+
+```ts
+// stress-worker.ts — set BEFORE any LusciniaPredictor.fromUrl() call
+import * as ort from "onnxruntime-web";
+
+ort.env.wasm.numThreads = 1;
+
+const ORT_OPTIONS = { executionProviders: ["wasm"] as string[] };
+
+let predictorPromise: Promise<LusciniaPredictor> | null = null;
+
+function getPredictor(modelUrl: string): Promise<LusciniaPredictor> {
+  predictorPromise ??= LusciniaPredictor.fromUrl(modelUrl, ort, ORT_OPTIONS);
+  return predictorPromise;
+}
+```
+
+**3. Set `ort.env.wasm.wasmPaths` before the first `fromUrl()` call.**
 Inside a Web Worker the base URL is the worker script's URL, not the page URL. ORT cannot resolve its `.wasm` files via relative paths, so you must point it to an explicit location — either a CDN or a local path served by your bundler.
 
 ```ts
@@ -91,13 +112,19 @@ import * as ort from "onnxruntime-web";
 import { LusciniaPredictor } from "ua-stress-ml";
 
 // Set BEFORE any LusciniaPredictor.fromUrl() call.
-ort.env.wasm.wasmPaths =
-  "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/";
+ort.env.wasm.numThreads = 1;
 
+// In production point to your own hosted copy (copy from node_modules/onnxruntime-web/dist/).
+// In dev, default path resolution works when ort is excluded from optimizeDeps.
+if (import.meta.env.PROD) {
+  ort.env.wasm.wasmPaths = "/ort/";
+}
+
+const ORT_OPTIONS = { executionProviders: ["wasm"] as string[] };
 let predictorPromise: Promise<LusciniaPredictor> | null = null;
 
 function getPredictor(modelUrl: string): Promise<LusciniaPredictor> {
-  predictorPromise ??= LusciniaPredictor.fromUrl(modelUrl, ort);
+  predictorPromise ??= LusciniaPredictor.fromUrl(modelUrl, ort, ORT_OPTIONS);
   return predictorPromise;
 }
 

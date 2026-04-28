@@ -1,6 +1,6 @@
 {
   "name": "ua-word-stress",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Offline Ukrainian word stress lookup (~9 MB database). Zero dependencies. Works in browsers and Node.js.",
   "keywords": [
     "ukrainian",

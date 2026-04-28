@@ -1,6 +1,6 @@
 {
   "name": "ua-stress-ml",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Luscinia LightGBM/ONNX Ukrainian stress predictor for out-of-vocabulary words. Companion to ua-word-stress.",
   "keywords": [
     "ukrainian",

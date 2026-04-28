@@ -109,7 +109,12 @@ async function decompressGzip(compressed: ArrayBuffer): Promise<ArrayBuffer> {
   if (typeof DecompressionStream !== "undefined") {
     const stream = new Blob([compressed])
       .stream()
-      .pipeThrough(new DecompressionStream("gzip"));
+      .pipeThrough(
+        new DecompressionStream("gzip") as unknown as TransformStream<
+          Uint8Array,
+          Uint8Array
+        >,
+      );
     return new Response(stream).arrayBuffer();
   }
 
@@ -249,7 +254,12 @@ export class UaStressTrie {
       const prefix = new Uint8Array([first, second]);
       const reassembled = _prependChunk(prefix, rest);
       const buf = await new Response(
-        reassembled.pipeThrough(new DecompressionStream("gzip")),
+        reassembled.pipeThrough(
+          new DecompressionStream("gzip") as unknown as TransformStream<
+            Uint8Array,
+            Uint8Array
+          >,
+        ),
       ).arrayBuffer();
       return new UaStressTrie(buf);
     }

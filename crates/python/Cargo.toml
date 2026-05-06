@@ -1,0 +1,15 @@
+[package]
+name = "ua-stress-python"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+
+[lib]
+name = "ukrainian_stress"
+crate-type = ["cdylib"]
+
+[dependencies]
+ua-stress-core = { path = "../core" }
+pyo3 = { version = "0.22", features = ["extension-module"] }
+once_cell = "1"
+

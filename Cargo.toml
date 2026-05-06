@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/builder",
+    "crates/core",
+    "crates/wasm",
+    "crates/python",
+]
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+
+# Smaller WASM builds — override per-crate via `cargo build -p ua-stress-wasm`
+# with RUSTFLAGS="-C opt-level=z" if needed.

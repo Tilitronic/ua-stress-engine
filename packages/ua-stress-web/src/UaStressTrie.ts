@@ -342,6 +342,42 @@ export class UaStressTrie {
     return applyStressMark(word, result.stress);
   }
 
+  /**
+   * Batch `lookup` — stress index for each word.  Returns `null` for unknowns.
+   *
+   * Prefer this over calling `lookup()` in a loop: a single method call
+   * avoids repeated property lookups and is easier to pipeline.
+   *
+   * @example
+   * trie.lookupBatch(['мама', 'тато', 'xyz'])  // → [0, 0, null]
+   */
+  lookupBatch(words: string[]): (number | null)[] {
+    return words.map((w) => this.lookup(w));
+  }
+
+  /**
+   * Batch `lookupFull` — full result for each word.  Returns `null` for unknowns.
+   *
+   * @example
+   * trie.lookupFullBatch(['замок', 'xyz'])
+   * // → [{ stress: 0, stresses: [0,1], type: 'heteronym', uncertain: true }, null]
+   */
+  lookupFullBatch(words: string[]): (LookupResult | null)[] {
+    return words.map((w) => this.lookupFull(w));
+  }
+
+  /**
+   * Batch `mark` — returns each word with an acute accent on the stressed vowel,
+   * or `null` for words not in the dictionary.
+   *
+   * @example
+   * trie.markBatch(['мама', 'університет', 'xyz'])
+   * // → ['ма\u0301ма', 'університе\u0301т', null]
+   */
+  markBatch(words: string[]): (string | null)[] {
+    return words.map((w) => this.mark(w));
+  }
+
   // ── Private helpers ─────────────────────────────────────────────────────────
 
   private _nodeByte(nodeIdx: number, byteOffset: number): number {

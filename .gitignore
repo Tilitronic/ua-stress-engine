@@ -1,6 +1,18 @@
 ﻿# Large data files - downloaded automatically to raw_data folder
 raw_data/
 
+# Rust build output
+target/
+
+# wasm-pack output
+crates/wasm/pkg/
+
+# Compiled Python extension modules (Windows)
+*.pyd
+
+# Ignored / scratch area (experiments, one-off scripts, benchmark reports)
+sandbox/
+
 # Python
 __pycache__/
 *.py[cod]

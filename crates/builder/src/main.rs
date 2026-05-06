@@ -4,11 +4,13 @@
 //! This crate queries it directly (via rusqlite with bundled SQLite) and
 //! builds the compact binary dictionary embedded in the Python and WASM crates.
 //!
-//! # Usage
-//! ```
-//! cargo run -p builder --release -- path/to/linguistics.db
-//! ```
-//! If the path argument is omitted, defaults to `data/linguistics.db`.
+//! # DB path resolution (first match wins)
+//! 1. CLI argument:            `cargo run -p builder --release -- /path/to/db.sqlite3`
+//! 2. Env variable:            `UA_STRESS_MASTER_DB=/path/to/db.sqlite3`
+//! 3. Auto-discovery:          most recently modified `MERGEDSQL_*.sqlite3` in
+//!                             `src/data_management/transform/cache/` (produced by the
+//!                             Python pipeline — this is the canonical location)
+//! 4. Legacy fallback:         `data/linguistics.db`
 //!
 //! Produces: `data/processed/ua_stress.bin.bz2`
 
@@ -101,10 +103,19 @@ fn build_db_from_sqlite(conn: &Connection) -> Result<UaStressDbRaw> {
     let mut lemma_int = LemmaInterner::new();
     let mut def_int = LemmaInterner::new();
 
-    // Check if the `definition` column exists in word_form (added in later schema versions)
-    let has_definition: bool = conn
+    // Check which schema variant we have:
+    //   v1: word_form has a direct `definition` TEXT column
+    //   v2: word_form has a `main_definition_id` FK → definition(id, text)
+    let has_definition_col: bool = conn
         .query_row(
             "SELECT COUNT(*) FROM pragma_table_info('word_form') WHERE name='definition'",
+            [],
+            |row| row.get::<_, i64>(0),
+        )
+        .unwrap_or(0) > 0;
+    let has_def_fk: bool = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('word_form') WHERE name='main_definition_id'",
             [],
             |row| row.get::<_, i64>(0),
         )
@@ -116,9 +127,13 @@ fn build_db_from_sqlite(conn: &Connection) -> Result<UaStressDbRaw> {
 
     // Read word forms in sorted order (ORDER BY form ensures binary-search correctness)
     eprintln!("[3/4] Reading word_form table …");
-    let sql = if has_definition {
+    let sql = if has_definition_col {
         "SELECT id, form, lemma, pos, stress_indices_json, definition \
          FROM word_form ORDER BY form"
+    } else if has_def_fk {
+        "SELECT wf.id, wf.form, wf.lemma, wf.pos, wf.stress_indices_json, d.text \
+         FROM word_form wf LEFT JOIN definition d ON d.id = wf.main_definition_id \
+         ORDER BY wf.form"
     } else {
         "SELECT id, form, lemma, pos, stress_indices_json, NULL \
          FROM word_form ORDER BY form"
@@ -218,13 +233,37 @@ fn write_compressed(db: &UaStressDbRaw, path: &PathBuf) -> Result<()> {
 
 fn main() -> Result<()> {
     // Accept optional path to the SQLite DB as the first argument.
+    // Falls back to the UA_STRESS_MASTER_DB env var, then auto-discovers
+    // the MERGEDSQL_*.sqlite3 cache file produced by the Python pipeline,
+    // and finally falls back to the legacy data/linguistics.db path.
     let db_path: PathBuf = std::env::args()
         .nth(1)
         .map(PathBuf::from)
+        .or_else(|| std::env::var("UA_STRESS_MASTER_DB").ok().map(PathBuf::from))
         .unwrap_or_else(|| {
-            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("../..")
-                .join("data/linguistics.db")
+            let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+            // Auto-discover MERGEDSQL_*.sqlite3 in the Python pipeline cache
+            let cache_dir = root.join("src/data_management/transform/cache");
+            if let Ok(entries) = std::fs::read_dir(&cache_dir) {
+                let mut candidates: Vec<_> = entries
+                    .flatten()
+                    .filter(|e| {
+                        e.file_name()
+                            .to_string_lossy()
+                            .starts_with("MERGEDSQL_")
+                    })
+                    .collect();
+                // Pick the most recently modified one
+                candidates.sort_by_key(|e| {
+                    e.metadata()
+                        .and_then(|m| m.modified())
+                        .unwrap_or(std::time::SystemTime::UNIX_EPOCH)
+                });
+                if let Some(entry) = candidates.last() {
+                    return entry.path();
+                }
+            }
+            root.join("data/linguistics.db")
         });
 
     let out_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))

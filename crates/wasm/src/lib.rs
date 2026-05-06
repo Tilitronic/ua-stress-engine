@@ -13,16 +13,22 @@
 //! with all variants. See `documentation/API_DESIGN.md` for details.
 
 use js_sys::{Array, Object, Reflect};
-use once_cell::sync::Lazy;
 use ua_stress_core::{UaStressDict, pipeline::transcribe as ua_transcribe};
 use wasm_bindgen::prelude::*;
 
 static DB_BIN: &[u8] = include_bytes!("../../../data/processed/ua_stress.bin.bz2");
 
-static DICT: Lazy<UaStressDict> = Lazy::new(|| {
-    UaStressDict::from_compressed_bytes(DB_BIN)
-        .expect("Failed to load embedded Ukrainian stress dictionary")
-});
+thread_local! {
+    static DICT: UaStressDict = UaStressDict::from_compressed_bytes(DB_BIN)
+        .expect("Failed to load embedded Ukrainian stress dictionary");
+}
+
+/// Initialise the dictionary eagerly on WASM module load.
+/// Called automatically by the bundler-target JS glue (`wasm.__wbindgen_start()`).
+#[wasm_bindgen(start)]
+pub fn start() {
+    DICT.with(|_| {}); // force initialisation
+}
 
 // ── Serialisation helpers ────────────────────────────────────────────────────
 
@@ -49,7 +55,7 @@ fn str_array(strings: &[String]) -> JsValue {
 ///   "form": "замок",
 ///   "readings": [
 ///     {
-///       "stressIndex": 0,
+///       "syllableIndex": 0,
 ///       "form": "замок",
 ///       "stressedForm": "за́мок",
 ///       "wordSyllables": ["за", "мок"],
@@ -67,14 +73,14 @@ fn str_array(strings: &[String]) -> JsValue {
 /// `readings` is an empty array when the word is not in the dictionary.
 ///
 /// ```js
-/// import init, { lookup } from 'ua-word-stress';
-/// await init();
+/// import { lookup } from 'ua-word-stress-wasm';
 /// const result = lookup('замок');
 /// result.readings[0].stressedForm;  // → 'за́мок'
 /// ```
 #[wasm_bindgen]
 pub fn lookup(word: &str) -> Object {
-    let result = DICT.lookup(word);
+    DICT.with(|d| {
+    let result = d.lookup(word);
     let obj = Object::new();
     set(&obj, "form", JsValue::from_str(&result.form));
 
@@ -129,6 +135,7 @@ pub fn lookup(word: &str) -> Object {
     set(&obj, "readings", readings_arr.into());
 
     obj
+    })
 }
 
 /// Return *word* with a combining acute accent on the stressed vowel of the
@@ -142,37 +149,40 @@ pub fn lookup(word: &str) -> Object {
 /// ```
 #[wasm_bindgen]
 pub fn mark(word: &str) -> String {
-    let result = DICT.lookup(word);
-    match result.readings.first() {
-        Some(r) => r.stressed_form.clone(),
-        None => word.to_string(),
-    }
+    DICT.with(|d| {
+        let result = d.lookup(word);
+        match result.readings.first() {
+            Some(r) => r.stressed_form.clone(),
+            None => word.to_string(),
+        }
+    })
 }
 
 /// Total number of word forms in the embedded dictionary.
 #[wasm_bindgen(js_name = wordCount)]
 pub fn word_count() -> u32 {
-    DICT.len() as u32
+    DICT.with(|d| d.len() as u32)
 }
 
-/// Return the stress index (0-based vowel position) of the first reading,
-/// or -1 if the word is unknown.
+/// Return the 0-based **syllable** index of the stressed syllable of the first
+/// reading, or -1 if the word is unknown.
 ///
-/// This is the minimal-overhead lookup: returns a single i32 with no object
-/// allocation, making it directly comparable to `ua-word-stress` trie's
-/// `lookup()` which also returns a stress index number.
+/// This is the same value as `readings[0].syllableIndex` from `lookup()`.
+/// Use it as a direct index into `readings[0].wordSyllables`.
 ///
 /// ```js
-/// stressIndex('мама')  // → 1  (stress on second vowel)
+/// stressIndex('мама')  // → 0  (first syllable stressed)
 /// stressIndex('ааааа') // → -1 (unknown)
 /// ```
 #[wasm_bindgen(js_name = stressIndex)]
 pub fn stress_index(word: &str) -> i32 {
-    let result = DICT.lookup(word);
-    match result.readings.first() {
-        Some(r) => r.syllable_index as i32,
-        None => -1,
-    }
+    DICT.with(|d| {
+        let result = d.lookup(word);
+        match result.readings.first() {
+            Some(r) => r.syllable_index as i32,
+            None => -1,
+        }
+    })
 }
 
 /// Batch stress-index lookup: takes a JS Array of word strings and returns a
@@ -187,17 +197,19 @@ pub fn stress_index(word: &str) -> i32 {
 /// ```
 #[wasm_bindgen(js_name = stressIndexBatch)]
 pub fn stress_index_batch(words: &js_sys::Array) -> js_sys::Int32Array {
-    let out = js_sys::Int32Array::new_with_length(words.length());
-    for i in 0..words.length() {
-        let word = words.get(i).as_string().unwrap_or_default();
-        let result = DICT.lookup(&word);
-        let idx = match result.readings.first() {
-            Some(r) => r.syllable_index as i32,
-            None => -1,
-        };
-        out.set_index(i, idx);
-    }
-    out
+    DICT.with(|d| {
+        let out = js_sys::Int32Array::new_with_length(words.length());
+        for i in 0..words.length() {
+            let word = words.get(i).as_string().unwrap_or_default();
+            let result = d.lookup(&word);
+            let idx = match result.readings.first() {
+                Some(r) => r.syllable_index as i32,
+                None => -1,
+            };
+            out.set_index(i, idx);
+        }
+        out
+    })
 }
 
 /// Batch mark — stress-mark every word in a JS Array of strings.
@@ -214,17 +226,19 @@ pub fn stress_index_batch(words: &js_sys::Array) -> js_sys::Int32Array {
 /// ```
 #[wasm_bindgen(js_name = markBatch)]
 pub fn mark_batch(words: &js_sys::Array) -> js_sys::Array {
-    let out = js_sys::Array::new_with_length(words.length());
-    for i in 0..words.length() {
-        let word = words.get(i).as_string().unwrap_or_default();
-        let result = DICT.lookup(&word);
-        let marked = match result.readings.first() {
-            Some(r) => r.stressed_form.clone(),
-            None => word.clone(),
-        };
-        out.set(i, JsValue::from_str(&marked));
-    }
-    out
+    DICT.with(|d| {
+        let out = js_sys::Array::new_with_length(words.length());
+        for i in 0..words.length() {
+            let word = words.get(i).as_string().unwrap_or_default();
+            let result = d.lookup(&word);
+            let marked = match result.readings.first() {
+                Some(r) => r.stressed_form.clone(),
+                None => word.clone(),
+            };
+            out.set(i, JsValue::from_str(&marked));
+        }
+        out
+    })
 }
 
 /// Batch full lookup — returns a JS Array of `LookupResult` objects (same

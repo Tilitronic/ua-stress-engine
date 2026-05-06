@@ -1,10 +1,18 @@
 ﻿# ua-stress-engine
 
-Ukrainian word stress engine — dictionary lookup, ML prediction, and a zero-dependency JS/TS trie package.
+Ukrainian word stress engine — dictionary lookup with full IPA transcription, ML stress prediction, and published packages for Python, Node.js, and the browser.
 
 The centrepiece is **Luscinia** — a LightGBM model that predicts the stressed vowel in
 any Ukrainian word with **99.44 % accuracy** across all syllable counts.
 The model is also exported to ONNX for browser-side inference via `onnxruntime-web`.
+
+## Published packages
+
+| Package               | Registry                                                 | Source                    | Description                                             |
+| --------------------- | -------------------------------------------------------- | ------------------------- | ------------------------------------------------------- |
+| `ua-word-stress`      | [npm](https://www.npmjs.com/package/ua-word-stress)      | `packages/ua-stress-web/` | Zero-dependency TypeScript trie (~9 MB, browser + Node) |
+| `ua-word-stress-wasm` | [npm](https://www.npmjs.com/package/ua-word-stress-wasm) | `crates/wasm/`            | Rust/WASM — full IPA, morphology, batch API             |
+| `ua-stress-engine`    | PyPI (planned)                                           | `crates/python/`          | PyO3 extension — same API as WASM, for Python           |
 
 ## Highlights
 
@@ -21,15 +29,102 @@ The model is also exported to ONNX for browser-side inference via `onnxruntime-w
 
 ## Installation
 
+### JavaScript / TypeScript
+
 ```bash
-conda env create -f environment.yml
-conda activate verseSense-py312
-pip install -e .
+# Trie-based lookup (browser + Node, no WASM)
+npm install ua-word-stress
+
+# Full engine — IPA, morphology, batch API (WASM, bundler required)
+npm install ua-word-stress-wasm
 ```
+
+### Python
+
+The package is a compiled Rust extension (PyO3 + maturin). Runtime Python dependencies:
+
+| Extra    | Packages                       | Purpose                                    |
+| -------- | ------------------------------ | ------------------------------------------ |
+| _(core)_ | none                           | Dictionary lookup + IPA via Rust extension |
+| `ml`     | `lightgbm>=4.0`, `numpy>=1.24` | Luscinia LightGBM resolver                 |
+| `nlp`    | `spacy>=3.7`                   | spaCy tokenization pipeline                |
+| `full`   | all of the above               | Everything                                 |
+
+For local development (requires [Rust toolchain](https://rustup.rs/) and `maturin`):
+
+```bash
+pip install maturin
+pip install -e '.[full]'   # builds the Rust extension in-place
+```
+
+## Quick start — JavaScript / TypeScript
+
+### Trie-based lookup (`ua-word-stress`)
+
+Pure TypeScript, no WASM, works in any environment:
+
+```ts
+import { UaStressTrie } from "ua-word-stress";
+
+const trie = new UaStressTrie();
+trie.mark("університет"); // → 'університе́т'
+trie.lookup("замок"); // → 0 (first syllable — замок-lock)
+trie.markBatch(["мама", "тато"]); // → ['ма́ма', 'та́то']
+```
+
+### Full WASM engine (`ua-word-stress-wasm`)
+
+Rust/WASM with IPA transcription, morphology, and batch API. No `init()` call needed — the dictionary loads automatically at module import (bundler target):
+
+```ts
+import { mark, lookup, stressIndex, transcribe } from "ua-word-stress-wasm";
+
+mark("університет"); // → 'університе́т'
+stressIndex("мама"); // → 0  (0-based syllable index)
+
+const r = lookup("замок");
+r.readings[0].stressedForm; // → 'за́мок'
+r.readings[0].ipa; // → 'zɑmɔk'
+r.readings[0].syllableIndex; // → 0
+r.readings[1].stressedForm; // → 'замо́к'  (heteronym)
+
+transcribe("слово", 0); // → { ipa: 'slɔwɔ', ipaSyllables: ['ˈslɔ', 'wɔ'], … }
+```
+
+See the [WASM package README](crates/wasm/pkg/README.md) for the full API reference.
 
 ## Quick start — Python
 
-### Low-level: raw model prediction
+### Dictionary + IPA (Rust extension)
+
+```python
+import ukrainian_stress
+
+ukrainian_stress.mark('університет')   # → 'університе́т'
+
+r = ukrainian_stress.lookup('замок')
+r['readings'][0]['stressed_form']      # → 'за́мок'
+r['readings'][0]['ipa']               # → 'zɑmɔk'
+r['readings'][0]['syllable_index']    # → 0
+```
+
+### Full pipeline (Rust dict + LightGBM ML fallback)
+
+Requires `pip install -e '.[full]'`:
+
+```python
+from src.stress_resolver.resolver_factory import create_pipeline_kwargs
+from src.stress_resolver.pipeline import UkrainianPipeline
+
+pipeline = UkrainianPipeline(**create_pipeline_kwargs())
+
+doc = pipeline.process("Мама варила борщ на кухні.")
+for sentence in doc.sentences:
+    for token in sentence.tokens:
+        print(f"{token.text:15} {token.stress_pattern}")
+```
+
+### Raw Luscinia prediction (LightGBM)
 
 ```python
 import lightgbm as lgb
@@ -47,7 +142,6 @@ bst = lgb.Booster(model_file=MODEL_PATH)
 VOWELS = set("аеєиіїоуюя")
 
 def predict_stress(word: str, pos: str = "NOUN") -> str:
-    """Returns the word with a combining acute accent on the stressed vowel."""
     feat = build_features_universal(word, pos)
     X = np.array(list(feat.values()), dtype=np.float32).reshape(1, -1)
     vowel_idx = int(bst.predict(X).argmax(axis=1)[0])
@@ -59,28 +153,7 @@ print(predict_stress("університет", "NOUN"))  # → універси�
 print(predict_stress("читати",      "VERB"))  # → чита́ти
 ```
 
-### Full pipeline (LMDB + ML fallback)
-
-```python
-from src.stress_resolver.resolver_factory import create_pipeline_kwargs
-from src.stress_resolver.pipeline import UkrainianPipeline
-
-# Auto mode: uses LMDB lookup + LightGBM fallback if model is available,
-# silently falls back to LMDB-only if lightgbm is not installed.
-pipeline = UkrainianPipeline(**create_pipeline_kwargs())
-
-doc = pipeline.process("Мама варила борщ на кухні.")
-for sentence in doc.sentences:
-    for token in sentence.tokens:
-        print(f"{token.text:15} {token.stress_pattern}")
-```
-
-> **POS tags** — use Universal Dependencies tags:
-> `NOUN VERB ADJ ADV PRON DET NUM PART CCONJ X`.
-> Pass `"X"` when POS is unknown.
->
-> **Apostrophes** — pre-normalise to U+02BC (`ʼ`) using
-> `src/utils/normalize_apostrophe.py` before calling the model.
+> **POS tags** — use Universal Dependencies tags: `NOUN VERB ADJ ADV PRON DET NUM PART CCONJ X`. Pass `"X"` when POS is unknown.
 
 ## Quick start — browser (ONNX)
 
@@ -106,79 +179,86 @@ for the full deployment guide (nginx / Express serving, batch inference, feature
 
 ## Modules
 
-| Module                         | Path                              | What it does                                                       |
-| ------------------------------ | --------------------------------- | ------------------------------------------------------------------ |
-| **Dictionary resolver** (LMDB) | `src/nlp/stress_service/`         | Sub-millisecond stress lookup across 2.86 M word forms             |
-| **ML resolver** (LightGBM)     | `src/stress_prediction/lightgbm/` | Luscinia model — 99.44 % accuracy, 132 features, ONNX export       |
-| **NLP pipeline**               | `src/stress_resolver/`            | spaCy tokenization → LMDB lookup → ML fallback → IPA transcription |
-| **JS trie package**            | `packages/ua-stress-web/`         | `ua-stress-trie` — zero-dependency browser/Node trie (~9 MB)       |
-| **Data management**            | `src/data_management/`            | Source parsers, master SQLite DB builder, trie exporter            |
+| Module                          | Path                              | What it does                                                               |
+| ------------------------------- | --------------------------------- | -------------------------------------------------------------------------- |
+| **`ua-word-stress`** (npm)      | `packages/ua-stress-web/`         | Zero-dependency TypeScript trie — `mark`, `lookup`, batch API              |
+| **`ua-word-stress-wasm`** (npm) | `crates/wasm/`                    | Rust/WASM — IPA, morphology, batch API, no init() required                 |
+| **`ukrainian_stress`** (Python) | `crates/python/`                  | PyO3 extension — same API as WASM, for Python                              |
+| **Rust core**                   | `crates/core/`                    | Dictionary embed, phonetic pipeline, syllabifier (shared by WASM + Python) |
+| **ML resolver** (LightGBM)      | `src/stress_prediction/lightgbm/` | Luscinia model — 99.44 % accuracy, 132 features, ONNX export               |
+| **NLP pipeline**                | `src/stress_resolver/`            | spaCy tokenization → Rust dict lookup → ML fallback                        |
+| **Data management**             | `src/data_management/`            | Source parsers, master SQLite DB builder, binary trie exporter             |
 
 ## Project structure
 
 ```
 ua-stress-engine/
+├── crates/
+│   ├── core/                      # Rust core library (dict embed, phonetics, syllabifier)
+│   ├── wasm/                      # ua-word-stress-wasm (wasm-pack, bundler target)
+│   │   ├── src/lib.rs
+│   │   └── pkg/                   # built npm package (gitignored except README + package.json)
+│   ├── python/                    # ukrainian_stress PyO3 extension (maturin)
+│   │   └── src/lib.rs
+│   └── builder/                   # CLI tool to compile the embedded binary dictionary
 ├── packages/
-│   └── ua-stress-web/             # ua-stress-trie npm package (TypeScript, zero deps)
+│   └── ua-stress-web/             # ua-word-stress npm package (TypeScript, zero deps)
 │       ├── src/                   # UaStressTrie.ts, types.ts, utils.ts
 │       ├── tests/
 │       └── package.json
 ├── src/
 │   ├── stress_resolver/           # Python NLP pipeline + resolver chain
 │   │   ├── pipeline.py            # UkrainianPipeline
-│   │   ├── stress_resolver.py     # LMDB-based resolver (morphology matching)
+│   │   ├── stress_resolver.py     # Rust-extension-based resolver
 │   │   ├── ml_stress_resolver.py  # LightGBM-based resolver
-│   │   └── resolver_factory.py    # Auto-configure DB + optional ML resolver
+│   │   └── resolver_factory.py    # Auto-configure resolver chain
 │   ├── nlp/
-│   │   ├── stress_service/        # LMDB stress lookup (2.86 M entries)
-│   │   ├── phonetic/              # IPA transcription
+│   │   ├── stress_service/        # Stress lookup wrapper
+│   │   ├── phonetic/              # IPA transcription (Python side)
 │   │   └── tokenization_service/  # spaCy tokenizer wrapper
 │   ├── stress_prediction/
 │   │   └── lightgbm/              # Luscinia model, training scripts, services, artifacts
 │   └── data_management/
 │       ├── sources/               # Source parsers (kaikki, trie, txt, variative)
-│       ├── transform/             # Master DB builder (SQLite, 681 MB)
+│       ├── transform/             # Master DB builder (SQLite)
 │       └── export/
-│           └── web_stress_db/     # Binary trie builder (Python → ua-stress-trie data)
+│           └── web_stress_db/     # Binary .ctrie builder → packages/ua-stress-web/data/
 ├── build_master_db.py             # Build master SQLite from all sources
-├── build_web_stress_db.py         # Build + export binary trie → packages/ua-stress-web/data/
-├── analyze_master_db.py           # Inspect master DB
-├── analyze_stress_service.py      # Inspect LMDB
-├── analyze_luscinia.py            # Inspect LightGBM model
+├── build_web_stress_db.py         # Build + export binary trie
+├── pyproject.toml                 # maturin build config (points to crates/python/)
 └── tests/
     └── src/
-        ├── stress_resolver/       # Pipeline + resolver tests (30 tests)
-        ├── stress_prediction/     # LightGBM model tests (44+ tests)
-        ├── data_management/       # Source parser + DB tests (21 tests)
-        └── nlp/                   # Stress service tests (24 tests)
+        ├── stress_resolver/       # Pipeline + resolver tests
+        ├── stress_prediction/     # LightGBM model tests
+        ├── data_management/       # Source parser + DB tests
+        └── nlp/                   # Stress service tests
 ```
+
+## Data sources
+
+The embedded dictionary is compiled from four open Ukrainian stress resources:
+
+| Source                                                                                                              | License       | Entries              | Notes                        |
+| ------------------------------------------------------------------------------------------------------------------- | ------------- | -------------------- | ---------------------------- |
+| [kaikki.org Ukrainian](https://kaikki.org/dictionary/Ukrainian/) — Wiktionary extract                               | CC BY-SA 4.0  | ~2 M inflected forms | POS + full morphology        |
+| [lang-uk/ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) — marisa-trie                     | MIT           | ~2.9 M word forms    | compact trie with morph tags |
+| [lang-uk/ukrainian-word-stress-dictionary](https://github.com/lang-uk/ukrainian-word-stress-dictionary) — text dict | see upstream  | ~2.9 M word forms    | based on ULIF / NASU corpora |
+| `ua_variative_stressed_words` — curated free-variant list                                                           | original work | ~150 lemmas          | marks freely variable stress |
+
+All four sources are merged into a single master SQLite (~680 MB) and then compiled into the embedded binary (`ua_stress.bin.bz2`) shipped inside the Rust crates.
 
 ## Running tests
 
 ```bash
-# All tests (requires verseSense-py312 for LightGBM and spaCy)
-conda activate verseSense-py312
+# Python tests (requires ml + nlp extras installed)
 python -m pytest tests/ -q
 
-# JS/TS trie package
+# TypeScript trie package
 cd packages/ua-stress-web && pnpm test
+
+# WASM package
+cd crates/wasm && wasm-pack test --node
 ```
-
-    sources/               # Kaikki, trie, txt, UA variative stressed words
-    transform/             # merger, data unifier, cache utils
-    export/                # training DB export (SQL schema)
-
-lemmatizer/ # Ukrainian lemmatizer
-utils/ # shared utilities (apostrophe normalization, …)
-tests/ # pytest test suite mirroring src/
-
-````
-
-## Running tests
-
-```bash
-pytest
-````
 
 ## Large files (Git LFS)
 

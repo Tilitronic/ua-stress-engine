@@ -83,6 +83,8 @@ src/data_management/transform/cache/
 src/stress_prediction/data/stress_training.db
 # kaikki Ukrainian dictionary: 186 MB JSONL — re-download from kaikki.org
 src/data_management/sources/kaikki/*.jsonl
+# SUM11 source JSON: >100 MB, downloaded automatically by parser
+src/data_management/sources/sum11/sum11.json
 
 # ── stress_prediction: keep sources, ignore generated/transient artifacts ─────
 

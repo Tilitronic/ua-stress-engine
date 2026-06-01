@@ -40,12 +40,12 @@ _PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(_PROJECT_ROOT))
 
 from src.data_management.export.web_stress_db.trie import TrieBuilder, serialize
-from src.data_management.export.web_stress_db.loader import load_from_master_db
+from src.data_management.export.web_stress_db.loader import load_from_master_db, load_variants_from_master_db
 from src.data_management.export.web_stress_db.tests import run_tests
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
 _MASTER_DB_NAME = (
-    "MERGEDSQL_33734b4d5785370f0db8c93c657d5f1d244e9e559f3a9f4e6bcaa914959db665.sqlite3"
+    "MERGEDSQL_893b9a9fed1873962c6f956dd994ee403c6ddfe0f77b7655b1afed4ab9b50c14.sqlite3"
 )
 _CANDIDATE_MASTER_DBS = [
     _PROJECT_ROOT / "src/data_management/transform/cache" / _MASTER_DB_NAME,
@@ -271,6 +271,31 @@ def build(
     npm_gz = _NPM_DATA_DIR / "ua_stress.ctrie.gz"
     shutil.copy2(gz_path, npm_gz)
     log.info(f"  Copied to npm package: {npm_gz}")
+
+    # ── 6b. Build & write per-variant morphological data ──────────────────
+    log.info("Building per-variant morphological data (ua_stress.variants.json.gz)…")
+    variants = load_variants_from_master_db(db_path)
+    variants_json = json.dumps(variants, ensure_ascii=False, separators=(",", ":"))
+    variants_gz = gzip.compress(variants_json.encode("utf-8"), compresslevel=9)
+
+    variants_gz_path = out_dir / "ua_stress.variants.json.gz"
+    variants_gz_path.write_bytes(variants_gz)
+    log.info(
+        f"  Written: {variants_gz_path}  "
+        f"({len(variants_gz)/1024:.0f} KB compressed, "
+        f"{len(variants):,} ambiguous forms)"
+    )
+
+    npm_variants_gz = _NPM_DATA_DIR / "ua_stress.variants.json.gz"
+    shutil.copy2(variants_gz_path, npm_variants_gz)
+    log.info(f"  Copied to npm package: {npm_variants_gz}")
+
+    manifest["variants"] = {
+        "file": "ua_stress.variants.json.gz",
+        "ambiguous_form_count": len(variants),
+        "gz_size_bytes": len(variants_gz),
+    }
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
 
     # ── 7. Update npm README stats block ──────────────────────────────────
     _update_npm_readme(manifest, log)

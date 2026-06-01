@@ -282,3 +282,66 @@ class TestSmokeWords:
                 pass
         assert 0 in indices, "замок missing stress index 0 (замОк — lock)"
         assert 1 in indices, "замок missing stress index 1 (зАмок — castle)"
+
+
+# ---------------------------------------------------------------------------
+# Deduplication — exact duplicate word_form rows must be absent
+# ---------------------------------------------------------------------------
+
+class TestDedup:
+    """Verify that the canonical UNIQUE index on word_form is enforced.
+
+    These tests fail on a DB built without the uq_word_form_canonical index
+    (pre-fix builds).  After rebuilding with the updated schema and
+    SQLExporter._insert_batches(), both tests must pass.
+    """
+
+    def test_no_exact_duplicate_word_forms(self, con):
+        """No two word_form rows may share the same canonical key.
+
+        Canonical key:
+          form, ifnull(lemma,''), ifnull(pos,''), ifnull(main_definition_id,-1),
+          ifnull(roman,''), ifnull(ipa,''), ifnull(etymology_id,-1),
+          ifnull(etymology_number,-1), ifnull(sense_id,''), stress_indices_json
+        """
+        dup_groups = con.execute(
+            """
+            SELECT COUNT(*) FROM (
+                SELECT 1 FROM word_form
+                GROUP BY
+                    form,
+                    ifnull(lemma, ''),
+                    ifnull(pos, ''),
+                    ifnull(main_definition_id, -1),
+                    ifnull(roman, ''),
+                    ifnull(ipa, ''),
+                    ifnull(etymology_id, -1),
+                    ifnull(etymology_number, -1),
+                    ifnull(sense_id, ''),
+                    stress_indices_json
+                HAVING COUNT(*) > 1
+            )
+            """
+        ).fetchone()[0]
+        assert dup_groups == 0, (
+            f"{dup_groups} groups of exact duplicate word_form rows found. "
+            "Rebuild the DB — the fix in SQLExporter._insert_batches() "
+            "prevents duplicates at insert time via INSERT OR IGNORE."
+        )
+
+    def test_canonical_unique_index_present(self, con):
+        """The uq_word_form_canonical expression index must exist in the DB.
+
+        Its presence proves the DB was built (or migrated) with the dedup schema.
+        """
+        indexes = {
+            r[0]
+            for r in con.execute(
+                "SELECT name FROM sqlite_master "
+                "WHERE type='index' AND tbl_name='word_form'"
+            ).fetchall()
+        }
+        assert "uq_word_form_canonical" in indexes, (
+            "uq_word_form_canonical index is missing from word_form. "
+            "Rebuild the DB with the updated linguistic_data_schema.sql."
+        )

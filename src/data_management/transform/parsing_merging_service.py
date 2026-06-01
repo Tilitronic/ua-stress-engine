@@ -24,6 +24,7 @@ from src.data_management.transform.cache_utils import compute_parser_hash
 from src.data_management.sources.txt_ua_stresses.txt_stress_parser import stream_txt_to_lmdb
 from src.data_management.sources.trie_ua_stresses.trie_stress_parser import stream_trie_to_lmdb
 from src.data_management.sources.kaikki.kaikki_parser import stream_kaikki_to_lmdb
+from src.data_management.sources.sum11.sum11_parser import run_sum11_parser as _run_sum11_parser
 from src.data_management.transform.merger import merge_caches_and_save_lmdb, merge_caches_and_save, LMDBExporter, LMDBExportConfig
 
 
@@ -44,9 +45,10 @@ class ExportConfig:
         self.format = format
         self.query_words = query_words or []
         # Default source paths — overridable via environment variables:
-        #   UA_TXT_DICT   : path to ua_word_stress_dictionary.txt
-        #   UA_TRIE_DICT  : path to stress.trie
+        #   UA_TXT_DICT    : path to ua_word_stress_dictionary.txt
+        #   UA_TRIE_DICT   : path to stress.trie
         #   UA_KAIKKI_JSONL: path to kaikki.org-dictionary-Ukrainian.jsonl
+        #   UA_SUM11_JSON  : path to sum11.json (from DiktJson-ukr-ukr_SUM-11_or_1.zip)
         txt_path = os.environ.get(
             "UA_TXT_DICT",
             "src/data_management/sources/txt_ua_stresses/ua_word_stress_dictionary.txt",
@@ -58,6 +60,10 @@ class ExportConfig:
         kaikki_path = os.environ.get(
             "UA_KAIKKI_JSONL",
             "src/data_management/sources/kaikki/kaikki.org-dictionary-Ukrainian.jsonl",
+        )
+        sum11_path = os.environ.get(
+            "UA_SUM11_JSON",
+            "src/data_management/sources/sum11/sum11.json",
         )
         # Default sources_configs if not provided
         self.sources_configs: Dict[str, ParserConfig] = sources_configs or {
@@ -75,6 +81,11 @@ class ExportConfig:
                 "parser_func": "run_kaikki_parser",
                 "parser_path": "src/data_management/sources/kaikki/kaikki_parser.py",
                 "db_path": kaikki_path,
+            },
+            "SUM11": {
+                "parser_func": "run_sum11_parser",
+                "parser_path": "src/data_management/sources/sum11/sum11_parser.py",
+                "db_path": sum11_path,
             },
         }
         # Informative log for sources_configs
@@ -129,6 +140,14 @@ def run_kaikki_parser(progress_callback: Optional[Callable[[int, int], None]] = 
     stats = {"cache_used": False, "lmdb_path": lmdb_path}
     return lmdb_path, stats
 
+
+def run_sum11_parser(progress_callback: Optional[Callable[[int, int], None]] = None, config: Optional[ParserConfig] = None) -> Tuple[str, Dict[str, Any]]:
+    """
+    Calls the СУМ-11 parser's streaming-to-LMDB logic and returns the LMDB path and stats.
+    """
+    if config is None:
+        config = export_config.sources_configs["SUM11"]
+    return _run_sum11_parser(progress_callback=progress_callback, config=config)
 
 
 def parser_worker(
@@ -310,6 +329,7 @@ def main():
         "TXT": run_txt_parser,
         "TRIE": run_trie_parser,
         "KAIKKI": run_kaikki_parser,
+        "SUM11": run_sum11_parser,
     }
     enabled_names = list(export_config.sources_configs.keys())
     enabled_funcs = [parser_func_map[name] for name in enabled_names]

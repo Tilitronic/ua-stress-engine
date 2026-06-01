@@ -254,7 +254,7 @@ mod tests {
 
     #[test]
     fn ipa_apostrophe_myach() {
-        // м'яч: м ʔ j a tʃ (apostrophe → glottal, я → j + ɑ)
+        // м'яч: м ʔ j a t͡ʃ (apostrophe → glottal, я → j + ɑ)
         let r = transcribe("м'яч", 0);
         assert!(r.tokens.iter().any(|t| t.ipa == "ʔ"), "expected glottal ʔ in м'яч");
         assert!(r.tokens.iter().any(|t| t.ipa == "j"),  "expected glide j in м'яч");
@@ -263,10 +263,10 @@ mod tests {
 
     #[test]
     fn ipa_shch_is_two_tokens() {
-        // щука: щ → ʃ + tʃ (two tokens), у к а
+        // щука: щ → ʃ + t͡ʃ (two tokens), у к а
         let r = transcribe("щука", 0);
         assert_eq!(r.tokens[0].ipa, "ʃ");
-        assert_eq!(r.tokens[1].ipa, "tʃ");
+        assert_eq!(r.tokens[1].ipa, "t͡ʃ");
         assert_eq!(r.syllables.len(), 2);
     }
 
@@ -379,14 +379,38 @@ mod tests {
     #[test]
     fn digraph_dzh() {
         let r = transcribe("джміль", 0);
-        assert_eq!(r.tokens[0].ipa, "dʒ");
+        assert_eq!(r.tokens[0].ipa, "d͡ʒ");
+    }
+
+    #[test]
+    fn digraph_dz_denkit() {
+        let r = transcribe("дзенькіт", 0);
+        assert_eq!(r.tokens[0].ipa, "d͡z");
+    }
+
+    #[test]
+    fn dzh_prefix_boundary_splits() {
+        let r = transcribe("підживити", 1);
+        let ipas: Vec<&str> = r.tokens.iter().map(|t| t.ipa.as_str()).collect();
+        let d_idx = ipas.iter().position(|&x| x == "d").expect("must contain d");
+        assert_eq!(ipas[d_idx + 1], "ʒ", "prefix boundary д+ж must stay split: {ipas:?}");
+        assert!(!ipas.contains(&"d͡ʒ"), "must not merge to d͡ʒ at prefix boundary: {ipas:?}");
+    }
+
+    #[test]
+    fn dz_prefix_boundary_splits() {
+        let r = transcribe("надзвичайний", 2);
+        let ipas: Vec<&str> = r.tokens.iter().map(|t| t.ipa.as_str()).collect();
+        let d_idx = ipas.iter().position(|&x| x == "d").expect("must contain d");
+        assert_eq!(ipas[d_idx + 1], "z", "prefix boundary д+з must stay split: {ipas:?}");
+        assert!(!ipas.contains(&"d͡z"), "must not merge to d͡z at prefix boundary: {ipas:?}");
     }
 
     #[test]
     fn composite_shch() {
         let r = transcribe("щука", 0);
         assert_eq!(r.tokens[0].ipa, "ʃ");
-        assert_eq!(r.tokens[1].ipa, "tʃ");
+        assert_eq!(r.tokens[1].ipa, "t͡ʃ");
     }
 
     #[test]

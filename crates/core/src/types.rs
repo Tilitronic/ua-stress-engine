@@ -10,13 +10,18 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+#[cfg(feature = "schema")]
+use schemars::JsonSchema;
+
 // ═══════════════════════════════════════════════════════════════════════════
 // SECTION 1 — Phonetic pipeline types
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Voicing class of a consonant.  Sonorants (m, n, l, r, j, ʋ) are exempt
 /// from obstruent voicing assimilation.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub enum VoicePower {
     Voiceless,
     Voiced,
@@ -25,7 +30,9 @@ pub enum VoicePower {
 }
 
 /// Articulatory place of a consonant.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub enum Place {
     Labial,
     Dental,
@@ -36,7 +43,9 @@ pub enum Place {
 }
 
 /// Articulatory manner of a consonant.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub enum Manner {
     Plosive,
     Fricative,
@@ -48,7 +57,9 @@ pub enum Manner {
 }
 
 /// Palatal (soft) vs. non-palatal (hard) consonant variant.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub enum Softness {
     Hard,
     Soft,
@@ -56,7 +67,9 @@ pub enum Softness {
 
 /// Full 5-dimensional feature vector for a consonant phoneme.
 /// Directly parallels the TypeScript `ConsonantFeatures` interface.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub struct ConsonantFeatures {
     pub voice_power: VoicePower,
     pub place: Place,
@@ -68,7 +81,9 @@ pub struct ConsonantFeatures {
 }
 
 /// Height position of a vowel in the oral cavity.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub enum VowelHeight {
     High,
     HighMid,
@@ -77,7 +92,9 @@ pub enum VowelHeight {
 }
 
 /// Front-back position of a vowel.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub enum VowelBackness {
     Front,
     Central,
@@ -85,14 +102,18 @@ pub enum VowelBackness {
 }
 
 /// Lip rounding of a vowel.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub enum VowelRounding {
     Rounded,
     Unrounded,
 }
 
 /// Full 3-dimensional feature vector for a vowel phoneme.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub struct VowelFeatures {
     pub height: VowelHeight,
     pub backness: VowelBackness,
@@ -102,7 +123,9 @@ pub struct VowelFeatures {
 }
 
 /// The kind of sound a `PhoneticToken` represents.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub enum TokenType {
     /// A consonant phoneme.
     Consonant,
@@ -119,7 +142,9 @@ pub enum TokenType {
 ///
 /// Passes operate on `&mut Vec<PhoneticToken>` (or return a new `Vec`
 /// when tokens must be removed).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub struct PhoneticToken {
     /// Current IPA symbol for this phoneme.  May be mutated by passes
     /// (e.g., voicing assimilation changes "s" → "z").
@@ -233,7 +258,9 @@ pub struct UaStressDbRaw {
 ///
 /// All names follow the [Universal Dependencies](https://universaldependencies.org/)
 /// annotation convention.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub struct MorphReading {
     /// Universal POS tags, e.g. `["NOUN"]`.  Typically one element.
     pub pos: Vec<String>,
@@ -264,7 +291,9 @@ pub struct MorphReading {
 /// `word_syllables[i]` and `ipa_syllables[i]` correspond to the same syllable.
 /// Joining `word_syllables` reconstructs `form`.
 /// Stripping leading `ˈ` from each `ipa_syllables[i]` and joining gives `ipa`.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub struct StressReading {
     // ── Stress position ───────────────────────────────────────────────────
     /// 0-based index of the stressed syllable (= stressed vowel index for
@@ -314,7 +343,9 @@ pub struct StressReading {
 /// The engine **never picks one variant** — it returns all the data it holds
 /// so that callers can apply their own resolution strategy (NLP context in
 /// Python, tooltip in the browser, etc.).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase")]
 pub struct WordLookupResult {
     /// Normalized query form (lowercased, canonical apostrophe).
     pub form: String,

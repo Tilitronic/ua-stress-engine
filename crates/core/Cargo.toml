@@ -1,14 +1,21 @@
 [package]
 name = "ua-stress-core"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "AGPL-3.0-or-later"
+
+[features]
+# Enables schemars::JsonSchema derives on all public API response types.
+# Activated by the builder crate for the schema-export binary.
+# Must NOT be enabled in wasm/python builds (schemars is not wasm-safe).
+schema = ["dep:schemars"]
 
 [dependencies]
 bincode = "1"
 serde = { version = "1", features = ["derive"] }
 once_cell = "1"
 bzip2-rs = "0.1"   # pure Rust — works on all targets including wasm32
+schemars = { version = "0.8", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.3", features = ["wasm_js"] }

@@ -36,6 +36,20 @@ CREATE TABLE IF NOT EXISTS etymology_text (
 CREATE INDEX idx_word_form_form ON word_form(form);
 CREATE INDEX idx_word_form_lemma ON word_form(lemma);
 CREATE INDEX idx_word_form_pos ON word_form(pos);
+-- Canonical deduplication index: enforces no exact duplicate word_form rows.
+-- Uses ifnull() expressions so that NULLs compare equal (SQLite treats NULL != NULL in plain UNIQUE).
+CREATE UNIQUE INDEX IF NOT EXISTS uq_word_form_canonical ON word_form(
+    form,
+    ifnull(lemma, ''),
+    ifnull(pos, ''),
+    ifnull(main_definition_id, -1),
+    ifnull(roman, ''),
+    ifnull(ipa, ''),
+    ifnull(etymology_id, -1),
+    ifnull(etymology_number, -1),
+    ifnull(sense_id, ''),
+    stress_indices_json
+);
 
 -- Morphological features (UD-compliant)
 CREATE TABLE feature (

@@ -1,6 +1,6 @@
 {
   "name": "ua-word-stress",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "description": "Offline Ukrainian word stress lookup (~9 MB database). Zero dependencies. Works in browsers and Node.js.",
   "keywords": [
     "ukrainian",
@@ -47,10 +47,15 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "pnpm build && pnpm typecheck && pnpm test"
+    "prepublishOnly": "pnpm build && pnpm typecheck && pnpm test",
+    "generate:schema": "node scripts/generate-schema.mjs",
+    "generate:types": "json2ts --input src/generated/schema.json --output src/generated/api-types.ts --no-additionalProperties",
+    "generate": "pnpm generate:schema && pnpm generate:types",
+    "check:drift": "node scripts/check-schema-drift.mjs"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "json-schema-to-typescript": "^15.0.4",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"

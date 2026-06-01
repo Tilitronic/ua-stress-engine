@@ -1,4 +1,4 @@
-import type { LookupResult, TrieStats } from "./types.js";
+import type { LookupResult, StressVariant, TrieStats } from "./types.js";
 import { normWord, applyStressMark, normaliseApostrophe } from "./utils.js";
 
 // ── Binary format constants — v1 (0x01) + v2 (0x02) ———————————————————————————————
@@ -80,6 +80,9 @@ export class UaStressTrie {
   private readonly _alphaSize: number;
   private readonly _gzSizeBytes: number;
   private readonly _version: number;
+
+  /** Per-variant morphological data loaded via `loadVariants()`. */
+  private _variants: Map<string, StressVariant[]> | null = null;
 
   /**
    * Construct from a raw (already-decompressed) `.ctrie` `ArrayBuffer`.
@@ -217,6 +220,63 @@ export class UaStressTrie {
     return new UaStressTrie(buffer);
   }
 
+  // ── Variants (supplementary morphological data) ──────────────────────────
+
+  /**
+   * Load per-variant morphological data from `ua_stress.variants.json.gz`.
+   *
+   * After calling this, `lookupFull()` will populate the `variants` field for
+   * all words with multiple stress positions (heteronyms and variatives).
+   *
+   * @example
+   * // Browser
+   * await trie.loadVariants('/static/ua_stress.variants.json.gz')
+   *
+   * // Node.js
+   * import { readFileSync } from 'fs'
+   * const gz = readFileSync('./data/ua_stress.variants.json.gz')
+   * await trie.loadVariants(gz.buffer)
+   */
+  async loadVariants(source: string | ArrayBuffer): Promise<void> {
+    let compressed: ArrayBuffer;
+    if (typeof source === "string") {
+      const res = await fetch(source);
+      if (!res.ok)
+        throw new Error(`Failed to fetch variants: ${res.status} ${source}`);
+      compressed = await res.arrayBuffer();
+    } else {
+      compressed = source;
+    }
+    const decompressed = await decompressGzip(compressed);
+    const json = new TextDecoder().decode(decompressed);
+    const raw = JSON.parse(json) as Record<string, StressVariant[]>;
+    this._variants = new Map(Object.entries(raw));
+  }
+
+  /**
+   * Load variants from a Node.js file path (convenience wrapper).
+   * Prefer `loadVariants(buffer)` in environments where you already have the bytes.
+   */
+  static async loadVariantsFromFile(
+    trie: UaStressTrie,
+    filePath: string,
+  ): Promise<void> {
+    // Dynamic import keeps browser bundle clean
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fs = await import("fs" as any);
+    const buf: Buffer = fs.readFileSync(filePath);
+    const ab = buf.buffer.slice(
+      buf.byteOffset,
+      buf.byteOffset + buf.byteLength,
+    ) as ArrayBuffer;
+    await trie.loadVariants(ab);
+  }
+
+  /** Whether per-variant morphological data has been loaded. */
+  get variantsLoaded(): boolean {
+    return this._variants !== null;
+  }
+
   // ── Public API ──────────────────────────────────────────────────────────────
 
   /** Total number of word forms stored in the trie. */
@@ -321,7 +381,8 @@ export class UaStressTrie {
       type = (flags & FLAG_V1_UNCERTAIN) !== 0 ? "heteronym" : "unique";
     }
 
-    return { stress, stresses, type, uncertain: type !== "unique" };
+    const variants = this._variants?.get(norm) ?? null;
+    return { stress, stresses, type, variants, uncertain: type !== "unique" };
   }
 
   /**

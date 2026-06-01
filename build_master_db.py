@@ -18,6 +18,7 @@ Environment variable overrides (alternative to CLI args):
     UA_KAIKKI_JSONL   path to kaikki.org-dictionary-Ukrainian.jsonl
     UA_TXT_DICT       path to ua_word_stress_dictionary.txt
     UA_TRIE_DICT      path to stress.trie
+    UA_SUM11_JSON     path to sum11.json (СУМ-11, from DiktJson-ukr-ukr_SUM-11_or_1.zip)
 
 After a successful build the script prints:
   - Path to the produced DB
@@ -187,6 +188,7 @@ def main() -> None:
     print(f"  TXT dict  : {os.environ.get('UA_TXT_DICT', '[project default]')}")
     print(f"  TRIE      : {os.environ.get('UA_TRIE_DICT', '[project default]')}")
     print(f"  KAIKKI    : {kaikki_jsonl}")
+    print(f"  SUM11     : {os.environ.get('UA_SUM11_JSON', '[project default]')}")
     print()
 
     if not args.skip_build:

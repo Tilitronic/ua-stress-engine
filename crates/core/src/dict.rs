@@ -59,6 +59,16 @@ pub struct UaStressDict {
     raw: UaStressDbRaw,
 }
 
+// ── Free helpers ──────────────────────────────────────────────────────────────
+
+/// Count Ukrainian vowel graphemes in a normalized (lowercase) word.
+///
+/// Recognises the 10 vowel letters of the Ukrainian alphabet.
+fn count_vowels(word: &str) -> usize {
+    const UA_VOWELS: &[char] = &['а', 'е', 'є', 'и', 'і', 'ї', 'о', 'у', 'ю', 'я'];
+    word.chars().filter(|c| UA_VOWELS.contains(c)).count()
+}
+
 impl UaStressDict {
     /// Deserialise from a **bzip2-compressed** bincode blob (as produced by the
     /// builder crate).
@@ -86,6 +96,13 @@ impl UaStressDict {
     /// responsibility (see `documentation/API_DESIGN.md`).
     pub fn lookup(&self, word: &str) -> WordLookupResult {
         let form = normalize_word(word);
+
+        // Fast path: single-syllable words always have stress on the only
+        // available vowel (index 0). No dictionary or ML lookup needed.
+        if count_vowels(&form) == 1 {
+            return self.single_syllable_reading(form);
+        }
+
         let entries = &self.raw.entries;
 
         let forms = match entries.binary_search_by(|(w, _)| w.as_str().cmp(form.as_str())) {
@@ -171,6 +188,48 @@ impl UaStressDict {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    /// Build a [`WordLookupResult`] for a word known to have exactly one syllable.
+    ///
+    /// Stress is placed at vowel index 0 — the only possible position.
+    /// Morphological fields are left empty because the word may not be in the
+    /// dictionary (it could be OOV, a number, a proper name, etc.).
+    fn single_syllable_reading(&self, form: String) -> WordLookupResult {
+        let tr = transcribe(&form, 0);
+        let syllable_count = tr.syllables.len();
+        let word_syllables: Vec<String> =
+            tr.syllables.iter().map(|s| s.word.clone()).collect();
+        let ipa_syllables: Vec<String> = tr
+            .syllables
+            .iter()
+            .map(|s| {
+                if s.stressed {
+                    format!("\u{02c8}{}", s.ipa)
+                } else {
+                    s.ipa.clone()
+                }
+            })
+            .collect();
+
+        let reading = StressReading {
+            syllable_index: 0,
+            stress_from_end: syllable_count.max(1),
+            syllable_count,
+            stressed_form: apply_stress_marks(&form, &[0]),
+            form: form.clone(),
+            word_syllables,
+            ipa: tr.ipa,
+            ipa_syllables,
+            tokens: tr.tokens,
+            morph: Vec::new(),
+            confidence: Some("single-syllable".to_string()),
+        };
+
+        WordLookupResult {
+            form,
+            readings: vec![reading],
+        }
+    }
+
     /// Expand a single [`WordForm`] (intern-indexed) into a [`MorphReading`]
     /// (string-valued) without computing phonetics.
     fn expand_morph(&self, wf: &WordForm) -> MorphReading {
@@ -251,5 +310,132 @@ mod tests {
             definition: None,
         };
         assert_eq!(morph.pos[0], "NOUN");
+    }
+
+    /// Every single-syllable Ukrainian word must be resolved immediately via the
+    /// fast path (no dict lookup) with stress at index 0 and
+    /// `confidence == Some("single-syllable")`.
+    #[test]
+    fn single_syllable_fast_path() {
+        let compressed = include_bytes!("../../../data/processed/ua_stress.bin.bz2");
+        let dict = UaStressDict::from_compressed_bytes(compressed)
+            .expect("Failed to load ua_stress.bin.bz2");
+
+        #[rustfmt::skip]
+        let words: &[&str] = &[
+            // consonant-heavy monosyllables
+            "клус", "вступ", "груп", "круп", "труп", "тюп", "хлюп", "служб",
+            "блуд", "бруд", "брук", "внук", "грюк", "друк", "жмут", "звук",
+            "клюк", "Кнут", "крук", "Крут", "люд", "люк", "прут", "скрут",
+            "спрут", "стук", "схуд", "труд", "трюк", "штук", "джгут", "жґут",
+            "збут", "крюк", "пруд", "флуд",
+            // verb/pronoun monosyllables
+            "б'ю", "вб'ю", "вмру", "всю", "втну", "вчу", "гру", "дну", "дню",
+            "дю", "жду", "злу", "йду", "йму", "Йсу", "Лю", "мчу", "ню",
+            "п'ю", "пню", "псу", "склу", "сну", "сплю", "ссу", "Сью", "Сю",
+            "тпру", "тру", "тьму", "тьфу", "тьху", "тю", "ф'ю", "цю",
+            "шву", "шлю",
+            // inflected monosyllables
+            "б'юсь", "б'ють", "блюз", "бюст", "в'юн", "в'ють", "вб'ють",
+            "вкруг", "впрусь", "вчув", "вщух", "глузд", "глум", "грув",
+            "грудь", "груш", "ґрунт", "дмуть", "друг", "дюн", "жнуть",
+            "звуть", "здув", "змусь", "ключ", "круг", "ллють", "лють",
+            "мнуть", "мруж", "п'ють", "плуг", "плюс", "пруг", "пруть",
+            "псуй", "пхнув", "пхнуть", "рвуть", "ртуть", "слуг", "слух",
+            "смуг", "струм", "струн", "струс", "стуг", "сюр", "ткнув",
+            "тхнуть", "хлющ", "хруст", "штурм", "щур", "брухт", "взув",
+            "вкус", "втнув", "глуз", "гнув", "Гюнт", "дюйм", "круть",
+            "люкс", "мруть", "нюх", "плюш", "плющ", "пнув", "пструг",
+            "смух", "снус", "сплюнь", "спух", "трух", "тюль", "фрукт",
+            "хрущ", "шнур",
+            // short nouns /u/
+            "гуп", "куп", "пуп", "суп", "туп", "дубль", "зубр", "рубль",
+            "пупс", "буд", "бук", "бут", "гуд", "гук", "гут", "жук", "кут",
+            "лук", "мук", "нуд", "нут", "пук", "пут", "рук", "суд", "сук",
+            "тук", "тут", "фут", "хук", "ют",
+            // interjections & particles /u/
+            "гу", "му", "ну", "ту", "у", "фу", "ху",
+            // more /u/ forms
+            "був", "будь", "бунт", "вус", "вуст", "вух", "гул", "гульк",
+            "гурт", "дум", "дух", "душ", "куль", "кум", "куш", "кущ", "луг",
+            "муж", "муз", "мур", "мух", "муч", "нуль", "пункт", "пух", "рух",
+            "руш", "туз", "туй", "туш", "Уж", "уст", "фур", "цур", "чуй",
+            "шум", "Буг", "буз", "буй", "буль", "бур", "бус", "вуж", "вуй",
+            "Вулф", "гугл", "гус", "гусь", "ґуґл", "дур", "зум", "кунь",
+            "курс", "кус", "куць", "лунь", "луск", "мул", "нудь", "пульс",
+            "пульт", "пум", "пунш", "пуск", "путь", "руль", "рунь", "рур",
+            "рус", "Русь", "сум", "сунь", "суть", "тум", "тур", "ум", "урн",
+            "Ус", "уф", "ух", "хуй", "хух", "чур", "шусть", "юнг", "юнь",
+            "юрт",
+            // /o/ monosyllables
+            "бомб", "бот", "бо", "бог", "бой", "бокс", "бомж", "бор", "борг",
+            "борт", "борть", "борщ", "бос", "гоп", "поп", "топ", "хоп", "мопс",
+            "горб", "вод", "год", "док", "код", "мод", "мок", "рок", "рот",
+            "шок", "Шот", "йод", "нот", "шот",
+            // short /o/ particles
+            "го", "ґо", "до", "зо", "йо", "ко", "Ло", "мо", "мо'", "но",
+            "ньо", "по", "то", "хо", "шо",
+            // /o/ inflected
+            "вовк", "вождь", "Вон", "гол", "гольф", "Гор", "доль", "дон",
+            "донь", "дощ", "жовч", "зойк", "зон", "йой", "ковдр", "кой",
+            "Коль", "ком", "Кон", "корж", "корм", "Кость", "кошт", "Лодж",
+            "лож", "лом", "Лонг", "лорд", "лось", "лох", "мов", "мож", "Мон",
+            "монстр", "мор", "морг", "мох", "Ной", "Нор", "норм", "нош",
+            "повз", "Пол", "полк", "пор", "порт", "Порш", "пост", "рож", "роз",
+            "Ройс", "роль", "ром", "рос", "сов", "сом", "сон", "сонць", "товк",
+            "тож", "той", "толк", "том", "тон", "тонн", "тор", "торг", "торс",
+            "торт", "тост", "фон", "фонд", "фор", "форд", "форм", "хол", "хор",
+            "хоч", "чом", "чорт", "шов", "шовк", "Волш", "гоц", "ґонт", "довг",
+            "корт", "корч", "лов", "моль", "морж", "повх", "сойм", "соль",
+            "торф", "хорт", "чось", "шось",
+            // more /o/ monosyllables
+            "оп", "стоп", "Стоп", "хлоп", "скорб", "стовб", "стовп", "блок",
+            "грот", "змок", "крок", "од", "ок", "от", "скок", "скот", "сльот",
+            "смок", "строк", "трок",
+            // /o/ short forms
+            "вйо", "всьо", "Джо", "дно", "зло", "йшло", "о", "про", "скло",
+            "сто", "тло", "хто", "Шкло", "що",
+            // /o/ clusters
+            "вдвох", "вдовж", "вздовж", "всох", "втрьох", "гроз", "двом",
+            "Джон", "дров", "дрож", "дрозд", "зводь", "здовж", "здох", "змов",
+            "знов", "клон", "кров", "крон", "льон", "льох", "ой", "он", "ос",
+            "ост", "ось", "ох", "плоть", "площ", "псом", "склом", "скронь",
+            "слон", "смог", "Снов", "сповз", "спорт", "стос", "трон", "трьох",
+            "фронт", "хльост", "хтось", "Шклом", "шторм", "щось",
+        ];
+
+        let mut failures: Vec<String> = Vec::new();
+        for &word in words {
+            let result = dict.lookup(word);
+            if result.readings.len() != 1 {
+                failures.push(format!(
+                    "{:?}: expected 1 reading, got {}",
+                    word,
+                    result.readings.len()
+                ));
+                continue;
+            }
+            let r = &result.readings[0];
+            if r.confidence.as_deref() != Some("single-syllable") {
+                failures.push(format!(
+                    "{:?}: confidence = {:?}, expected Some(\"single-syllable\")",
+                    word, r.confidence
+                ));
+            }
+            if r.syllable_index != 0 {
+                failures.push(format!(
+                    "{:?}: syllable_index = {}, expected 0",
+                    word, r.syllable_index
+                ));
+            }
+        }
+
+        if !failures.is_empty() {
+            panic!(
+                "{} single-syllable words failed:\n{}",
+                failures.len(),
+                failures.join("\n")
+            );
+        }
     }
 }

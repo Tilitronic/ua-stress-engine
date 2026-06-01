@@ -6,7 +6,7 @@
 //!
 //! Handled here:
 //!   - Digraph affricates: дж, дз
-//!   - Composite щ → [ʃ] + [tʃ]
+//!   - Composite щ → [ʃ] + [t͡ʃ]
 //!   - Soft sign (ь) → merges palatalization into the preceding consonant
 //!   - Apostrophe variants → glottal boundary token
 //!   - Iotated vowels (я, ю, є, ї) → j+vowel or consonant palatalization
@@ -147,6 +147,33 @@ fn should_iotate(chars: &[char], index: usize, always_iotated: bool) -> bool {
     false
 }
 
+/// Prefixes ending in д where following з/ж belongs to the next morpheme,
+/// so the sequence should be tokenized as two phonemes (d+z / d+ʒ), not as
+/// a single affricate.
+const D_FINAL_PREFIXES_SPLIT_DZ_DZH: &[&str] = &["від", "під", "над", "перед"];
+
+/// Decide whether графема `дж`/`дз` at `index` should be merged into one
+/// affricate phoneme token.
+fn should_merge_digraph(word: &str, index: usize, bigram: &str) -> bool {
+    if bigram != "дж" && bigram != "дз" {
+        return false;
+    }
+    if index == 0 {
+        return true;
+    }
+
+    // Prefix boundary heuristic: від-з..., під-ж..., над-з..., перед-ж...
+    // should remain two sounds.
+    for prefix in D_FINAL_PREFIXES_SPLIT_DZ_DZH {
+        let d_pos = prefix.chars().count().saturating_sub(1);
+        if word.starts_with(prefix) && index == d_pos {
+            return false;
+        }
+    }
+
+    true
+}
+
 // ── Main tokenizer ────────────────────────────────────────────────────────────
 
 /// Tokenize a Ukrainian word into [`PhoneticToken`]s.
@@ -165,13 +192,15 @@ pub fn tokenize(word: &str) -> Vec<PhoneticToken> {
         let ch = chars[i];
         let ch_str = ch.to_string();
 
-        // ── Digraph check (дж, дз): consume two chars ──────────────────
+        // ── Digraph check (дж, дз): consume two chars when phonetic affricate ──
         if i + 1 < chars.len() {
             let bigram = format!("{}{}", ch, chars[i + 1]);
-            if let Some(&ipa) = DIGRAPHS.iter().find_map(|(g, p)| (*g == bigram).then_some(p)) {
-                tokens.push(make_consonant_token(ipa, &bigram, false));
-                i += 2;
-                continue;
+            if should_merge_digraph(word, i, &bigram) {
+                if let Some(&ipa) = DIGRAPHS.iter().find_map(|(g, p)| (*g == bigram).then_some(p)) {
+                    tokens.push(make_consonant_token(ipa, &bigram, false));
+                    i += 2;
+                    continue;
+                }
             }
         }
 
@@ -287,16 +316,41 @@ mod tests {
     #[test]
     fn digraph_dzh() {
         let tokens = tokenize("джміль");
-        assert_eq!(tokens[0].ipa, "dʒ");
+        assert_eq!(tokens[0].ipa, "d͡ʒ");
         assert_eq!(tokens[0].source, "дж");
     }
 
     #[test]
+    fn digraph_dz_word_initial() {
+        let tokens = tokenize("дзенькіт");
+        assert_eq!(tokens[0].ipa, "d͡z");
+        assert_eq!(tokens[0].source, "дз");
+    }
+
+    #[test]
+    fn dz_after_prefix_is_not_merged() {
+        let tokens = tokenize("надзвичайний");
+        let ipas: Vec<&str> = tokens.iter().map(|t| t.ipa.as_str()).collect();
+        let d_idx = ipas.iter().position(|&x| x == "d").expect("must contain d");
+        assert_eq!(ipas[d_idx + 1], "z", "prefix boundary д+з must stay split: {ipas:?}");
+        assert!(!ipas.contains(&"d͡z"), "must not merge to d͡z at prefix boundary: {ipas:?}");
+    }
+
+    #[test]
+    fn dzh_after_prefix_is_not_merged() {
+        let tokens = tokenize("підживити");
+        let ipas: Vec<&str> = tokens.iter().map(|t| t.ipa.as_str()).collect();
+        let d_idx = ipas.iter().position(|&x| x == "d").expect("must contain d");
+        assert_eq!(ipas[d_idx + 1], "ʒ", "prefix boundary д+ж must stay split: {ipas:?}");
+        assert!(!ipas.contains(&"d͡ʒ"), "must not merge to d͡ʒ at prefix boundary: {ipas:?}");
+    }
+
+    #[test]
     fn composite_shch() {
-        // щ → ʃ + tʃ
+        // щ → ʃ + t͡ʃ
         let tokens = tokenize("щука");
         assert_eq!(tokens[0].ipa, "ʃ");
-        assert_eq!(tokens[1].ipa, "tʃ");
+        assert_eq!(tokens[1].ipa, "t͡ʃ");
     }
 
     #[test]
@@ -344,7 +398,7 @@ mod tests {
 
     #[test]
     fn apostrophe_produces_glottal() {
-        // м'яч → m ʔ j ɑ tʃ
+        // м'яч → m ʔ j ɑ t͡ʃ
         let tokens = tokenize("м\u{02bc}яч");
         assert_eq!(tokens[1].ipa, "ʔ");
         assert_eq!(tokens[1].token_type, TokenType::Glottal);

@@ -2,6 +2,38 @@
  * Public types exported by ua-word-stress.
  */
 
+/**
+ * Full morphological reading for one stress variant of an ambiguous word form.
+ *
+ * Populated only when the variants file (`ua_stress.variants.json.gz`) is loaded
+ * via `UaStressTrie.loadVariants()`.
+ */
+export interface StressVariant {
+  /** 0-based stressed vowel index (among Ukrainian vowels in the word). */
+  stress: number;
+  /**
+   * Universal POS tag (UPOS), e.g. `"NOUN"`, `"VERB"`.
+   * `null` if not stored for this entry.
+   */
+  pos: string | null;
+  /**
+   * Universal Dependencies morphological features, e.g.
+   * `{ Case: "Nom", Number: "Plur", Gender: "Masc" }`.
+   * Empty object when no features are available.
+   */
+  feats: Record<string, string>;
+  /**
+   * Base form (lemma) of the word, e.g. `"замок"`.
+   * `null` if not stored.
+   */
+  lemma: string | null;
+  /**
+   * Short Wiktionary gloss that disambiguates the meaning, e.g. `"castle"` vs `"lock"`.
+   * `null` when not available.
+   */
+  definition: string | null;
+}
+
 /** Result of a full stress lookup. */
 export interface LookupResult {
   /**
@@ -32,12 +64,27 @@ export interface LookupResult {
    *                   Any position is correct; present both or pick either.
    * - `"heteronym"` — multiple positions corresponding to different
    *                   meanings or grammatical forms
-   *                   (e.g. _за́мок_ "lock" / _замо́к_ "castle";
+   *                   (e.g. _за́мок_ "castle" / _замо́к_ "lock";
    *                    _бло́хи_ gen.sg / _блохи́_ nom.pl).
    *                   The correct stress depends on the intended meaning/form;
    *                   context-aware disambiguation is required.
    */
   type: "unique" | "variative" | "heteronym";
+
+  /**
+   * Full per-variant morphological data.
+   *
+   * Populated only when `UaStressTrie.loadVariants()` has been called and this
+   * word has multiple stress positions.  `null` otherwise.
+   *
+   * @example
+   * // замок → variants loaded:
+   * // [
+   * //   { stress: 0, pos: "NOUN", feats: { Case: "Nom", Number: "Sing" }, lemma: "замок", definition: "castle" },
+   * //   { stress: 1, pos: "NOUN", feats: { Case: "Nom", Number: "Sing" }, lemma: "замок", definition: "lock" },
+   * // ]
+   */
+  variants: StressVariant[] | null;
 
   /**
    * @deprecated Use `type !== "unique"` instead.

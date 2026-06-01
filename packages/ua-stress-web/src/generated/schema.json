@@ -1,0 +1,380 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WordLookupResult",
+  "description": "Top-level result of looking up a word form in the dictionary.\n\nThe engine **never picks one variant** — it returns all the data it holds so that callers can apply their own resolution strategy (NLP context in Python, tooltip in the browser, etc.).",
+  "type": "object",
+  "required": [
+    "form",
+    "readings"
+  ],
+  "properties": {
+    "form": {
+      "description": "Normalized query form (lowercased, canonical apostrophe).",
+      "type": "string"
+    },
+    "readings": {
+      "description": "All stress variants with full phonetics and morphology. Empty if the word is not in the dictionary.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/StressReading"
+      }
+    }
+  },
+  "definitions": {
+    "ConsonantFeatures": {
+      "description": "Full 5-dimensional feature vector for a consonant phoneme. Directly parallels the TypeScript `ConsonantFeatures` interface.",
+      "type": "object",
+      "required": [
+        "manner",
+        "nasal",
+        "place",
+        "softness",
+        "voicePower"
+      ],
+      "properties": {
+        "manner": {
+          "$ref": "#/definitions/Manner"
+        },
+        "nasal": {
+          "description": "True only for nasal consonants (м, н, нь).  Redundant with `manner == Nasal` but kept for TypeScript API parity.",
+          "type": "boolean"
+        },
+        "place": {
+          "$ref": "#/definitions/Place"
+        },
+        "softness": {
+          "$ref": "#/definitions/Softness"
+        },
+        "voicePower": {
+          "$ref": "#/definitions/VoicePower"
+        }
+      }
+    },
+    "Manner": {
+      "description": "Articulatory manner of a consonant.",
+      "type": "string",
+      "enum": [
+        "plosive",
+        "fricative",
+        "affricate",
+        "trill",
+        "lateral",
+        "nasal",
+        "approximant"
+      ]
+    },
+    "MorphReading": {
+      "description": "One morphological analysis (POS + features + lemma) for a word form.\n\nA single stress variant may represent multiple syncretised forms; e.g. «ру́ки» is both nominative plural AND genitive singular of «рука». In that case there will be two `MorphReading`s with the same `StressReading`.\n\nAll names follow the [Universal Dependencies](https://universaldependencies.org/) annotation convention.",
+      "type": "object",
+      "required": [
+        "feats",
+        "pos"
+      ],
+      "properties": {
+        "definition": {
+          "description": "Short sense label from Wiktionary (e.g. `\"castle\"` vs `\"lock\"` for «замок»). Used as a disambiguation hint when `pos` and `feats` are identical. `None` if not available in the source data.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "feats": {
+          "description": "UD morphological features: key → allowed values. Multiple values per key encode syncretism (e.g. `Case → [\"Acc\", \"Nom\"]`).",
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "lemma": {
+          "description": "Base form (lemma), or `None` if not stored.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pos": {
+          "description": "Universal POS tags, e.g. `[\"NOUN\"]`.  Typically one element.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "PhoneticToken": {
+      "description": "A single phoneme token produced by the tokenizer and transformed by subsequent passes.\n\nPasses operate on `&mut Vec<PhoneticToken>` (or return a new `Vec` when tokens must be removed).",
+      "type": "object",
+      "required": [
+        "ipa",
+        "palatalized",
+        "source",
+        "stressed",
+        "tokenType",
+        "vowelIndex"
+      ],
+      "properties": {
+        "consonantFeatures": {
+          "description": "Feature vector for consonants.  `None` for vowels.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ConsonantFeatures"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ipa": {
+          "description": "Current IPA symbol for this phoneme.  May be mutated by passes (e.g., voicing assimilation changes \"s\" → \"z\").",
+          "type": "string"
+        },
+        "palatalized": {
+          "description": "Whether this consonant has been palatalized (softened). When true, `ipa` ends with ʲ (e.g. \"nʲ\").",
+          "type": "boolean"
+        },
+        "source": {
+          "description": "The Cyrillic source grapheme(s) that produced this token.",
+          "type": "string"
+        },
+        "stressed": {
+          "description": "Whether this is the stressed vowel.  Set by `vowel_allophones` pass.",
+          "type": "boolean"
+        },
+        "tokenType": {
+          "description": "Token classification.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/TokenType"
+            }
+          ]
+        },
+        "vowelFeatures": {
+          "description": "Feature vector for vowels.  `None` for consonants.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VowelFeatures"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vowelIndex": {
+          "description": "0-based index of this vowel among all vowels in the word. `-1` for non-vowel tokens.",
+          "type": "integer",
+          "format": "int8"
+        }
+      }
+    },
+    "Place": {
+      "description": "Articulatory place of a consonant.",
+      "type": "string",
+      "enum": [
+        "labial",
+        "dental",
+        "postalveolar",
+        "palatal",
+        "velar",
+        "glottal"
+      ]
+    },
+    "Softness": {
+      "description": "Palatal (soft) vs. non-palatal (hard) consonant variant.",
+      "type": "string",
+      "enum": [
+        "hard",
+        "soft"
+      ]
+    },
+    "StressReading": {
+      "description": "Complete analysis for **one stress variant** of a word form.\n\nCarries three parallel representations of the same phonological unit:\n\n| Level | Field | Example (`замок`, stress 0) | |---|---|---| | Written | `form` | `замок` | | Stressed | `stressed_form` | `за́мок` | | Syllabified written | `word_syllables` | `[\"за\", \"мок\"]` | | IPA | `ipa` | `zɑmɔk` | | Syllabified IPA | `ipa_syllables` | `[\"ˈzɑ\", \"mɔk\"]` |\n\n`word_syllables[i]` and `ipa_syllables[i]` correspond to the same syllable. Joining `word_syllables` reconstructs `form`. Stripping leading `ˈ` from each `ipa_syllables[i]` and joining gives `ipa`.",
+      "type": "object",
+      "required": [
+        "form",
+        "ipa",
+        "ipaSyllables",
+        "morph",
+        "stressFromEnd",
+        "stressedForm",
+        "syllableCount",
+        "syllableIndex",
+        "tokens",
+        "wordSyllables"
+      ],
+      "properties": {
+        "confidence": {
+          "description": "How stress was determined.  Always `None` for Ukrainian (all entries are confirmed dictionary forms).  `\"exact\"|\"rule\"|\"default\"` for Polish.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "form": {
+          "description": "Normalized form: lowercased, canonical straight apostrophe `'`.",
+          "type": "string"
+        },
+        "ipa": {
+          "description": "Flat IPA string for the whole word.",
+          "type": "string"
+        },
+        "ipaSyllables": {
+          "description": "IPA per syllable.  The stressed syllable is prefixed with `ˈ` (U+02C8) following standard IPA notation.  No `ˈ` for purely consonantal words.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "morph": {
+          "description": "All morphological analyses that share this stress position. Multiple entries represent syncretism or same-stress homography.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MorphReading"
+          }
+        },
+        "stressFromEnd": {
+          "description": "1-based position from the end (2 = penultimate, 3 = antepenultimate). `0` for zero-vowel words.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "stressedForm": {
+          "description": "`form` with a combining acute accent (U+0301) placed after the stressed vowel: `за́мок`.  Equals `form` when there is no vowel.",
+          "type": "string"
+        },
+        "syllableCount": {
+          "description": "Number of syllables.  `1` for purely consonantal words (the whole word counts as one phonological unit).",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "syllableIndex": {
+          "description": "0-based index of the stressed syllable (= stressed vowel index for normal words where each syllable has one vowel nucleus). `0` for zero-vowel (purely consonantal) words.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "tokens": {
+          "description": "Token-level phonetic detail produced by the 6-pass pipeline. Useful for NLP/ML consumers; can be ignored for most use cases.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PhoneticToken"
+          }
+        },
+        "wordSyllables": {
+          "description": "Original graphemes grouped by syllable, aligned positionally with `ipa_syllables`.  Joining gives `form`.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "TokenType": {
+      "description": "The kind of sound a `PhoneticToken` represents.",
+      "oneOf": [
+        {
+          "description": "A consonant phoneme.",
+          "type": "string",
+          "enum": [
+            "consonant"
+          ]
+        },
+        {
+          "description": "A vowel nucleus.",
+          "type": "string",
+          "enum": [
+            "vowel"
+          ]
+        },
+        {
+          "description": "A glide (j, w, u̯) — neither fully consonant nor vowel.",
+          "type": "string",
+          "enum": [
+            "glide"
+          ]
+        },
+        {
+          "description": "A glottal stop/boundary — produced by the apostrophe grapheme.",
+          "type": "string",
+          "enum": [
+            "glottal"
+          ]
+        }
+      ]
+    },
+    "VoicePower": {
+      "description": "Voicing class of a consonant.  Sonorants (m, n, l, r, j, ʋ) are exempt from obstruent voicing assimilation.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "voiceless",
+            "voiced"
+          ]
+        },
+        {
+          "description": "Nasals, liquids, glides — no voicing assimilation applies.",
+          "type": "string",
+          "enum": [
+            "sonorant"
+          ]
+        }
+      ]
+    },
+    "VowelBackness": {
+      "description": "Front-back position of a vowel.",
+      "type": "string",
+      "enum": [
+        "front",
+        "central",
+        "back"
+      ]
+    },
+    "VowelFeatures": {
+      "description": "Full 3-dimensional feature vector for a vowel phoneme.",
+      "type": "object",
+      "required": [
+        "backness",
+        "height",
+        "rounding",
+        "stable"
+      ],
+      "properties": {
+        "backness": {
+          "$ref": "#/definitions/VowelBackness"
+        },
+        "height": {
+          "$ref": "#/definitions/VowelHeight"
+        },
+        "rounding": {
+          "$ref": "#/definitions/VowelRounding"
+        },
+        "stable": {
+          "description": "Stable vowels (/і/, /у/, /а/) do not shift in unstressed position.",
+          "type": "boolean"
+        }
+      }
+    },
+    "VowelHeight": {
+      "description": "Height position of a vowel in the oral cavity.",
+      "type": "string",
+      "enum": [
+        "high",
+        "highMid",
+        "mid",
+        "low"
+      ]
+    },
+    "VowelRounding": {
+      "description": "Lip rounding of a vowel.",
+      "type": "string",
+      "enum": [
+        "rounded",
+        "unrounded"
+      ]
+    }
+  }
+}

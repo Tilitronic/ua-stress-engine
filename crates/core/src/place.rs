@@ -129,11 +129,11 @@ mod tests {
     fn affricate_t_plus_s() {
         // братство: б р а т с т в о
         // After tokenizer: b r ɑ t s t ʋ ɔ
-        // Affricate rule: t + s → ts
+        // Affricate rule: t + s → t͡s
         let ipas = pipeline_ipas("братство");
-        assert!(ipas.contains(&"ts".to_string()), "t+s should contract to ts: {ipas:?}");
+        assert!(ipas.contains(&"t͡s".to_string()), "t+s should contract to t͡s: {ipas:?}");
         // Ensure the 's' that was consumed is gone
-        let ts_idx = ipas.iter().position(|s| s == "ts").unwrap();
+        let ts_idx = ipas.iter().position(|s| s == "t͡s").unwrap();
         if ts_idx + 1 < ipas.len() {
             assert_ne!(ipas[ts_idx + 1], "s", "s should have been consumed: {ipas:?}");
         }
@@ -141,9 +141,9 @@ mod tests {
 
     #[test]
     fn no_spurious_contractions() {
-        // "час" has tʃ + a — the affricate comes from щ/ч, not from t+s
+        // "час" has t͡ʃ + a — the affricate comes from щ/ч, not from t+s
         let ipas = pipeline_ipas("час");
-        assert!(ipas.contains(&"tʃ".to_string()));
-        assert!(!ipas.contains(&"tsː".to_string()));
+        assert!(ipas.contains(&"t͡ʃ".to_string()));
+        assert!(!ipas.contains(&"t͡sː".to_string()));
     }
 }

@@ -24,7 +24,7 @@
 use crate::types::{PhoneticToken, TokenType};
 
 /// Strip the palatalization diacritic (ʲ) from an IPA string to get the base.
-/// Examples: "nʲ" → "n", "tsʲ" → "ts", "dʒ" → "dʒ"
+/// Examples: "nʲ" → "n", "t͡sʲ" → "t͡s", "d͡ʒ" → "d͡ʒ"
 fn base_ipa(ipa: &str) -> &str {
     ipa.strip_suffix('ʲ').unwrap_or(ipa)
 }

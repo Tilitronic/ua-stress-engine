@@ -72,8 +72,8 @@ pub static CONSONANTS: &[ConsonantDef] = &[
     ConsonantDef { ipa: "z",  voice_power: VoicePower::Voiced,   place: Place::Dental,        manner: Manner::Fricative,    softness: Softness::Hard, voiced_pair: None,      voiceless_pair: Some("s")  },
     ConsonantDef { ipa: "s",  voice_power: VoicePower::Voiceless, place: Place::Dental,        manner: Manner::Fricative,    softness: Softness::Hard, voiced_pair: Some("z"), voiceless_pair: None       },
     // ── Dental affricates ─────────────────────────────────────────────────
-    ConsonantDef { ipa: "dz", voice_power: VoicePower::Voiced,   place: Place::Dental,        manner: Manner::Affricate,    softness: Softness::Hard, voiced_pair: None,      voiceless_pair: Some("ts") },
-    ConsonantDef { ipa: "ts", voice_power: VoicePower::Voiceless, place: Place::Dental,        manner: Manner::Affricate,    softness: Softness::Hard, voiced_pair: Some("dz"),voiceless_pair: None       },
+    ConsonantDef { ipa: "d͡z", voice_power: VoicePower::Voiced,   place: Place::Dental,        manner: Manner::Affricate,    softness: Softness::Hard, voiced_pair: None,      voiceless_pair: Some("t͡s") },
+    ConsonantDef { ipa: "t͡s", voice_power: VoicePower::Voiceless, place: Place::Dental,        manner: Manner::Affricate,    softness: Softness::Hard, voiced_pair: Some("d͡z"),voiceless_pair: None       },
     // ── Velar obstruents ──────────────────────────────────────────────────
     ConsonantDef { ipa: "ɡ",  voice_power: VoicePower::Voiced,   place: Place::Velar,         manner: Manner::Plosive,      softness: Softness::Hard, voiced_pair: None,      voiceless_pair: Some("k")  },
     ConsonantDef { ipa: "k",  voice_power: VoicePower::Voiceless, place: Place::Velar,         manner: Manner::Plosive,      softness: Softness::Hard, voiced_pair: Some("ɡ"), voiceless_pair: None       },
@@ -83,8 +83,8 @@ pub static CONSONANTS: &[ConsonantDef] = &[
     // ── Postalveolar obstruents ───────────────────────────────────────────
     ConsonantDef { ipa: "ʒ",  voice_power: VoicePower::Voiced,   place: Place::Postalveolar,  manner: Manner::Fricative,    softness: Softness::Hard, voiced_pair: None,      voiceless_pair: Some("ʃ")  },
     ConsonantDef { ipa: "ʃ",  voice_power: VoicePower::Voiceless, place: Place::Postalveolar,  manner: Manner::Fricative,    softness: Softness::Hard, voiced_pair: Some("ʒ"), voiceless_pair: None       },
-    ConsonantDef { ipa: "dʒ", voice_power: VoicePower::Voiced,   place: Place::Postalveolar,  manner: Manner::Affricate,    softness: Softness::Hard, voiced_pair: None,      voiceless_pair: Some("tʃ") },
-    ConsonantDef { ipa: "tʃ", voice_power: VoicePower::Voiceless, place: Place::Postalveolar,  manner: Manner::Affricate,    softness: Softness::Hard, voiced_pair: Some("dʒ"),voiceless_pair: None       },
+    ConsonantDef { ipa: "d͡ʒ", voice_power: VoicePower::Voiced,   place: Place::Postalveolar,  manner: Manner::Affricate,    softness: Softness::Hard, voiced_pair: None,      voiceless_pair: Some("t͡ʃ") },
+    ConsonantDef { ipa: "t͡ʃ", voice_power: VoicePower::Voiceless, place: Place::Postalveolar,  manner: Manner::Affricate,    softness: Softness::Hard, voiced_pair: Some("d͡ʒ"),voiceless_pair: None       },
     // ── Sonorants (hard) ──────────────────────────────────────────────────
     ConsonantDef { ipa: "m",  voice_power: VoicePower::Sonorant,  place: Place::Labial,        manner: Manner::Nasal,        softness: Softness::Hard, voiced_pair: None,      voiceless_pair: None       },
     ConsonantDef { ipa: "n",  voice_power: VoicePower::Sonorant,  place: Place::Dental,        manner: Manner::Nasal,        softness: Softness::Hard, voiced_pair: None,      voiceless_pair: None       },
@@ -100,8 +100,8 @@ pub static CONSONANTS: &[ConsonantDef] = &[
     ConsonantDef { ipa: "tʲ", voice_power: VoicePower::Voiceless, place: Place::Dental,        manner: Manner::Plosive,      softness: Softness::Soft, voiced_pair: Some("dʲ"),voiceless_pair: None       },
     ConsonantDef { ipa: "zʲ", voice_power: VoicePower::Voiced,   place: Place::Dental,        manner: Manner::Fricative,    softness: Softness::Soft, voiced_pair: None,      voiceless_pair: Some("sʲ") },
     ConsonantDef { ipa: "sʲ", voice_power: VoicePower::Voiceless, place: Place::Dental,        manner: Manner::Fricative,    softness: Softness::Soft, voiced_pair: Some("zʲ"),voiceless_pair: None       },
-    ConsonantDef { ipa: "dzʲ",voice_power: VoicePower::Voiced,   place: Place::Dental,        manner: Manner::Affricate,    softness: Softness::Soft, voiced_pair: None,      voiceless_pair: Some("tsʲ")},
-    ConsonantDef { ipa: "tsʲ",voice_power: VoicePower::Voiceless, place: Place::Dental,        manner: Manner::Affricate,    softness: Softness::Soft, voiced_pair: Some("dzʲ"),voiceless_pair: None      },
+    ConsonantDef { ipa: "d͡zʲ",voice_power: VoicePower::Voiced,   place: Place::Dental,        manner: Manner::Affricate,    softness: Softness::Soft, voiced_pair: None,      voiceless_pair: Some("t͡sʲ")},
+    ConsonantDef { ipa: "t͡sʲ",voice_power: VoicePower::Voiceless, place: Place::Dental,        manner: Manner::Affricate,    softness: Softness::Soft, voiced_pair: Some("d͡zʲ"),voiceless_pair: None      },
     ConsonantDef { ipa: "nʲ", voice_power: VoicePower::Sonorant,  place: Place::Dental,        manner: Manner::Nasal,        softness: Softness::Soft, voiced_pair: None,      voiceless_pair: None       },
     ConsonantDef { ipa: "lʲ", voice_power: VoicePower::Sonorant,  place: Place::Dental,        manner: Manner::Lateral,      softness: Softness::Soft, voiced_pair: None,      voiceless_pair: None       },
     ConsonantDef { ipa: "rʲ", voice_power: VoicePower::Sonorant,  place: Place::Dental,        manner: Manner::Trill,        softness: Softness::Soft, voiced_pair: None,      voiceless_pair: None       },
@@ -171,13 +171,13 @@ pub static VOICING_MAP: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(||
 
 /// IPA sets used by the voicing assimilation pass.
 pub static VOICED_OBSTRUENTS: Lazy<std::collections::HashSet<&'static str>> = Lazy::new(|| {
-    ["b", "d", "dʲ", "ɡ", "z", "zʲ", "ʒ", "ɦ", "dz", "dzʲ", "dʒ"]
+    ["b", "d", "dʲ", "ɡ", "z", "zʲ", "ʒ", "ɦ", "d͡z", "d͡zʲ", "d͡ʒ"]
         .iter()
         .copied()
         .collect()
 });
 pub static VOICELESS_OBSTRUENTS: Lazy<std::collections::HashSet<&'static str>> = Lazy::new(|| {
-    ["p", "t", "tʲ", "k", "s", "sʲ", "ʃ", "x", "f", "ts", "tsʲ", "tʃ"]
+    ["p", "t", "tʲ", "k", "s", "sʲ", "ʃ", "x", "f", "t͡s", "t͡sʲ", "t͡ʃ"]
         .iter()
         .copied()
         .collect()
@@ -198,20 +198,20 @@ pub static CONSONANT_GRAPHEMES: &[(&str, &str)] = &[
     ("д", "d"), ("ж", "ʒ"), ("з", "z"), ("й", "j"),
     ("к", "k"), ("л", "l"), ("м", "m"), ("н", "n"),
     ("п", "p"), ("р", "r"), ("с", "s"), ("т", "t"),
-    ("ф", "f"), ("х", "x"), ("ц", "ts"), ("ч", "tʃ"),
+    ("ф", "f"), ("х", "x"), ("ц", "t͡s"), ("ч", "t͡ʃ"),
     ("ш", "ʃ"),
 ];
 
 /// Digraph Cyrillic sequences → single IPA affricate.
 /// Must be checked BEFORE single graphemes.
 pub static DIGRAPHS: &[(&str, &str)] = &[
-    ("дж", "dʒ"),
-    ("дз", "dz"),
+    ("дж", "d͡ʒ"),
+    ("дз", "d͡z"),
 ];
 
 /// Composite grapheme → two IPA tokens (щ = ʃtʃ).
 pub static COMPOSITES: &[(&str, &[&str])] = &[
-    ("щ", &["ʃ", "tʃ"]),
+    ("щ", &["ʃ", "t͡ʃ"]),
 ];
 
 /// Simple vowel Cyrillic → IPA.
@@ -266,15 +266,15 @@ pub static DENTAL_CONSONANTS: Lazy<std::collections::HashSet<&'static str>> = La
 /// Consonants that CAN be softened by the palatalization pass.
 /// Labials and velars are excluded — they don't propagate softness regressively.
 pub static SOFTENABLE_CONSONANTS: Lazy<std::collections::HashSet<&'static str>> = Lazy::new(|| {
-    ["d", "t", "z", "s", "dz", "ts", "l", "n", "r",
-     "dʲ", "tʲ", "zʲ", "sʲ", "dzʲ", "tsʲ", "lʲ", "nʲ", "rʲ"]
+    ["d", "t", "z", "s", "d͡z", "t͡s", "l", "n", "r",
+     "dʲ", "tʲ", "zʲ", "sʲ", "d͡zʲ", "t͡sʲ", "lʲ", "nʲ", "rʲ"]
         .iter().copied().collect()
 });
 
 /// Hard IPA → palatalized IPA for the softening pass.
 pub static SOFT_MAP: &[(&str, &str)] = &[
     ("d", "dʲ"), ("t", "tʲ"), ("z", "zʲ"), ("s", "sʲ"),
-    ("dz", "dzʲ"), ("ts", "tsʲ"), ("l", "lʲ"), ("n", "nʲ"), ("r", "rʲ"),
+    ("d͡z", "d͡zʲ"), ("t͡s", "t͡sʲ"), ("l", "lʲ"), ("n", "nʲ"), ("r", "rʲ"),
 ];
 
 pub static SOFT_MAP_LOOKUP: Lazy<HashMap<&'static str, &'static str>> =
@@ -298,16 +298,16 @@ pub static SIBILANT_RULES: &[SibilantRule] = &[
     SibilantRule { target: "z",  trigger: "ʒ",  result: "ʒ"  },
     SibilantRule { target: "s",  trigger: "ʒ",  result: "ʒ"  },
     // з/с + ч → шч  (zч → ʃtʃ)
-    SibilantRule { target: "z",  trigger: "tʃ", result: "ʃ"  },
-    SibilantRule { target: "s",  trigger: "tʃ", result: "ʃ"  },
+    SibilantRule { target: "z",  trigger: "t͡ʃ", result: "ʃ"  },
+    SibilantRule { target: "s",  trigger: "t͡ʃ", result: "ʃ"  },
     // з/с + дж → ждж
-    SibilantRule { target: "z",  trigger: "dʒ", result: "ʒ"  },
+    SibilantRule { target: "z",  trigger: "d͡ʒ", result: "ʒ"  },
     // зь/сь + ш → шш
     SibilantRule { target: "zʲ", trigger: "ʃ",  result: "ʃ"  },
     SibilantRule { target: "sʲ", trigger: "ʃ",  result: "ʃ"  },
     // зь/сь + ч → шч
-    SibilantRule { target: "zʲ", trigger: "tʃ", result: "ʃ"  },
-    SibilantRule { target: "sʲ", trigger: "tʃ", result: "ʃ"  },
+    SibilantRule { target: "zʲ", trigger: "t͡ʃ", result: "ʃ"  },
+    SibilantRule { target: "sʲ", trigger: "t͡ʃ", result: "ʃ"  },
 ];
 
 // ── Affricate place-assimilation rules ──────────────────────────────────────
@@ -320,12 +320,12 @@ pub struct AffricateRule {
 }
 
 pub static AFFRICATE_RULES: &[AffricateRule] = &[
-    // т + с → ц   (братство → [brɑtstvɔ] → [brɑtsvɔ] ... actually [brɑtsʲtvɔ])
-    AffricateRule { first: "t",  second: "s",   result: "ts"  },
+    // т + с → ц   (братство → [brɑtstvɔ] → [brɑt͡svɔ] ... actually [brɑt͡sʲtvɔ])
+    AffricateRule { first: "t",  second: "s",   result: "t͡s"  },
     // ть + с → ць
-    AffricateRule { first: "tʲ", second: "s",   result: "tsʲ" },
+    AffricateRule { first: "tʲ", second: "s",   result: "t͡sʲ" },
     // т + ц → цц (geminate)
-    AffricateRule { first: "t",  second: "ts",  result: "tsː" },
+    AffricateRule { first: "t",  second: "t͡s",  result: "t͡sː" },
 ];
 
 // ── /в/ positional allophones ────────────────────────────────────────────────

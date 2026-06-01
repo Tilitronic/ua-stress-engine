@@ -88,11 +88,52 @@ def merge_linguistic_dicts(dicts: List[Dict[str, LinguisticEntryDict]]) -> Dict[
     total_lemmas = sum(len(d) for d in dicts)
     logger.info(f"Starting merging of {len(dicts)} dictionaries, total lemmas: {total_lemmas}")
 
-    def covers(form_a, form_b):
-        # Returns True if form_a covers form_b (all fields in b are in a and equal)
+    # Identity fields uniquely define a WordForm: same identity = same grammatical slot.
+    # Heteronyms have different stress_indices → always distinct identity → never merged.
+    # Fields NOT listed here are "enrichment" fields (definition, etymology, tags, etc.)
+    # that can differ between sources without creating a new heteronym.
+    _IDENTITY_FIELDS = frozenset({"form", "stress_indices", "pos", "feats", "lemma"})
+
+    # Enrichment fields: present in richer sources (Kaikki) but absent in simpler ones (TXT).
+    # When identities match, the richer entry's enrichment data overwrites the poorer one.
+    _ENRICHMENT_FIELDS = frozenset({
+        "main_definition", "alt_definitions", "translations", "etymology_templates",
+        "etymology_number", "tags", "examples", "roman", "ipa", "etymology",
+        "sense_id", "categories", "inflection_templates",
+    })
+
+    def same_identity(form_a, form_b) -> bool:
+        """True when two WordForms represent the same grammatical slot (same form, stress,
+        POS, features, lemma). Heteronyms (different stress_indices) always return False."""
         a = form_a.model_dump()
         b = form_b.model_dump()
-        return all(k in a and a[k] == v for k, v in b.items())
+        for field in _IDENTITY_FIELDS:
+            va, vb = a.get(field), b.get(field)
+            # Normalise stress_indices order (variative stress [1,0] == [0,1])
+            if field == "stress_indices":
+                if sorted(va or []) != sorted(vb or []):
+                    return False
+            else:
+                if va != vb:
+                    return False
+        return True
+
+    def covers(form_a, form_b) -> bool:
+        """True if form_a is strictly richer than or equal to form_b in identity fields,
+        meaning form_a should replace form_b (legacy behaviour for exact-field matching)."""
+        a = form_a.model_dump()
+        b = form_b.model_dump()
+        return all(k in a and a[k] == v for k, v in b.items() if k in _IDENTITY_FIELDS)
+
+    def enrich(base_form, richer_form):
+        """Return a copy of base_form with any non-None enrichment fields from richer_form."""
+        merged_data = base_form.model_dump()
+        richer_data = richer_form.model_dump()
+        for field in _ENRICHMENT_FIELDS:
+            richer_val = richer_data.get(field)
+            if richer_val is not None and richer_val != [] and richer_val != {}:
+                merged_data[field] = richer_val
+        return type(base_form)(**merged_data)
 
     for d in dicts:
         for lemma, entry in d.items():
@@ -101,22 +142,20 @@ def merge_linguistic_dicts(dicts: List[Dict[str, LinguisticEntryDict]]) -> Dict[
                 merged[lemma] = entry_obj.model_copy(deep=True)
             else:
                 # --- Enhanced WordForm merge logic ---
+                # Identity match → enrich existing entry (do not create duplicate).
+                # No identity match → append as a new form (genuine heteronym or new inflection).
                 existing_forms = merged[lemma].forms
-                new_forms = []
                 for wf in entry_obj.forms:
-                    add = True
-                    to_replace = None
+                    match_idx = None
                     for i, ef in enumerate(existing_forms):
-                        if covers(wf, ef):
-                            to_replace = i
-                            add = True
+                        if same_identity(wf, ef):
+                            match_idx = i
                             break
-                        elif covers(ef, wf):
-                            add = False
-                            break
-                    if to_replace is not None:
-                        existing_forms[to_replace] = wf
-                    elif add:
+                    if match_idx is not None:
+                        # Same grammatical slot: enrich with data from the new source.
+                        existing_forms[match_idx] = enrich(existing_forms[match_idx], wf)
+                    else:
+                        # New identity (different stress/POS/feats) → genuine new form.
                         existing_forms.append(wf)
                 # --- End WordForm merge logic ---
                 # Merge possible_stress_indices (unique arrays)
@@ -548,14 +587,39 @@ class SQLExporter:
     def _insert_batches(self, cur, word_form_batch, feature_batch, translation_batch, etymology_template_batch,
                        inflection_template_batch, category_batch, tag_batch, example_batch,
                        possible_stress_index_batch, meta_batch):
-        # Insert word_form rows one by one to collect rowids
+        # Insert word_form rows one by one to collect rowids.
+        # INSERT OR IGNORE honours the uq_word_form_canonical unique index so exact
+        # duplicates are silently skipped.  When a row is skipped (rowcount==0) we
+        # SELECT the existing id so child-table FK assignment stays correct.
+        _WF_SELECT = (
+            "SELECT id FROM word_form "
+            "WHERE form=? "
+            "AND ifnull(lemma,'')=ifnull(?,'') "
+            "AND ifnull(pos,'')=ifnull(?,'') "
+            "AND ifnull(main_definition_id,-1)=ifnull(?,-1) "
+            "AND ifnull(roman,'')=ifnull(?,'') "
+            "AND ifnull(ipa,'')=ifnull(?,'') "
+            "AND ifnull(etymology_id,-1)=ifnull(?,-1) "
+            "AND ifnull(etymology_number,-1)=ifnull(?,-1) "
+            "AND ifnull(sense_id,'')=ifnull(?,'') "
+            "AND stress_indices_json=?"
+        )
         word_form_ids = []
         for row in word_form_batch:
-            cur.execute('''
-                INSERT INTO word_form (form, lemma, pos, main_definition_id, roman, ipa, etymology_id, etymology_number, sense_id, stress_indices_json)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', row)
-            word_form_ids.append(cur.lastrowid)
+            cur.execute(
+                "INSERT OR IGNORE INTO word_form "
+                "(form, lemma, pos, main_definition_id, roman, ipa, "
+                " etymology_id, etymology_number, sense_id, stress_indices_json) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                row,
+            )
+            if cur.rowcount == 1:
+                word_form_ids.append(cur.lastrowid)
+            else:
+                # Duplicate row: find the canonical existing id
+                cur.execute(_WF_SELECT, row)
+                existing = cur.fetchone()
+                word_form_ids.append(existing[0] if existing else cur.lastrowid)
         # Helper to assign word_form_id to each related row
         def assign_ids(batch):
             out = []

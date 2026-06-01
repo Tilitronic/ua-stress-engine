@@ -20,11 +20,13 @@
 ### 2. Налаштувати credentials
 
 **Варіант A: Через змінну середовища (рекомендовано)**
+
 ```powershell
 $env:MATURIN_PYPI_TOKEN = "pypi-AgEIcHlwaS5vcmcC...ваш-токен"
 ```
 
 **Варіант B: Через ~/.pypirc**
+
 ```ini
 [pypi]
 username = __token__
@@ -88,16 +90,16 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           command: build
           args: --release --out dist
-      
+
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}
@@ -111,14 +113,14 @@ jobs:
       url: https://pypi.org/p/ua-stress-engine
     permissions:
       id-token: write
-    
+
     steps:
       - uses: actions/download-artifact@v4
         with:
           pattern: wheels-*
           path: dist
           merge-multiple: true
-      
+
       - name: Publish to PyPI
         uses: PyO3/maturin-action@v1
         with:
@@ -133,6 +135,7 @@ jobs:
 ## Після публікації
 
 1. Створіть git tag:
+
    ```bash
    git tag v1.0.1
    git push --tags
@@ -141,6 +144,7 @@ jobs:
 2. Створіть GitHub release
 
 3. Оновіть README з інструкціями установки:
+
    ```bash
    pip install ua-stress-engine
    ```
@@ -162,15 +166,19 @@ jobs:
 ## Troubleshooting
 
 ### Помилка: "File already exists"
+
 Версія вже опублікована. Оновіть версію в pyproject.toml та Cargo.toml.
 
 ### Помилка: "Invalid authentication"
+
 Перевірте API токен. Він повинен починатися з `pypi-`.
 
 ### Помилка: "403 Forbidden"
+
 Перевірте що у вас є права на публікацію пакету з такою назвою.
 
 ### Попередження про external libraries (zlib.dll)
+
 Для Linux/macOS це не проблема. Для Windows можна використати `--auditwheel=repair`, але це потребує додаткових інструментів.
 
 ## Документація

@@ -259,13 +259,13 @@ ua-stress-engine/
 
 The embedded dictionary is compiled from five open Ukrainian stress resources:
 
-| Source                                                                                                              | License       | Entries              | Notes                        |
-| ------------------------------------------------------------------------------------------------------------------- | ------------- | -------------------- | ---------------------------- |
-| [kaikki.org Ukrainian](https://kaikki.org/dictionary/Ukrainian/) — Wiktionary extract                               | CC BY-SA 4.0  | ~2 M inflected forms | POS + full morphology        |
-| [lang-uk/ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) — marisa-trie                     | MIT           | ~2.9 M word forms    | compact trie with morph tags |
-| [lang-uk/ukrainian-word-stress-dictionary](https://github.com/lang-uk/ukrainian-word-stress-dictionary) — text dict | see upstream  | ~2.9 M word forms    | based on ULIF / NASU corpora |
-| [bakustarver/ukr-dictionaries-list-opensource](https://github.com/bakustarver/ukr-dictionaries-list-opensource) — SUM11 DiktJson (`ukr-ukr_SUM-11_or_1`) | public domain (original SUM-11), digitised JSON | ~127 K lemmas | classic 11-volume explanatory dictionary |
-| `ua_variative_stressed_words` — curated free-variant list                                                           | original work | ~150 lemmas          | marks freely variable stress |
+| Source                                                                                                                                                   | License                                         | Entries              | Notes                                    |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | -------------------- | ---------------------------------------- |
+| [kaikki.org Ukrainian](https://kaikki.org/dictionary/Ukrainian/) — Wiktionary extract                                                                    | CC BY-SA 4.0                                    | ~2 M inflected forms | POS + full morphology                    |
+| [lang-uk/ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) — marisa-trie                                                          | MIT                                             | ~2.9 M word forms    | compact trie with morph tags             |
+| [lang-uk/ukrainian-word-stress-dictionary](https://github.com/lang-uk/ukrainian-word-stress-dictionary) — text dict                                      | see upstream                                    | ~2.9 M word forms    | based on ULIF / NASU corpora             |
+| [bakustarver/ukr-dictionaries-list-opensource](https://github.com/bakustarver/ukr-dictionaries-list-opensource) — SUM11 DiktJson (`ukr-ukr_SUM-11_or_1`) | public domain (original SUM-11), digitised JSON | ~127 K lemmas        | classic 11-volume explanatory dictionary |
+| `ua_variative_stressed_words` — curated free-variant list                                                                                                | original work                                   | ~150 lemmas          | marks freely variable stress             |
 
 All five sources are merged into a single master SQLite (~680 MB) and then compiled into the embedded binary (`ua_stress.bin.bz2`) shipped inside the Rust crates.
 

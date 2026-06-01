@@ -106,7 +106,7 @@ def get_stress_index(word, pos=None):
     result = lookup(word)
     if result['readings']:
         return result['readings'][0]['syllable_index']
-    
+
     # Fall back to ML prediction
     return predictor.predict(word, pos=pos)
 ```

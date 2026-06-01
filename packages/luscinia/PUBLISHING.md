@@ -31,12 +31,14 @@ pip install build twine
 ## PyPI Credentials
 
 Set environment variable:
+
 ```powershell
 $env:TWINE_USERNAME = "__token__"
 $env:TWINE_PASSWORD = "pypi-your-token-here"
 ```
 
 Or configure `~/.pypirc`:
+
 ```ini
 [pypi]
 username = __token__
@@ -58,6 +60,7 @@ python -m build
 ```
 
 This creates:
+
 - `dist/luscinia-1.0.0-py3-none-any.whl` (~30 MB)
 - `dist/luscinia-1.0.0.tar.gz`
 
@@ -89,6 +92,7 @@ python -m twine upload --repository testpypi dist/*
 ```
 
 Test installation:
+
 ```powershell
 pip install -i https://test.pypi.org/simple/ luscinia
 ```
@@ -100,6 +104,7 @@ python -m twine upload dist/*
 ```
 
 Verify:
+
 ```powershell
 pip install luscinia
 python -c "from luscinia import LusciniaPredictor; print(LusciniaPredictor())"
@@ -108,11 +113,13 @@ python -c "from luscinia import LusciniaPredictor; print(LusciniaPredictor())"
 ## Versioning
 
 Update version in `pyproject.toml`:
+
 ```toml
 version = "1.0.1"
 ```
 
 And in `luscinia/__init__.py`:
+
 ```python
 __version__ = "1.0.1"
 ```
@@ -125,18 +132,24 @@ See `.github/workflows/publish-luscinia.yml`
 ## Troubleshooting
 
 ### Error: "File too large"
+
 The ONNX model is ~30 MB compressed, which is acceptable for PyPI. If you encounter size issues, ensure:
+
 - Model file is `.onnx.gz` (compressed)
 - No unnecessary files in dist/
 
 ### Error: "Invalid distribution"
+
 Ensure pyproject.toml is valid:
+
 ```powershell
 python -m build --check
 ```
 
 ### Test failures
+
 Run tests before publishing:
+
 ```powershell
 pytest tests/ -v
 ```

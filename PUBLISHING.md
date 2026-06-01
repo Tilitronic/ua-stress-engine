@@ -18,6 +18,7 @@ password = pypi-AgEIcHlwaS5vcmcC...your-token-here
 ```
 
 Or use environment variable:
+
 ```powershell
 $env:MATURIN_PYPI_TOKEN = "pypi-AgEIcHlwaS5vcmcC..."
 ```
@@ -62,21 +63,21 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-    
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           command: build
           args: --release --out dist
-      
+
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}-${{ matrix.python-version }}
@@ -91,7 +92,7 @@ jobs:
           pattern: wheels-*
           path: dist
           merge-multiple: true
-      
+
       - name: Publish to PyPI
         uses: PyO3/maturin-action@v1
         with:
@@ -133,24 +134,29 @@ python -c "import ukrainian_stress; print(ukrainian_stress.mark('мама'))"
 ## Versioning
 
 Follow semantic versioning (MAJOR.MINOR.PATCH):
+
 - **MAJOR**: Breaking API changes
 - **MINOR**: New features (backward compatible)
 - **PATCH**: Bug fixes
 
 Update version in both files:
+
 - `pyproject.toml`
 - `crates/python/Cargo.toml`
 
 ## Troubleshooting
 
 ### Error: "no matching distribution found"
+
 - Check if wheel was built for your platform
 - Try installing with `--no-binary`: `pip install --no-binary ua-stress-engine ua-stress-engine`
 
 ### Build fails on Windows
+
 - Ensure Rust toolchain is installed: `rustc --version`
 - Install Visual Studio Build Tools
 
 ### Data file missing
+
 - Run data preparation scripts before building
 - Check that `data/processed/ua_stress.bin.bz2` exists and is included in build

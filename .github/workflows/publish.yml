@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       repository:
-        description: 'PyPI repository (testpypi or pypi)'
+        description: "PyPI repository (testpypi or pypi)"
         required: true
-        default: 'testpypi'
+        default: "testpypi"
         type: choice
         options:
           - testpypi
@@ -24,22 +24,22 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
-    
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           command: build
           args: --release --out dist
           manylinux: auto
-      
+
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -52,13 +52,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
           args: --out dist
-      
+
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
@@ -73,49 +73,49 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.9', '3.12']
-    
+        python-version: ["3.9", "3.12"]
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Download wheels
         uses: actions/download-artifact@v4
         with:
           pattern: wheels-${{ matrix.os }}-*
           path: dist
           merge-multiple: true
-      
+
       - name: Install wheel
         shell: bash
         run: |
           python -m pip install --upgrade pip
           pip install dist/ua_stress_engine-*-cp$(echo ${{ matrix.python-version }} | tr -d '.')*-*.whl
-      
+
       - name: Test basic functionality
         shell: python
         run: |
           import ukrainian_stress
-          
+
           # Test mark function
           result = ukrainian_stress.mark('мама')
           assert result == 'ма́ма', f"Expected 'ма́ма', got '{result}'"
           print(f"✓ mark('мама') = {result}")
-          
+
           # Test word_count function
           count = ukrainian_stress.word_count()
           assert count > 0, f"Expected word_count > 0, got {count}"
           print(f"✓ word_count() = {count}")
-          
+
           # Test lookup function
           lookup_result = ukrainian_stress.lookup('мама')
           assert 'readings' in lookup_result, "lookup result missing 'readings'"
           assert len(lookup_result['readings']) > 0, "lookup returned no readings"
           print(f"✓ lookup('мама') returned {len(lookup_result['readings'])} reading(s)")
-          
+
           print("\n✅ All tests passed!")
 
   publish:
@@ -127,18 +127,18 @@ jobs:
       url: ${{ github.event_name == 'release' && 'https://pypi.org/p/ua-stress-engine' || 'https://test.pypi.org/p/ua-stress-engine' }}
     permissions:
       id-token: write
-    
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: '*'
+          pattern: "*"
           path: dist
           merge-multiple: true
-      
+
       - name: List files to publish
         run: ls -lh dist/
-      
+
       - name: Publish to TestPyPI
         if: github.event_name == 'workflow_dispatch' && inputs.repository == 'testpypi'
         uses: PyO3/maturin-action@v1
@@ -148,7 +148,7 @@ jobs:
         env:
           MATURIN_REPOSITORY: testpypi
           MATURIN_PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
-      
+
       - name: Publish to PyPI
         if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.repository == 'pypi')
         uses: PyO3/maturin-action@v1
@@ -157,7 +157,7 @@ jobs:
           args: --skip-existing dist/*
         env:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-      
+
       - name: Create upload summary
         run: |
           echo "## 🎉 Published to PyPI" >> $GITHUB_STEP_SUMMARY

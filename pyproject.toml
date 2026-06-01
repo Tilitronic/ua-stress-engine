@@ -2,12 +2,40 @@
 name = "ua-stress-engine"
 version = "1.0.1"
 description = "Ukrainian NLP backend for word stress prediction — Luscinia lightgbm model (99.44 % accuracy) with ONNX browser export."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "AGPL-3.0-or-later" }
+keywords = [
+    "ukrainian",
+    "nlp",
+    "stress",
+    "phonetics",
+    "ipa",
+    "linguistics",
+    "morphology",
+    "poetry",
+    "text-to-speech"
+]
 authors = [
     { name = "Rostyslav Lukan", email = "lkn.rostyslav@gmail.com" }
 ]
-readme = "README.md"
-requires-python = ">=3.8"
-
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
+    "Topic :: Text Processing :: Linguistic",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Natural Language :: Ukrainian",
+    "Operating System :: OS Independent",
+]
 # Core deps — the stress resolver is now a compiled Rust extension (ukrainian_stress).
 # No lmdb or msgpack needed at runtime.
 dependencies = []
@@ -31,6 +59,12 @@ full = [
     "ua-stress-engine[nlp]",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Rostyslav-Lukan/ua-stress-engine"
+Repository = "https://github.com/Rostyslav-Lukan/ua-stress-engine"
+Documentation = "https://github.com/Rostyslav-Lukan/ua-stress-engine#readme"
+Issues = "https://github.com/Rostyslav-Lukan/ua-stress-engine/issues"
+
 [build-system]
 requires = ["maturin>=1.5,<2.0"]
 build-backend = "maturin"
@@ -39,5 +73,13 @@ build-backend = "maturin"
 manifest-path = "crates/python/Cargo.toml"
 module-name = "ukrainian_stress"
 features = ["pyo3/extension-module"]
-# Pure Python src/ tree is also included alongside the native extension.
-python-packages = ["src"]
+# Include data files in source distribution
+include = [
+    "data/processed/ua_stress.bin.bz2",
+    "crates/**/*.rs",
+    "crates/**/Cargo.toml",
+    "LICENSE",
+    "README.md"
+]
+# Exclude Python src/ tree - it's for development/training only, not needed in the wheel
+# The Rust extension provides all runtime functionality

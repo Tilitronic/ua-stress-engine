@@ -12,7 +12,9 @@ The model is also exported to ONNX for browser-side inference via `onnxruntime-w
 | --------------------- | -------------------------------------------------------- | ------------------------- | ------------------------------------------------------- |
 | `ua-word-stress`      | [npm](https://www.npmjs.com/package/ua-word-stress)      | `packages/ua-stress-web/` | Zero-dependency TypeScript trie (~9 MB, browser + Node) |
 | `ua-word-stress-wasm` | [npm](https://www.npmjs.com/package/ua-word-stress-wasm) | `crates/wasm/`            | Rust/WASM — full IPA, morphology, batch API             |
-| `ua-stress-engine`    | PyPI (planned)                                           | `crates/python/`          | PyO3 extension — same API as WASM, for Python           |
+| `ua-stress-ml`        | [npm](https://www.npmjs.com/package/ua-stress-ml)        | `packages/ua-stress-ml/`  | ONNX Luscinia predictor for OOV words (browser/worker)  |
+| `ua-stress-engine`    | [PyPI](https://pypi.org/project/ua-stress-engine/)       | `crates/python/`          | PyO3 extension (`ukrainian_stress`) — same API as WASM  |
+| `luscinia`            | [PyPI](https://pypi.org/project/luscinia/)               | `packages/luscinia/`      | Python ONNX Luscinia predictor (OOV fallback)           |
 
 ## Highlights
 
@@ -24,7 +26,7 @@ The model is also exported to ONNX for browser-side inference via `onnxruntime-w
 | Syllable coverage | 2 – 10 + syllable words, single universal model              |
 | Features          | 132 linguistic / hash features                               |
 | Runtimes          | lightgbm (Python) · ONNX (browser via `onnxruntime-web`)     |
-| Training data     | 2.7 M word forms                                             |
+| Training data     | 2.875 M word forms                                           |
 | License           | AGPL-3.0                                                     |
 
 ## Installation
@@ -40,6 +42,13 @@ npm install ua-word-stress-wasm
 ```
 
 ### Python
+
+Published packages:
+
+```bash
+pip install ua-stress-engine
+pip install luscinia
+```
 
 The package is a compiled Rust extension (PyO3 + maturin). Runtime Python dependencies:
 
@@ -177,13 +186,25 @@ const vowelIndex = Number(results["label"].data[0]);
 See [src/stress_prediction/lightgbm/documentation/LUSCINIA_LGBM_V1_DEPLOYMENT.md](src/stress_prediction/lightgbm/documentation/LUSCINIA_LGBM_V1_DEPLOYMENT.md)
 for the full deployment guide (nginx / Express serving, batch inference, feature order).
 
+## API status
+
+Canonical API contract is documented in [documentation/API_DESIGN.md](documentation/API_DESIGN.md).
+Current runtime/API mapping:
+
+- `ua-word-stress` (npm): trie lookup API (`lookup`, `lookupFull`, `mark`, batch methods)
+- `ua-word-stress-wasm` (npm): full Rust API (`lookup`, `mark`, `stressIndex`, `transcribe`)
+- `ua-stress-engine` (PyPI): Python binding module `ukrainian_stress` with the same data shape as WASM
+- `ua-stress-ml` (npm) and `luscinia` (PyPI): ML OOV fallback predictors (132-feature Luscinia ONNX model)
+
 ## Modules
 
 | Module                          | Path                              | What it does                                                               |
 | ------------------------------- | --------------------------------- | -------------------------------------------------------------------------- |
 | **`ua-word-stress`** (npm)      | `packages/ua-stress-web/`         | Zero-dependency TypeScript trie — `mark`, `lookup`, batch API              |
 | **`ua-word-stress-wasm`** (npm) | `crates/wasm/`                    | Rust/WASM — IPA, morphology, batch API, no init() required                 |
+| **`ua-stress-ml`** (npm)        | `packages/ua-stress-ml/`          | Browser/worker ONNX Luscinia predictor for OOV stress                      |
 | **`ukrainian_stress`** (Python) | `crates/python/`                  | PyO3 extension — same API as WASM, for Python                              |
+| **`luscinia`** (Python)         | `packages/luscinia/`              | Python ONNX Luscinia predictor package (PyPI)                              |
 | **Rust core**                   | `crates/core/`                    | Dictionary embed, phonetic pipeline, syllabifier (shared by WASM + Python) |
 | **ML resolver** (LightGBM)      | `src/stress_prediction/lightgbm/` | Luscinia model — 99.44 % accuracy, 132 features, ONNX export               |
 | **NLP pipeline**                | `src/stress_resolver/`            | spaCy tokenization → Rust dict lookup → ML fallback                        |
@@ -236,16 +257,17 @@ ua-stress-engine/
 
 ## Data sources
 
-The embedded dictionary is compiled from four open Ukrainian stress resources:
+The embedded dictionary is compiled from five open Ukrainian stress resources:
 
 | Source                                                                                                              | License       | Entries              | Notes                        |
 | ------------------------------------------------------------------------------------------------------------------- | ------------- | -------------------- | ---------------------------- |
 | [kaikki.org Ukrainian](https://kaikki.org/dictionary/Ukrainian/) — Wiktionary extract                               | CC BY-SA 4.0  | ~2 M inflected forms | POS + full morphology        |
 | [lang-uk/ukrainian-word-stress](https://github.com/lang-uk/ukrainian-word-stress) — marisa-trie                     | MIT           | ~2.9 M word forms    | compact trie with morph tags |
 | [lang-uk/ukrainian-word-stress-dictionary](https://github.com/lang-uk/ukrainian-word-stress-dictionary) — text dict | see upstream  | ~2.9 M word forms    | based on ULIF / NASU corpora |
+| [bakustarver/ukr-dictionaries-list-opensource](https://github.com/bakustarver/ukr-dictionaries-list-opensource) — SUM11 DiktJson (`ukr-ukr_SUM-11_or_1`) | public domain (original SUM-11), digitised JSON | ~127 K lemmas | classic 11-volume explanatory dictionary |
 | `ua_variative_stressed_words` — curated free-variant list                                                           | original work | ~150 lemmas          | marks freely variable stress |
 
-All four sources are merged into a single master SQLite (~680 MB) and then compiled into the embedded binary (`ua_stress.bin.bz2`) shipped inside the Rust crates.
+All five sources are merged into a single master SQLite (~680 MB) and then compiled into the embedded binary (`ua_stress.bin.bz2`) shipped inside the Rust crates.
 
 ## Running tests
 

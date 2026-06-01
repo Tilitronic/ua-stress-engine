@@ -1,0 +1,92 @@
+[project]
+name = "luscinia"
+version = "1.0.0"
+description = "Luscinia: LightGBM/ONNX stress predictor for out-of-vocabulary Ukrainian words"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "AGPL-3.0-or-later" }
+authors = [
+    { name = "Rostyslav Lukan", email = "lkn.rostyslav@gmail.com" }
+]
+keywords = [
+    "ukrainian",
+    "nlp",
+    "stress",
+    "accent",
+    "machine-learning",
+    "onnx",
+    "lightgbm",
+    "poetry"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Text Processing :: Linguistic",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Natural Language :: Ukrainian",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy>=1.24.0",
+    "onnxruntime>=1.16.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Rostyslav-Lukan/ua-stress-engine"
+Repository = "https://github.com/Rostyslav-Lukan/ua-stress-engine"
+Documentation = "https://github.com/Rostyslav-Lukan/ua-stress-engine/tree/main/packages/luscinia"
+Issues = "https://github.com/Rostyslav-Lukan/ua-stress-engine/issues"
+
+[project.optional-dependencies]
+# Full feature set with HuggingFace integration
+hub = [
+    "huggingface-hub>=0.19.0",
+]
+# Development dependencies
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["luscinia"]
+
+[tool.setuptools.package-data]
+luscinia = ["data/*.onnx.gz", "data/*.json", "py.typed"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.8"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

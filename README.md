@@ -86,7 +86,7 @@ trie.markBatch(["мама", "тато"]); // → ['ма́ма', 'та́то']
 Rust/WASM with IPA transcription, morphology, and batch API. No `init()` call needed — the dictionary loads automatically at module import (bundler target):
 
 ```ts
-import { mark, lookup, stressIndex, transcribe } from "ua-word-stress-wasm";
+import { mark, lookup, stressIndex, lookupMany, markMany, transcribe } from "ua-word-stress-wasm";
 
 mark("університет"); // → 'університе́т'
 stressIndex("мама"); // → 0  (0-based syllable index)
@@ -98,6 +98,9 @@ r.readings[0].syllableIndex; // → 0
 r.readings[1].stressedForm; // → 'замо́к'  (heteronym)
 
 transcribe("слово", 0); // → { ipa: 'slɔwɔ', ipaSyllables: ['ˈslɔ', 'wɔ'], … }
+
+const batch = lookupMany(["мама", "замок", "xyz"]);
+const marked = markMany(["мама", "тато", "xyz"]);
 ```
 
 See the [WASM package README](crates/wasm/pkg/README.md) for the full API reference.
@@ -115,6 +118,9 @@ r = ukrainian_stress.lookup('замок')
 r['readings'][0]['stressed_form']      # → 'за́мок'
 r['readings'][0]['ipa']               # → 'zɑmɔk'
 r['readings'][0]['syllable_index']    # → 0
+
+batch = ukrainian_stress.lookup_many(['мама', 'університет', 'xyz'])
+marks = ukrainian_stress.mark_many(['мама', 'тато', 'xyz'])
 ```
 
 ### Full pipeline (Rust dict + LightGBM ML fallback)
@@ -192,8 +198,8 @@ Canonical API contract is documented in [documentation/API_DESIGN.md](documentat
 Current runtime/API mapping:
 
 - `ua-word-stress` (npm): trie lookup API (`lookup`, `lookupFull`, `mark`, batch methods)
-- `ua-word-stress-wasm` (npm): full Rust API (`lookup`, `mark`, `stressIndex`, `transcribe`)
-- `ua-stress-engine` (PyPI): Python binding module `ukrainian_stress` with the same data shape as WASM
+- `ua-word-stress-wasm` (npm): full Rust API (`lookup`, `lookupBatch/lookupMany`, `mark`, `markBatch/markMany`, `stressIndex`, `transcribe`)
+- `ua-stress-engine` (PyPI): Python binding module `ukrainian_stress` incl. batch (`lookup_many`, `mark_many`)
 - `ua-stress-ml` (npm) and `luscinia` (PyPI): ML OOV fallback predictors (132-feature Luscinia ONNX model)
 
 ## Modules

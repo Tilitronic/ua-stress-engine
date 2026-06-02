@@ -177,6 +177,32 @@ impl UaStressDict {
         WordLookupResult { form, readings }
     }
 
+    /// Batch lookup for many words.
+    ///
+    /// Returns one [`WordLookupResult`] per input word in the same order.
+    /// This is primarily a convenience API for language bindings that need
+    /// to amortize call overhead across large word lists.
+    pub fn lookup_many(&self, words: &[String]) -> Vec<WordLookupResult> {
+        words.iter().map(|w| self.lookup(w)).collect()
+    }
+
+    /// Batch stress-marking for many words.
+    ///
+    /// For each input word returns the stressed form of the first reading,
+    /// or the original word unchanged when the word is unknown.
+    pub fn mark_many(&self, words: &[String]) -> Vec<String> {
+        words
+            .iter()
+            .map(|w| {
+                let result = self.lookup(w);
+                match result.readings.first() {
+                    Some(r) => r.stressed_form.clone(),
+                    None => w.clone(),
+                }
+            })
+            .collect()
+    }
+
     /// Total number of word forms stored in the dictionary.
     pub fn len(&self) -> usize {
         self.raw.entries.len()
@@ -437,5 +463,41 @@ mod tests {
                 failures.join("\n")
             );
         }
+    }
+
+    #[test]
+    fn lookup_many_keeps_input_order() {
+        let compressed = include_bytes!("../../../data/processed/ua_stress.bin.bz2");
+        let dict = UaStressDict::from_compressed_bytes(compressed)
+            .expect("Failed to load ua_stress.bin.bz2");
+
+        let words = vec![
+            "мама".to_string(),
+            "xyz_unknown".to_string(),
+            "університет".to_string(),
+        ];
+
+        let out = dict.lookup_many(&words);
+        assert_eq!(out.len(), words.len());
+        assert_eq!(out[0].form, "мама");
+        assert_eq!(out[1].form, "xyz_unknown");
+        assert_eq!(out[2].form, "університет");
+        assert!(!out[0].readings.is_empty());
+        assert!(out[1].readings.is_empty());
+        assert!(!out[2].readings.is_empty());
+    }
+
+    #[test]
+    fn mark_many_marks_known_and_preserves_unknown() {
+        let compressed = include_bytes!("../../../data/processed/ua_stress.bin.bz2");
+        let dict = UaStressDict::from_compressed_bytes(compressed)
+            .expect("Failed to load ua_stress.bin.bz2");
+
+        let words = vec!["мама".to_string(), "xyz_unknown".to_string()];
+        let out = dict.mark_many(&words);
+
+        assert_eq!(out.len(), 2);
+        assert_ne!(out[0], "мама");
+        assert_eq!(out[1], "xyz_unknown");
     }
 }

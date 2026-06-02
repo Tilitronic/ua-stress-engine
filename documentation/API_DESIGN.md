@@ -163,6 +163,39 @@ ukrainian_stress.mark("мама")   # → "ма́ма"
 ukrainian_stress.mark("__unk")  # → "__unk"
 ```
 
+### Batch APIs
+
+Batch functions return one result per input word in the same order.
+
+| Runtime | Lookup batch | Mark batch |
+| ------- | ------------ | ---------- |
+| Rust (`ua-stress-core`) | `lookup_many(words: &[String]) -> Vec<WordLookupResult>` | `mark_many(words: &[String]) -> Vec<String>` |
+| Python (`ukrainian_stress`) | `lookup_many(words: list[str]) -> list[dict]` | `mark_many(words: list[str]) -> list[str]` |
+| WASM (`ua-word-stress-wasm`) | `lookupBatch(words)` / `lookupMany(words)` | `markBatch(words)` / `markMany(words)` |
+| TS trie (`ua-word-stress`) | `lookupBatch(words)` / `lookupMany(words)` | `markBatch(words)` / `markMany(words)` |
+
+Python example:
+
+```python
+import ukrainian_stress as ua
+
+words = ["мама", "університет", "xyz"]
+lookups = ua.lookup_many(words)
+marked = ua.mark_many(words)
+
+print(lookups[0]["readings"][0]["stressed_form"])  # ма́ма
+print(marked)  # ['ма́ма', 'університе́т', 'xyz']
+```
+
+WASM example:
+
+```ts
+import { lookupMany, markMany } from "ua-word-stress-wasm";
+
+const r = lookupMany(["мама", "замок", "xyz"]);
+const m = markMany(["мама", "тато", "xyz"]);
+```
+
 ### `wordCount() → number`
 
 Total word forms stored in the embedded dictionary.

@@ -227,18 +227,23 @@ pub fn stress_index_batch(words: &js_sys::Array) -> js_sys::Int32Array {
 #[wasm_bindgen(js_name = markBatch)]
 pub fn mark_batch(words: &js_sys::Array) -> js_sys::Array {
     DICT.with(|d| {
+        let input: Vec<String> = (0..words.length())
+            .map(|i| words.get(i).as_string().unwrap_or_default())
+            .collect();
+        let marked = d.mark_many(&input);
+
         let out = js_sys::Array::new_with_length(words.length());
-        for i in 0..words.length() {
-            let word = words.get(i).as_string().unwrap_or_default();
-            let result = d.lookup(&word);
-            let marked = match result.readings.first() {
-                Some(r) => r.stressed_form.clone(),
-                None => word.clone(),
-            };
-            out.set(i, JsValue::from_str(&marked));
+        for (i, word) in marked.iter().enumerate() {
+            out.set(i as u32, JsValue::from_str(word));
         }
         out
     })
+}
+
+/// Alias for `markBatch` with camelCase `Many` naming.
+#[wasm_bindgen(js_name = markMany)]
+pub fn mark_many(words: &js_sys::Array) -> js_sys::Array {
+    mark_batch(words)
 }
 
 /// Batch full lookup — returns a JS Array of `LookupResult` objects (same
@@ -253,12 +258,75 @@ pub fn mark_batch(words: &js_sys::Array) -> js_sys::Array {
 /// ```
 #[wasm_bindgen(js_name = lookupBatch)]
 pub fn lookup_batch(words: &js_sys::Array) -> js_sys::Array {
-    let out = js_sys::Array::new_with_length(words.length());
-    for i in 0..words.length() {
-        let word = words.get(i).as_string().unwrap_or_default();
-        out.set(i, lookup(&word).into());
-    }
-    out
+    DICT.with(|d| {
+        let input: Vec<String> = (0..words.length())
+            .map(|i| words.get(i).as_string().unwrap_or_default())
+            .collect();
+        let results = d.lookup_many(&input);
+
+        let out = js_sys::Array::new_with_length(words.length());
+        for (i, r) in results.iter().enumerate() {
+            let obj = Object::new();
+            set(&obj, "form", JsValue::from_str(&r.form));
+
+            let readings_arr = Array::new();
+            for rr in &r.readings {
+                let rd = Object::new();
+                set(&rd, "syllableIndex", JsValue::from(rr.syllable_index as u32));
+                set(&rd, "stressFromEnd", JsValue::from(rr.stress_from_end as u32));
+                set(&rd, "syllableCount", JsValue::from(rr.syllable_count as u32));
+                set(&rd, "form", JsValue::from_str(&rr.form));
+                set(&rd, "stressedForm", JsValue::from_str(&rr.stressed_form));
+                set(&rd, "wordSyllables", str_array(&rr.word_syllables));
+                set(&rd, "ipa", JsValue::from_str(&rr.ipa));
+                set(&rd, "ipaSyllables", str_array(&rr.ipa_syllables));
+
+                let tokens_arr = Array::new();
+                for t in &rr.tokens {
+                    let td = Object::new();
+                    set(&td, "ipa", JsValue::from_str(&t.ipa));
+                    set(&td, "source", JsValue::from_str(&t.source));
+                    set(&td, "type", JsValue::from_str(&format!("{:?}", t.token_type)));
+                    set(&td, "vowelIndex", JsValue::from(t.vowel_index as i32));
+                    set(&td, "stressed", JsValue::from(t.stressed));
+                    set(&td, "palatalized", JsValue::from(t.palatalized));
+                    tokens_arr.push(&td);
+                }
+                set(&rd, "tokens", tokens_arr.into());
+
+                let morph_arr = Array::new();
+                for m in &rr.morph {
+                    let md = Object::new();
+                    set(&md, "pos", str_array(&m.pos));
+                    let feats_obj = Object::new();
+                    for (k, vs) in &m.feats {
+                        set(&feats_obj, k, str_array(vs));
+                    }
+                    set(&md, "feats", feats_obj.into());
+                    let lemma = m.lemma.as_deref().map(JsValue::from_str).unwrap_or(JsValue::NULL);
+                    set(&md, "lemma", lemma);
+                    let def = m.definition.as_deref().map(JsValue::from_str).unwrap_or(JsValue::NULL);
+                    set(&md, "definition", def);
+                    morph_arr.push(&md);
+                }
+                set(&rd, "morph", morph_arr.into());
+                let conf = rr.confidence.as_deref().map(JsValue::from_str).unwrap_or(JsValue::NULL);
+                set(&rd, "confidence", conf);
+
+                readings_arr.push(&rd);
+            }
+            set(&obj, "readings", readings_arr.into());
+            out.set(i as u32, obj.into());
+        }
+
+        out
+    })
+}
+
+/// Alias for `lookupBatch` with camelCase `Many` naming.
+#[wasm_bindgen(js_name = lookupMany)]
+pub fn lookup_many(words: &js_sys::Array) -> js_sys::Array {
+    lookup_batch(words)
 }
 
 /// Transcribe a Ukrainian word to IPA using all 6 phonetic passes.

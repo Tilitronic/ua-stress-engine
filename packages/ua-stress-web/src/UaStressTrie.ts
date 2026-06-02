@@ -416,6 +416,11 @@ export class UaStressTrie {
     return words.map((w) => this.lookup(w));
   }
 
+  /** Alias for {@link lookupBatch}. */
+  lookupMany(words: string[]): (number | null)[] {
+    return this.lookupBatch(words);
+  }
+
   /**
    * Batch `lookupFull` — full result for each word.  Returns `null` for unknowns.
    *
@@ -425,6 +430,11 @@ export class UaStressTrie {
    */
   lookupFullBatch(words: string[]): (LookupResult | null)[] {
     return words.map((w) => this.lookupFull(w));
+  }
+
+  /** Alias for {@link lookupFullBatch}. */
+  lookupFullMany(words: string[]): (LookupResult | null)[] {
+    return this.lookupFullBatch(words);
   }
 
   /**
@@ -437,6 +447,11 @@ export class UaStressTrie {
    */
   markBatch(words: string[]): (string | null)[] {
     return words.map((w) => this.mark(w));
+  }
+
+  /** Alias for {@link markBatch}. */
+  markMany(words: string[]): (string | null)[] {
+    return this.markBatch(words);
   }
 
   // ── Private helpers ─────────────────────────────────────────────────────────

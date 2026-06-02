@@ -2,7 +2,9 @@
 //!
 //! Exposes:
 //!   - `lookup(word)`             в†’ dict with all stress variants + phonetics + morphology
+//!   - `lookup_many(words)`       в†’ list[dict] (batch lookup)
 //!   - `mark(word)`               в†’ str with combining acutes (first variant)
+//!   - `mark_many(words)`         в†’ list[str] (batch mark)
 //!   - `word_count()`             в†’ int
 //!   - `transcribe(word, stress_index)` в†’ dict (full IPA + syllables)
 //!
@@ -137,6 +139,23 @@ fn lookup(py: Python<'_>, word: &str) -> PyResult<Py<PyDict>> {
     Ok(lookup_result_to_py(py, &result)?.into())
 }
 
+/// Batch lookup for many words.
+///
+/// Args:
+///     words: list of word strings.
+///
+/// Returns:
+///     list of lookup result dicts (same shape as ``lookup``), in input order.
+#[pyfunction]
+fn lookup_many(py: Python<'_>, words: Vec<String>) -> PyResult<Py<PyList>> {
+    let results = DICT.lookup_many(&words);
+    let out = PyList::empty_bound(py);
+    for r in &results {
+        out.append(lookup_result_to_py(py, r)?)?;
+    }
+    Ok(out.into())
+}
+
 /// Return *word* with a combining acute accent (U+0301) placed after the
 /// stressed vowel of the **first** (most common) stress variant.
 ///
@@ -151,6 +170,14 @@ fn mark(word: &str) -> String {
         Some(r) => r.stressed_form.clone(),
         None => word.to_string(),
     }
+}
+
+/// Batch stress-marking for many words.
+///
+/// Returns one output per input word. Unknown words are returned unchanged.
+#[pyfunction]
+fn mark_many(words: Vec<String>) -> Vec<String> {
+    DICT.mark_many(&words)
 }
 
 /// Total number of word forms in the embedded dictionary.
@@ -219,7 +246,9 @@ fn transcribe(py: Python<'_>, word: &str, si: u8) -> PyResult<Py<PyDict>> {
 #[pymodule]
 fn ukrainian_stress(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(lookup, m)?)?;
+    m.add_function(wrap_pyfunction!(lookup_many, m)?)?;
     m.add_function(wrap_pyfunction!(mark, m)?)?;
+    m.add_function(wrap_pyfunction!(mark_many, m)?)?;
     m.add_function(wrap_pyfunction!(word_count, m)?)?;
     m.add_function(wrap_pyfunction!(transcribe, m)?)?;
     Ok(())

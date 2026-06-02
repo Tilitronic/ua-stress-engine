@@ -167,12 +167,12 @@ ukrainian_stress.mark("__unk")  # → "__unk"
 
 Batch functions return one result per input word in the same order.
 
-| Runtime | Lookup batch | Mark batch |
-| ------- | ------------ | ---------- |
-| Rust (`ua-stress-core`) | `lookup_many(words: &[String]) -> Vec<WordLookupResult>` | `mark_many(words: &[String]) -> Vec<String>` |
-| Python (`ukrainian_stress`) | `lookup_many(words: list[str]) -> list[dict]` | `mark_many(words: list[str]) -> list[str]` |
-| WASM (`ua-word-stress-wasm`) | `lookupBatch(words)` / `lookupMany(words)` | `markBatch(words)` / `markMany(words)` |
-| TS trie (`ua-word-stress`) | `lookupBatch(words)` / `lookupMany(words)` | `markBatch(words)` / `markMany(words)` |
+| Runtime                      | Lookup batch                                             | Mark batch                                   |
+| ---------------------------- | -------------------------------------------------------- | -------------------------------------------- |
+| Rust (`ua-stress-core`)      | `lookup_many(words: &[String]) -> Vec<WordLookupResult>` | `mark_many(words: &[String]) -> Vec<String>` |
+| Python (`ukrainian_stress`)  | `lookup_many(words: list[str]) -> list[dict]`            | `mark_many(words: list[str]) -> list[str]`   |
+| WASM (`ua-word-stress-wasm`) | `lookupBatch(words)` / `lookupMany(words)`               | `markBatch(words)` / `markMany(words)`       |
+| TS trie (`ua-word-stress`)   | `lookupBatch(words)` / `lookupMany(words)`               | `markBatch(words)` / `markMany(words)`       |
 
 Python example:
 

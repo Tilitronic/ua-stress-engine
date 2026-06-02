@@ -86,7 +86,14 @@ trie.markBatch(["мама", "тато"]); // → ['ма́ма', 'та́то']
 Rust/WASM with IPA transcription, morphology, and batch API. No `init()` call needed — the dictionary loads automatically at module import (bundler target):
 
 ```ts
-import { mark, lookup, stressIndex, lookupMany, markMany, transcribe } from "ua-word-stress-wasm";
+import {
+  mark,
+  lookup,
+  stressIndex,
+  lookupMany,
+  markMany,
+  transcribe,
+} from "ua-word-stress-wasm";
 
 mark("університет"); // → 'університе́т'
 stressIndex("мама"); // → 0  (0-based syllable index)

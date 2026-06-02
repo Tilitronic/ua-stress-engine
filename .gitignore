@@ -44,6 +44,8 @@ MANIFEST
 # Environment / secrets
 .env
 .env.local
+.env.*
+!.env.example
 
 # Virtual environments
 venv/
